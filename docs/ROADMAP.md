@@ -5,8 +5,8 @@
 - [x] Separate Tater and satellite systemd services
 - [x] Shared private local satellite credential
 - [x] Configuration, execution plans, and host diagnostics
-- [ ] Reproducible remote-only dependency lock for ARM64
-- [ ] Tater import test without any local-model packages installed
+- [x] Reproducible remote-only dependency manifest and pinned installer
+- [x] Tater import and live health test without local-model packages installed
 
 ## Phase 2: Satellite1 hardware
 
@@ -30,4 +30,3 @@
 - [ ] Run a 24-hour memory/reconnect soak test
 - [ ] Confirm music playback does not starve Tater or wake detection
 - [ ] Establish the minimum supported Raspberry Pi model
-

@@ -1,6 +1,6 @@
 [tater]
 url = "https://github.com/TaterTotterson/Tater.git"
-reference_revision = "c3f00067ac7858bacc3aece4ccef27fa74ce3ed5"
+reference_revision = "432fa2873dde07eeca17d823166ed565000c1d76"
 role = "Full Tater server, TaterOS, Hydra, Verbas, integrations, and native satellite API"
 
 [reachy_standalone]
@@ -21,4 +21,3 @@ role = "Embedded Linux packaging, hardware bridge, provisioning, and update refe
 [satellite1_rpi]
 url = "https://github.com/FutureProofHomes/Satellite1-RPi-Image.git"
 role = "Raspberry Pi OS image, FUSB302 kernel, device-tree overlays, ALSA, and SAT1 SDK"
-

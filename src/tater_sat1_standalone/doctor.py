@@ -22,8 +22,8 @@ def inspect_host(config: StandaloneConfig) -> list[Check]:
     memory_mb = _memory_total_mb()
     if memory_mb is None:
         checks.append(Check("warn", "memory", "unable to read /proc/meminfo"))
-    elif memory_mb < 450:
-        checks.append(Check("error", "memory", f"{memory_mb} MB detected; at least 450 MB is required"))
+    elif memory_mb < 400:
+        checks.append(Check("error", "memory", f"{memory_mb} MB detected; at least 400 MB is required"))
     elif memory_mb < 900:
         checks.append(Check("warn", "memory", f"{memory_mb} MB detected; edge profile and zram are required"))
     else:
@@ -57,4 +57,3 @@ def _memory_total_mb() -> int | None:
     except (OSError, ValueError, IndexError):
         return None
     return None
-

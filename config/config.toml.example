@@ -21,6 +21,7 @@ audio_input_device = "default"
 audio_output_device = "default"
 # Set this only if the appliance audio server is not discoverable by default.
 pulse_server = ""
-wake_model = "hey_tater"
+# The bundled Linux Satellite source includes okay_nabu. Point this at a
+# downloaded Tater wake-word model once one is installed in the models folder.
+wake_model = "okay_nabu"
 extra_args = []
-

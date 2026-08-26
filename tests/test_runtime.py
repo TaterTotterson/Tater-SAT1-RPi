@@ -31,6 +31,17 @@ class RuntimeTests(unittest.TestCase):
             satellite = build_satellite_plan(config)
 
             self.assertEqual(tater.environment["TATER_NATIVE_SATELLITE_TOKEN"], token)
+            self.assertEqual(tater.environment["TATER_SETUP_PROFILE"], "edge")
+            self.assertEqual(tater.environment["TATER_REMOTE_ONLY"], "1")
+            self.assertEqual(tater.environment["TATER_SETUP_REQUIRE_LOCAL_LLM"], "0")
+            self.assertEqual(tater.environment["MALLOC_ARENA_MAX"], "2")
+            worker_limits = {
+                name: value
+                for name, value in tater.environment.items()
+                if name.startswith("TATER_RUNTIME_") and name.endswith("_WORKERS")
+            }
+            self.assertEqual(set(worker_limits.values()), {"1"})
+            self.assertEqual(len(worker_limits), 6)
             self.assertIn("http://127.0.0.1:8501", satellite.command)
             token_index = satellite.command.index("--tater-token-file") + 1
             self.assertEqual(satellite.command[token_index], str(config.runtime.token_path))
@@ -41,4 +52,3 @@ class RuntimeTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

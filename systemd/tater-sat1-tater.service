@@ -11,8 +11,7 @@ Environment=PYTHONUNBUFFERED=1
 ExecStart=/opt/tater-sat1/venv/bin/tater-sat1-standalone --config /etc/tater-sat1-standalone/config.toml run tater
 Restart=on-failure
 RestartSec=3
-TimeoutStopSec=15
+TimeoutStopSec=45
 
 [Install]
 WantedBy=multi-user.target
-

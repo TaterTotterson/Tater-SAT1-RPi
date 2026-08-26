@@ -10,17 +10,19 @@ synthesis work can use remote APIs.
 
 ## Status
 
-This repository is an early host-side skeleton. It currently provides:
+This repository is an early runnable appliance scaffold. It currently provides:
 
 - separate `systemd` services for Tater and the SAT1 voice runtime
 - automatic creation of a shared private native-satellite token
 - a loopback-only satellite connection to the local Tater server
 - configuration and deterministic launch plans
 - host diagnostics and unit tests
-- an explicit plan for a 512 MB remote-only Tater profile
+- Tater's tested remote-only `edge` dependency and runtime profile
+- a pinned Raspberry Pi installer with a non-mutating dry-run mode
 
-It does **not** yet provide a flashable image, the trimmed Tater dependency set,
-or the SAT1 hardware adapter.
+It does **not** yet provide a flashable image or the SAT1 LED/button hardware
+adapter. Audio through the HAT's XMOS USB device still needs validation on a
+physical Pi.
 
 ## Target flow
 
@@ -55,7 +57,19 @@ The intended starting point is the experimental FutureProofHomes Satellite1
 Raspberry Pi Zero 2 W image because it already contains the board-specific
 kernel, USB-C PD, device-tree, and ALSA work.
 
-The eventual installer will place:
+Preview the complete installation without modifying the host:
+
+```sh
+./script/install --dry-run
+```
+
+On a dedicated Satellite1 Raspberry Pi image, install with:
+
+```sh
+sudo ./script/install
+```
+
+The installer places:
 
 - the full Tater source at `/opt/tater/app`
 - a remote-only Tater virtual environment at `/opt/tater/venv`
@@ -63,9 +77,9 @@ The eventual installer will place:
 - persistent state at `/var/lib/tater-sat1-standalone`
 - configuration at `/etc/tater-sat1-standalone/config.toml`
 
-See [Architecture](docs/ARCHITECTURE.md), [Edge profile](docs/EDGE_PROFILE.md),
-[Upstream references](docs/UPSTREAMS.md), and [Roadmap](docs/ROADMAP.md) for the
-implementation path.
+See [Installation](docs/INSTALL.md), [Architecture](docs/ARCHITECTURE.md),
+[Edge profile](docs/EDGE_PROFILE.md), [Upstream references](docs/UPSTREAMS.md),
+and [Roadmap](docs/ROADMAP.md) for the implementation path.
 
 ## License
 
