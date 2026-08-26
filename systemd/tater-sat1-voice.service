@@ -1,0 +1,19 @@
+[Unit]
+Description=Satellite1 voice runtime connected to the local Tater server
+Requires=tater-sat1-tater.service
+After=tater-sat1-tater.service sound.target
+
+[Service]
+Type=simple
+User=tater
+Group=tater
+SupplementaryGroups=audio gpio i2c spi
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/tater-sat1/venv/bin/tater-sat1-standalone --config /etc/tater-sat1-standalone/config.toml run satellite
+Restart=always
+RestartSec=2
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target
+

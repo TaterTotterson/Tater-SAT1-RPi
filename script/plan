@@ -1,0 +1,15 @@
+#!/bin/sh
+set -eu
+
+PROJECT_DIR="$(CDPATH= cd "$(dirname "$0")/.." && pwd -P)"
+CONFIG_PATH="${1:-${PROJECT_DIR}/config/config.toml.example}"
+COMPONENT="${2:-tater}"
+
+if command -v python3.11 >/dev/null 2>&1; then
+  PYTHON_BIN="python3.11"
+else
+  PYTHON_BIN="python3"
+fi
+
+PYTHONPATH="${PROJECT_DIR}/src${PYTHONPATH:+:${PYTHONPATH}}" \
+  "${PYTHON_BIN}" -m tater_sat1_standalone --config "${CONFIG_PATH}" plan "${COMPONENT}"

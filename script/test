@@ -1,0 +1,14 @@
+#!/bin/sh
+set -eu
+
+PROJECT_DIR="$(CDPATH= cd "$(dirname "$0")/.." && pwd -P)"
+cd "${PROJECT_DIR}"
+
+if command -v python3.11 >/dev/null 2>&1; then
+  PYTHON_BIN="python3.11"
+else
+  PYTHON_BIN="python3"
+fi
+
+PYTHONPATH="${PROJECT_DIR}/src${PYTHONPATH:+:${PYTHONPATH}}" \
+  "${PYTHON_BIN}" -m unittest discover -s tests -v

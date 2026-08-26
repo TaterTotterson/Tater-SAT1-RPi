@@ -1,0 +1,24 @@
+[tater]
+url = "https://github.com/TaterTotterson/Tater.git"
+reference_revision = "c3f00067ac7858bacc3aece4ccef27fa74ce3ed5"
+role = "Full Tater server, TaterOS, Hydra, Verbas, integrations, and native satellite API"
+
+[reachy_standalone]
+url = "https://github.com/TaterTotterson/Reachy-Tater-Standalone.git"
+reference_revision = "2c4fd5007aeb248ba7a914c4cf660a3f3dfab98e"
+role = "Primary reference for bundling full Tater with a loopback native satellite"
+
+[linux_satellite]
+url = "https://github.com/TaterTotterson/Tater-Linux-Satellite.git"
+reference_revision = "5fcba46b1f5262efc3c49c4e43ef093222f42843"
+role = "Linux audio, local wake words, playback, and native satellite transport"
+
+[thirdreality_firmware]
+url = "https://github.com/TaterTotterson/Tater-ThirdReality-Voice-Firmware.git"
+reference_revision = "6c74e7bf0b14c5c788b20f4b6a26d847b06b3b8e"
+role = "Embedded Linux packaging, hardware bridge, provisioning, and update reference"
+
+[satellite1_rpi]
+url = "https://github.com/FutureProofHomes/Satellite1-RPi-Image.git"
+role = "Raspberry Pi OS image, FUSB302 kernel, device-tree overlays, ALSA, and SAT1 SDK"
+

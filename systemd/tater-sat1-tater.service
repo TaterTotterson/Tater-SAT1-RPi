@@ -1,0 +1,18 @@
+[Unit]
+Description=Tater server for the standalone Satellite1 appliance
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=tater
+Group=tater
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/tater-sat1/venv/bin/tater-sat1-standalone --config /etc/tater-sat1-standalone/config.toml run tater
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=15
+
+[Install]
+WantedBy=multi-user.target
+
