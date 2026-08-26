@@ -19,7 +19,7 @@ class InstallerTests(unittest.TestCase):
         )
         self.assertEqual(completed.returncode, 0, completed.stderr)
         output = completed.stdout
-        self.assertIn("67bd00361622b01bc167233b13d0feaeef0a4fc0", output)
+        self.assertIn("3f8500a2ddc8ffccf2c27f1eb49140d096793c45", output)
         self.assertIn("5fcba46b1f5262efc3c49c4e43ef093222f42843", output)
         self.assertIn("TATER_SETUP_REQUIRE_LOCAL_LLM=0", output)
         self.assertIn("setup_tater.sh edge", output)

@@ -118,7 +118,7 @@ def managed_files(flavor: str) -> tuple[str, ...]:
     return COMMON_FILES + FLAVOR_FILES[flavor]
 
 
-def _copy_stream(source: BinaryIO, destination: Path, maximum: int) -> int:
+def _copy_stream(source: BinaryIO, destination: Path, maximum: int, *, durable: bool = False) -> int:
     total = 0
     with destination.open("wb") as output:
         while True:
@@ -130,7 +130,8 @@ def _copy_stream(source: BinaryIO, destination: Path, maximum: int) -> int:
                 raise ValueError(f"archive member exceeds {maximum} bytes")
             output.write(chunk)
         output.flush()
-        os.fsync(output.fileno())
+        if durable:
+            os.fsync(output.fileno())
     return total
 
 
