@@ -79,6 +79,8 @@ class ImageBuilderTests(unittest.TestCase):
         self.assertIn("tater-sat1-update.path", chroot_stage)
         self.assertIn("tater-sat1-update-health.service", chroot_stage)
         self.assertIn("build_ota_bundle.py", bundle_stage)
+        self.assertIn("on_chroot <<EOF", bundle_stage)
+        self.assertIn("trap cleanup EXIT", bundle_stage)
         self.assertIn("TATER_SAT1_OTA_PRIVATE_KEY_PEM", builder)
         self.assertIn("keys/update-public.pem", builder)
 

@@ -88,7 +88,6 @@ test -L /etc/systemd/system/multi-user.target.wants/tater-sat1-update.path
 test -L /etc/systemd/system/multi-user.target.wants/tater-sat1-update-health.service
 
 rm -rf \
-    /opt/tater-sat1-standalone-src \
     /opt/tater-sat1/linux-satellite/.git \
     /tmp/tater-sat1-image-flavor \
     /tmp/tater-sat1-wifi-country \
