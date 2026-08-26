@@ -26,6 +26,29 @@ class InstallerTests(unittest.TestCase):
         self.assertIn("pip install --editable /opt/tater-sat1/linux-satellite", output)
         self.assertNotIn("apt-get update", output)
 
+    def test_satellite_dry_run_omits_local_tater(self) -> None:
+        completed = subprocess.run(
+            [
+                str(ROOT / "script" / "install"),
+                "--flavor",
+                "satellite",
+                "--dry-run",
+                "--skip-apt",
+                "--no-enable",
+            ],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        output = completed.stdout
+        self.assertIn("config.satellite.toml.example", output)
+        self.assertIn("tater-sat1-satellite.service", output)
+        self.assertIn("pip install --editable /opt/tater-sat1/linux-satellite", output)
+        self.assertNotIn("setup_tater.sh edge", output)
+        self.assertNotIn("git clone https://github.com/TaterTotterson/Tater.git", output)
+
 
 if __name__ == "__main__":
     unittest.main()

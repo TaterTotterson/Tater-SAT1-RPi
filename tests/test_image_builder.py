@@ -22,8 +22,23 @@ class ImageBuilderTests(unittest.TestCase):
         self.assertIn("base_release=bookworm", completed.stdout)
         self.assertIn("pi_gen_revision=67262a4ad0959aab2a9d84a6392b1967999e8f50", completed.stdout)
         self.assertIn("sat1_release=v0.1.4", completed.stdout)
-        self.assertIn("first_boot_token=unique", completed.stdout)
+        self.assertIn("image_flavor=standalone", completed.stdout)
+        self.assertIn("first_boot_identity=unique_local_token", completed.stdout)
         self.assertIn("compression=xz", completed.stdout)
+
+    def test_satellite_plan_omits_tater_and_uses_device_pairing(self) -> None:
+        completed = subprocess.run(
+            [str(ROOT / "scripts" / "build-pi-image.sh"), "--flavor", "satellite", "--plan"],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("image_name=tater-sat1-satellite", completed.stdout)
+        self.assertIn("image_flavor=satellite", completed.stdout)
+        self.assertIn("tater_revision=not_bundled", completed.stdout)
+        self.assertIn("first_boot_identity=unique_device_pairing", completed.stdout)
 
     def test_hardware_assets_have_sha256_pins(self) -> None:
         lock_text = (ROOT / "packaging" / "image.lock").read_text(encoding="utf-8")
@@ -43,6 +58,7 @@ class ImageBuilderTests(unittest.TestCase):
         self.assertIn("--defer-init", stage)
         self.assertIn("test ! -e /var/lib/tater-sat1-standalone/native-satellite-token", stage)
         self.assertIn("tater-sat1-firstboot.service", stage)
+        self.assertIn("test ! -e /opt/tater/app/tateros_app.py", stage)
 
     def test_builder_writes_a_checksum_for_the_finished_image(self) -> None:
         builder = (ROOT / "scripts" / "build-pi-image.sh").read_text(encoding="utf-8")

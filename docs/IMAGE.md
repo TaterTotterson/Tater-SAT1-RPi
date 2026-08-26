@@ -4,16 +4,24 @@ The image builder follows the Tater Tube appliance pipeline: it adds a custom
 stage to Raspberry Pi's `pi-gen`, installs the complete application inside the
 root filesystem, and exports a compressed `.img.xz` plus a SHA-256 checksum.
 
-## Included in the image
+## Image flavors
+
+- `standalone` includes full Tater and connects the voice runtime over
+  loopback. This remains the default.
+- `satellite` omits Tater and connects the voice runtime to a paired main Tater
+  over the network.
+
+Both flavors include:
 
 - Raspberry Pi OS Lite 64-bit Bookworm
 - FutureProofHomes Satellite1 v0.1.4 custom FUSB302 kernel, overlays, ALSA
   configuration, SDK, and DAC initialization service
-- full Tater with the remote-only `edge` dependency profile
 - Tater Linux Satellite with local wake-word detection
 - a private PulseAudio service for capture and playback
 - zram sized to 50 percent of RAM
-- the Tater web interface and all appliance services enabled at boot
+
+The standalone flavor additionally includes full Tater with its remote-only
+`edge` dependency profile and enables the Tater web interface at boot.
 
 The hardware packages, pi-gen base, Tater source, and Linux Satellite source
 are all pinned. `packaging/image.lock` contains the image and hardware hashes;
@@ -49,6 +57,9 @@ PI_WIFI_COUNTRY='US' \
 ./scripts/build-pi-image.sh
 ```
 
+Add `--flavor satellite` to build the fleet image without Tater. See
+[Fleet satellite image](FLEET_IMAGE.md) for pairing instructions.
+
 The compressed image is written under:
 
 ```text
@@ -69,10 +80,14 @@ set `PI_FIRST_USER_PASS` or an SSH public key before sharing an image.
 5. Attach the Satellite1 HAT to the powered-off Pi Zero 2 W and insert the
    card.
 6. Apply power and allow several minutes for the first boot.
-7. Open `http://tater-sat1.local:8501` or use the Pi's IP address.
+7. For standalone, open the unique `tater-sat1-xxxxxx.local:8501` hostname or
+   use the Pi's IP address. For satellite-only, follow the pairing steps in
+   [Fleet satellite image](FLEET_IMAGE.md).
 
-The first-boot service generates a unique native-satellite credential on the
-device. No credential is stored in the distributable image.
+The first-boot service derives a unique hostname and device ID on every Pi. In
+the standalone flavor it also generates the local credential. The satellite
+flavor receives a one-time code during pairing and stores the resulting
+per-device credential. No credential is stored in either distributable image.
 
 ## What still needs hardware validation
 

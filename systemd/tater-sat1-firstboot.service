@@ -1,13 +1,11 @@
 [Unit]
 Description=Initialize unique state for the standalone Satellite1 appliance
-Before=tater-sat1-tater.service tater-sat1-voice.service
-ConditionPathExists=!/var/lib/tater-sat1-standalone/native-satellite-token
+Before=tater-sat1-tater.service tater-sat1-voice.service tater-sat1-satellite.service
+ConditionPathExists=!/var/lib/tater-sat1-standalone/first-boot-complete
 
 [Service]
 Type=oneshot
-User=tater
-Group=tater
-ExecStart=/opt/tater-sat1/venv/bin/tater-sat1-standalone --config /etc/tater-sat1-standalone/config.toml init
+ExecStart=/usr/local/sbin/tater-sat1-firstboot
 
 [Install]
 WantedBy=multi-user.target

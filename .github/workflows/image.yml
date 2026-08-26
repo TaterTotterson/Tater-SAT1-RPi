@@ -1,4 +1,4 @@
-name: Raspberry Pi image
+name: Raspberry Pi images
 
 on:
   workflow_dispatch:
@@ -8,10 +8,15 @@ on:
 
 jobs:
   build:
+    name: Build ${{ matrix.flavor }} image
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 360
-    permissions:
-      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        flavor:
+          - standalone
+          - satellite
 
     steps:
       - name: Checkout
@@ -22,39 +27,59 @@ jobs:
 
       - name: Build ready-to-flash image
         env:
-          PI_IMAGE_NAME: tater-sat1-${{ github.ref_name }}
+          PI_IMAGE_FLAVOR: ${{ matrix.flavor }}
+          PI_IMAGE_NAME: tater-sat1-${{ matrix.flavor }}-${{ github.ref_name }}
           PI_FIRST_USER_NAME: tater
           PI_FIRST_USER_PASS: tater
-        run: ./scripts/build-pi-image.sh
+        run: ./scripts/build-pi-image.sh --flavor "${PI_IMAGE_FLAVOR}"
 
       - name: Collect image and checksum
+        env:
+          IMAGE_FLAVOR: ${{ matrix.flavor }}
         run: |
           set -euo pipefail
           mkdir -p out/image
           cp .cache/pi-gen-bookworm-arm64/deploy/image_*.img.xz out/image/
           cp .cache/pi-gen-bookworm-arm64/deploy/*.info out/image/ 2>/dev/null || true
           cd out/image
-          sha256sum image_*.img.xz > SHA256SUMS.txt
+          sha256sum image_*.img.xz > "SHA256SUMS-${IMAGE_FLAVOR}.txt"
 
       - name: Upload image artifact
         uses: actions/upload-artifact@v4.6.2
         with:
-          name: tater-sat1-image
+          name: tater-sat1-${{ matrix.flavor }}-image
           path: out/image/*
           if-no-files-found: error
           compression-level: 0
 
+  release:
+    name: Publish image release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download both images
+        uses: actions/download-artifact@v5.0.0
+        with:
+          pattern: tater-sat1-*-image
+          path: out/release
+          merge-multiple: true
+
       - name: Publish tagged release
-        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            out/image/*.img.xz
-            out/image/*.info
-            out/image/SHA256SUMS.txt
+            out/release/*.img.xz
+            out/release/*.info
+            out/release/SHA256SUMS-*.txt
           body: |
-            Ready-to-flash Tater SAT1 standalone Raspberry Pi image.
+            Ready-to-flash Satellite1 Raspberry Pi images:
 
-            Flash the `.img.xz` with Raspberry Pi Imager, customize Wi-Fi and
-            login settings, attach the Satellite1 HAT, and boot. Tater is at
-            `http://tater-sat1.local:8501` after startup.
+            - `standalone` runs Tater and the voice satellite together.
+            - `satellite` runs only the voice satellite and pairs with a main Tater server.
+
+            Flash the desired `.img.xz` with Raspberry Pi Imager, customize
+            Wi-Fi and login settings, attach the Satellite1 HAT, and boot.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build a ready-to-flash Raspberry Pi OS image for Tater + Satellite1.
+# Build ready-to-flash Raspberry Pi OS images for Satellite1.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -12,7 +12,8 @@ source "${IMAGE_LOCK}"
 
 PI_GEN_DIR="${PI_GEN_DIR:-${REPO_ROOT}/.cache/pi-gen-bookworm-arm64}"
 PI_GEN_CONFIG="${PI_GEN_CONFIG:-${PI_GEN_DIR}/config}"
-PI_IMAGE_NAME="${PI_IMAGE_NAME:-tater-sat1-standalone}"
+PI_IMAGE_FLAVOR="${PI_IMAGE_FLAVOR:-standalone}"
+PI_IMAGE_NAME="${PI_IMAGE_NAME:-}"
 PI_IMAGE_RELEASE="bookworm"
 PI_IMAGE_ROOT_MARGIN_MB="${PI_IMAGE_ROOT_MARGIN_MB:-2048}"
 PI_FIRST_USER_NAME="${PI_FIRST_USER_NAME:-tater}"
@@ -34,8 +35,9 @@ PREPARE_ONLY=0
 
 usage() {
     cat <<'EOF'
-Usage: scripts/build-pi-image.sh [--plan] [--prepare-only]
+Usage: scripts/build-pi-image.sh [--flavor standalone|satellite] [--plan] [--prepare-only]
 
+  --flavor NAME   Build the all-in-one standalone or fleet satellite image.
   --plan          Print the immutable image inputs without downloading/building.
   --prepare-only  Resolve source trees and verify downloaded SAT1 packages.
 
@@ -48,11 +50,24 @@ while [ "$#" -gt 0 ]; do
     case "$1" in
         --plan) PLAN_ONLY=1 ;;
         --prepare-only) PREPARE_ONLY=1 ;;
+        --flavor)
+            [ "$#" -ge 2 ] || { printf '%s\n' "--flavor requires a value" >&2; exit 2; }
+            PI_IMAGE_FLAVOR="$2"
+            shift
+            ;;
         -h|--help) usage; exit 0 ;;
         *) printf 'Unknown option: %s\n' "$1" >&2; usage >&2; exit 2 ;;
     esac
     shift
 done
+
+case "${PI_IMAGE_FLAVOR}" in
+    standalone|satellite) ;;
+    *) printf 'Unknown image flavor: %s\n' "${PI_IMAGE_FLAVOR}" >&2; exit 2 ;;
+esac
+if [ -z "${PI_IMAGE_NAME}" ]; then
+    PI_IMAGE_NAME="tater-sat1-${PI_IMAGE_FLAVOR}"
+fi
 
 require_cmd() {
     if ! command -v "$1" >/dev/null 2>&1; then
@@ -79,16 +94,24 @@ TATER_SOURCE_DIR="${TATER_SOURCE_DIR:-}"
 SATELLITE_SOURCE_DIR="${SATELLITE_SOURCE_DIR:-}"
 
 print_plan() {
+    if [ "${PI_IMAGE_FLAVOR}" = "standalone" ]; then
+        identity_plan="unique_local_token"
+        tater_plan="${TATER_REVISION}"
+    else
+        identity_plan="unique_device_pairing"
+        tater_plan="not_bundled"
+    fi
     cat <<EOF
 image_name=${PI_IMAGE_NAME}
+image_flavor=${PI_IMAGE_FLAVOR}
 base_release=${PI_IMAGE_RELEASE}
 pi_gen_ref=${PI_GEN_REF}
 pi_gen_revision=${PI_GEN_REVISION}
 sat1_release=${SAT1_RELEASE_TAG}
-tater_revision=${TATER_REVISION}
+tater_revision=${tater_plan}
 linux_satellite_revision=${SATELLITE_REVISION}
 compression=xz
-first_boot_token=unique
+first_boot_identity=${identity_plan}
 output=${PI_GEN_DIR}/deploy
 EOF
 }
@@ -199,7 +222,9 @@ fetch_asset "${SAT1_KERNEL_FILE}" "${SAT1_KERNEL_SHA256}"
 fetch_asset "${SAT1_SETUP_FILE}" "${SAT1_SETUP_SHA256}"
 fetch_asset "${SAT1_SDK_FILE}" "${SAT1_SDK_SHA256}"
 
-TATER_SOURCE_DIR="$(resolve_source Tater "${TATER_SOURCE_DIR}" "${REPO_ROOT}/../Tater" "${TATER_URL}" "${TATER_REVISION}" "${REPO_ROOT}/.cache/upstreams/Tater")"
+if [ "${PI_IMAGE_FLAVOR}" = "standalone" ]; then
+    TATER_SOURCE_DIR="$(resolve_source Tater "${TATER_SOURCE_DIR}" "${REPO_ROOT}/../Tater" "${TATER_URL}" "${TATER_REVISION}" "${REPO_ROOT}/.cache/upstreams/Tater")"
+fi
 SATELLITE_SOURCE_DIR="$(resolve_source "Linux Satellite" "${SATELLITE_SOURCE_DIR}" "${REPO_ROOT}/../Tater-Linux-Satellite" "${SATELLITE_URL}" "${SATELLITE_REVISION}" "${REPO_ROOT}/.cache/upstreams/Tater-Linux-Satellite")"
 
 if [ "${PI_ALLOW_DIRTY_SOURCES}" != "1" ] && [ -n "$(git -C "${REPO_ROOT}" status --porcelain)" ]; then
@@ -209,7 +234,9 @@ fi
 
 if [ "${PREPARE_ONLY}" = "1" ]; then
     print_plan
-    printf 'tater_source=%s\n' "${TATER_SOURCE_DIR}"
+    if [ "${PI_IMAGE_FLAVOR}" = "standalone" ]; then
+        printf 'tater_source=%s\n' "${TATER_SOURCE_DIR}"
+    fi
     printf 'linux_satellite_source=%s\n' "${SATELLITE_SOURCE_DIR}"
     printf 'sat1_assets=%s\n' "${PI_ASSET_DIR}"
     exit 0
@@ -232,6 +259,10 @@ CUSTOM_STAGE="${PI_GEN_DIR}/stage-tater-sat1"
 rm -rf "${CUSTOM_STAGE}"
 cp -R "${SCRIPT_DIR}/pi-image/stage-tater-sat1" "${CUSTOM_STAGE}"
 chmod +x "${CUSTOM_STAGE}"/00-install-appliance/*.sh
+if [ "${PI_IMAGE_FLAVOR}" = "satellite" ]; then
+    sed -i.bak '/^redis-server$/d' "${CUSTOM_STAGE}/00-install-appliance/00-packages"
+    rm -f "${CUSTOM_STAGE}/00-install-appliance/00-packages.bak"
+fi
 touch "${PI_GEN_DIR}/stage2/SKIP_IMAGES"
 rm -f "${CUSTOM_STAGE}/SKIP_IMAGES"
 
@@ -283,10 +314,18 @@ patch_export_margin() {
 }
 patch_export_margin
 
-export PIGEN_DOCKER_OPTS="${PIGEN_DOCKER_OPTS:-} --mount type=bind,source=${REPO_ROOT},target=/tater-sat1-src,readonly --mount type=bind,source=${TATER_SOURCE_DIR},target=/tater-src,readonly --mount type=bind,source=${SATELLITE_SOURCE_DIR},target=/linux-satellite-src,readonly --mount type=bind,source=${PI_ASSET_DIR},target=/sat1-assets,readonly -e TATER_SAT1_SOURCE_DIR=/tater-sat1-src -e TATER_SOURCE_DIR=/tater-src -e LINUX_SATELLITE_SOURCE_DIR=/linux-satellite-src -e SAT1_ASSET_DIR=/sat1-assets"
+PIGEN_MOUNTS="${PIGEN_DOCKER_OPTS:-} --mount type=bind,source=${REPO_ROOT},target=/tater-sat1-src,readonly --mount type=bind,source=${SATELLITE_SOURCE_DIR},target=/linux-satellite-src,readonly --mount type=bind,source=${PI_ASSET_DIR},target=/sat1-assets,readonly -e TATER_SAT1_SOURCE_DIR=/tater-sat1-src -e LINUX_SATELLITE_SOURCE_DIR=/linux-satellite-src -e SAT1_ASSET_DIR=/sat1-assets -e TATER_SAT1_IMAGE_FLAVOR=${PI_IMAGE_FLAVOR}"
+if [ "${PI_IMAGE_FLAVOR}" = "standalone" ]; then
+    PIGEN_MOUNTS="${PIGEN_MOUNTS} --mount type=bind,source=${TATER_SOURCE_DIR},target=/tater-src,readonly -e TATER_SOURCE_DIR=/tater-src"
+fi
+export PIGEN_DOCKER_OPTS="${PIGEN_MOUNTS}"
 
 print_plan
-printf 'Building with Tater source: %s\n' "${TATER_SOURCE_DIR}"
+if [ "${PI_IMAGE_FLAVOR}" = "standalone" ]; then
+    printf 'Building with Tater source: %s\n' "${TATER_SOURCE_DIR}"
+else
+    printf '%s\n' "Building fleet satellite without a bundled Tater server"
+fi
 printf 'Building with Linux Satellite source: %s\n' "${SATELLITE_SOURCE_DIR}"
 printf 'Initial SSH login: %s (change the image password for non-lab use)\n' "${PI_FIRST_USER_NAME}"
 
@@ -298,7 +337,7 @@ printf 'Initial SSH login: %s (change the image password for non-lab use)\n' "${
 DEPLOY_DIR="${PI_GEN_DIR}/deploy"
 IMAGE_FOUND=0
 : > "${DEPLOY_DIR}/SHA256SUMS.txt"
-for image_path in "${DEPLOY_DIR}"/image_*.img.xz; do
+for image_path in "${DEPLOY_DIR}"/image_*"${PI_IMAGE_NAME}".img.xz; do
     [ -f "${image_path}" ] || continue
     IMAGE_FOUND=1
     printf '%s  %s\n' \

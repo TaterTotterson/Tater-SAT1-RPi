@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import Mapping
 
 from .config import StandaloneConfig
+from .identity import device_id, display_name
+from .provisioning import effective_server_url
 
 
 @dataclass(frozen=True)
@@ -15,6 +17,8 @@ class RuntimePlan:
 
 
 def build_tater_plan(config: StandaloneConfig, token: str) -> RuntimePlan:
+    if config.runtime.flavor != "standalone":
+        raise ValueError("the Tater server is not installed in the satellite image flavor")
     runtime = config.runtime
     tater = config.tater
     environment = {
@@ -59,7 +63,7 @@ def build_satellite_plan(config: StandaloneConfig) -> RuntimePlan:
     command = [
         str(runtime.satellite_executable),
         "--name",
-        satellite.name,
+        display_name(config),
         "--audio-input-device",
         satellite.audio_input_device,
         "--audio-output-device",
@@ -71,11 +75,11 @@ def build_satellite_plan(config: StandaloneConfig) -> RuntimePlan:
         "--download-dir",
         str(runtime.satellite_state_dir / "models"),
         "--tater-url",
-        f"http://127.0.0.1:{config.tater.port}",
+        effective_server_url(config),
         "--tater-token-file",
         str(runtime.token_path),
         "--tater-device-id",
-        satellite.device_id,
+        device_id(config),
         "--tater-board",
         satellite.board,
     ]

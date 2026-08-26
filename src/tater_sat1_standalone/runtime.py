@@ -16,7 +16,20 @@ def prepare_runtime(config: RuntimeConfig) -> str:
     ):
         path.mkdir(parents=True, exist_ok=True)
     os.chmod(config.state_dir, 0o700)
-    return ensure_private_token(config.token_path)
+    if config.flavor == "standalone":
+        return ensure_private_token(config.token_path)
+    try:
+        token = config.token_path.read_text(encoding="utf-8").strip()
+    except FileNotFoundError:
+        return ""
+    if token:
+        os.chmod(config.token_path, 0o600)
+    return token
+
+
+def mark_first_boot(config: RuntimeConfig) -> None:
+    config.first_boot_marker_path.write_text("ready\n", encoding="utf-8")
+    os.chmod(config.first_boot_marker_path, 0o600)
 
 
 def ensure_private_token(path: Path) -> str:
@@ -39,4 +52,3 @@ def ensure_private_token(path: Path) -> str:
             handle.write(candidate + "\n")
         return candidate
     raise RuntimeError(f"could not create or read token at {path}")
-

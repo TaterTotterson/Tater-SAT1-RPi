@@ -1,0 +1,16 @@
+#!/bin/sh
+set -eu
+
+APP=/opt/tater-sat1/venv/bin/tater-sat1-standalone
+CONFIG=/etc/tater-sat1-standalone/config.toml
+SERVICE_USER=tater
+
+hostname="$(runuser -u "${SERVICE_USER}" -- "${APP}" --config "${CONFIG}" identity --hostname)"
+if command -v hostnamectl >/dev/null 2>&1; then
+  hostnamectl set-hostname "${hostname}"
+else
+  printf '%s\n' "${hostname}" > /etc/hostname
+  hostname "${hostname}"
+fi
+
+exec runuser -u "${SERVICE_USER}" -- "${APP}" --config "${CONFIG}" firstboot

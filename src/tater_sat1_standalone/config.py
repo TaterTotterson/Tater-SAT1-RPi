@@ -7,6 +7,7 @@ import tomllib
 
 
 DEFAULT_CONFIG_PATH = Path("/etc/tater-sat1-standalone/config.toml")
+VALID_FLAVORS = {"standalone", "satellite"}
 
 
 def _path(value: Any, default: str) -> Path:
@@ -31,8 +32,16 @@ def _string_tuple(value: Any) -> tuple[str, ...]:
     return tuple(value)
 
 
+def _flavor(value: Any) -> str:
+    flavor = str(value or "standalone").strip().lower()
+    if flavor not in VALID_FLAVORS:
+        raise ValueError(f"runtime flavor must be one of {sorted(VALID_FLAVORS)}, got {flavor!r}")
+    return flavor
+
+
 @dataclass(frozen=True)
 class RuntimeConfig:
+    flavor: str = "standalone"
     state_dir: Path = Path("/var/lib/tater-sat1-standalone")
     tater_app_dir: Path = Path("/opt/tater/app")
     tater_python: Path = Path("/opt/tater/venv/bin/python")
@@ -41,6 +50,7 @@ class RuntimeConfig:
     @classmethod
     def from_mapping(cls, values: Mapping[str, Any]) -> RuntimeConfig:
         return cls(
+            flavor=_flavor(values.get("flavor")),
             state_dir=_path(values.get("state_dir"), str(cls.state_dir)),
             tater_app_dir=_path(values.get("tater_app_dir"), str(cls.tater_app_dir)),
             tater_python=_path(values.get("tater_python"), str(cls.tater_python)),
@@ -50,6 +60,14 @@ class RuntimeConfig:
     @property
     def token_path(self) -> Path:
         return self.state_dir / "native-satellite-token"
+
+    @property
+    def server_url_path(self) -> Path:
+        return self.state_dir / "tater-server-url"
+
+    @property
+    def first_boot_marker_path(self) -> Path:
+        return self.state_dir / "first-boot-complete"
 
     @property
     def tater_runtime_dir(self) -> Path:
@@ -72,6 +90,7 @@ class RuntimeConfig:
 class TaterConfig:
     host: str = "0.0.0.0"
     port: int = 8501
+    url: str = ""
     extra_args: tuple[str, ...] = field(default_factory=tuple)
 
     @classmethod
@@ -79,14 +98,15 @@ class TaterConfig:
         return cls(
             host=str(values.get("host") or cls.host),
             port=_port(values.get("port"), cls.port),
+            url=str(values.get("url") or "").strip(),
             extra_args=_string_tuple(values.get("extra_args")),
         )
 
 
 @dataclass(frozen=True)
 class SatelliteConfig:
-    name: str = "Tater SAT1"
-    device_id: str = "tater-sat1-standalone"
+    name: str = "auto"
+    device_id: str = "auto"
     board: str = "satellite1_rpi"
     room: str = ""
     audio_input_device: str = "default"

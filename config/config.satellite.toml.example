@@ -1,30 +1,25 @@
 [runtime]
-flavor = "standalone"
+flavor = "satellite"
 state_dir = "/var/lib/tater-sat1-standalone"
 tater_app_dir = "/opt/tater/app"
 tater_python = "/opt/tater/venv/bin/python"
 satellite_executable = "/opt/tater-sat1/venv/bin/linux-voice-assistant"
 
 [tater]
+# This can be changed while pairing with `sudo tater-sat1-pair --url ... CODE`.
+url = "http://tater.local:8501"
 host = "0.0.0.0"
 port = 8501
-# Leave blank to connect the local satellite over loopback.
-url = ""
 extra_args = []
 
 [satellite]
+# "auto" derives a stable identity from the Raspberry Pi serial number.
 name = "auto"
 device_id = "auto"
 board = "satellite1_rpi"
 room = ""
-
-# Replace these after running linux-voice-assistant with --list-input-devices
-# and --list-output-devices on the SAT1 Raspberry Pi image.
 audio_input_device = "default"
 audio_output_device = "default"
-# Private PulseAudio socket managed by tater-sat1-audio.service.
 pulse_server = "unix:/run/tater-sat1-audio/pulse/native"
-# The bundled Linux Satellite source includes okay_nabu. Point this at a
-# downloaded Tater wake-word model once one is installed in the models folder.
 wake_model = "okay_nabu"
 extra_args = []

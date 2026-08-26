@@ -25,24 +25,37 @@ Install the pinned Tater and Linux Satellite revisions:
 sudo ./script/install
 ```
 
+Install only the fleet satellite runtime:
+
+```sh
+sudo ./script/install --flavor satellite
+```
+
 Use `--no-enable` to install without starting services, or `--skip-apt` when
 the required Debian packages are already present.
 
 ## What it installs
 
 - `/opt/tater/app` and `/opt/tater/venv`: full Tater source plus its
-  remote-only `edge` environment
+  remote-only `edge` environment in the standalone flavor only
 - `/opt/tater-sat1/linux-satellite`: pinned editable Linux Satellite source so
   its bundled wake words and sound files remain available
 - `/opt/tater-sat1/venv`: Linux Satellite and appliance launcher environment
 - `/var/lib/tater-sat1-standalone`: Redis, Tater, satellite, and credential
   state owned by the unprivileged `tater` service account
 - `/etc/tater-sat1-standalone/config.toml`: audio and appliance settings
-- two systemd services for Tater and the local satellite
+- supervised audio and voice services, plus local Tater in standalone mode
 
 The generated native-satellite token is owner-only and is shared only through
 the local state directory. The satellite connects to Tater through loopback;
 the Tater web interface listens on port 8501 for LAN setup and use.
+
+For a satellite-only manual install, create a pairing code in the main Tater
+and run:
+
+```sh
+sudo tater-sat1-pair --url http://MAIN_TATER_ADDRESS:8501 PAIRING_CODE
+```
 
 ## Select the SAT1 audio devices
 

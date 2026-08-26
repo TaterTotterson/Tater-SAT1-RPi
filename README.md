@@ -1,12 +1,18 @@
-# Tater SAT1 Standalone
+# Tater SAT1 Raspberry Pi Images
 
-Experimental all-in-one Tater appliance for the FutureProofHomes Satellite1
-HAT and a Raspberry Pi.
+Ready-to-flash Tater appliances for the FutureProofHomes Satellite1 HAT and a
+Raspberry Pi.
 
-The goal is to run the complete Tater server and its native Linux voice
-satellite on the same board. Wake detection, audio, LEDs, buttons, and sensors
-stay local. Resource-intensive speech recognition, language-model, and speech
-synthesis work can use remote APIs.
+The repository builds two flavors from one pinned hardware and audio base:
+
+- `standalone` runs the complete Tater server and native Linux voice satellite
+  together on the SAT1 Pi.
+- `satellite` runs only the native Linux voice satellite and pairs with a main
+  Tater server elsewhere on the network.
+
+Wake detection and audio stay on the SAT1 device. Resource-intensive speech
+recognition, language-model, and speech synthesis work runs on Tater or its
+configured remote APIs.
 
 ## Status
 
@@ -20,15 +26,20 @@ This repository is an early runnable appliance scaffold. It currently provides:
 - Tater's tested remote-only `edge` dependency and runtime profile
 - a pinned Raspberry Pi installer with a non-mutating dry-run mode
 - a Tater Tube-style `pi-gen` pipeline that exports a flashable `.img.xz`
+- a fleet satellite flavor that contains no Tater application or Redis service
+- unique hostnames and device IDs derived on first boot
+- one-time pairing with durable per-device native-satellite credentials
 
 The first image still needs validation on physical SAT1 hardware. The SAT1
 LED/button adapter is not included yet.
 
-## Target flow
+## Runtime flows
 
 ```text
 SAT1 HAT -> local wake/audio service -> Tater on localhost:8501
                                       -> remote STT/LLM/TTS APIs
+
+SAT1 HAT -> local wake/audio service -> main Tater over the LAN
 ```
 
 The design follows the existing Tater Reachy Standalone pattern while keeping
@@ -56,10 +67,17 @@ The plan command always redacts credentials.
 The primary installation path is now a complete image containing Raspberry Pi
 OS, the pinned FutureProofHomes board packages, and the Tater appliance.
 
-Build it with:
+Build the standalone image with:
 
 ```sh
 PI_FIRST_USER_PASS='choose-a-password' ./scripts/build-pi-image.sh
+```
+
+Build the fleet satellite image with:
+
+```sh
+PI_FIRST_USER_PASS='choose-a-password' \
+  ./scripts/build-pi-image.sh --flavor satellite
 ```
 
 Flash the resulting `.img.xz` using Raspberry Pi Imager's **Use Custom**
@@ -79,13 +97,13 @@ sudo ./script/install
 
 The installer places:
 
-- the full Tater source at `/opt/tater/app`
-- a remote-only Tater virtual environment at `/opt/tater/venv`
+- the full Tater source and edge environment under `/opt/tater` for standalone
 - this launcher and Tater Linux Satellite at `/opt/tater-sat1/venv`
 - persistent state at `/var/lib/tater-sat1-standalone`
 - configuration at `/etc/tater-sat1-standalone/config.toml`
 
 See [Image building and flashing](docs/IMAGE.md),
+[Fleet satellite image](docs/FLEET_IMAGE.md),
 [Installation](docs/INSTALL.md), [Architecture](docs/ARCHITECTURE.md),
 [Edge profile](docs/EDGE_PROFILE.md), [Upstream references](docs/UPSTREAMS.md),
 and [Roadmap](docs/ROADMAP.md) for the implementation path.

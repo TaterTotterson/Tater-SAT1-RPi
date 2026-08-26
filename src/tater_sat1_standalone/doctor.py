@@ -5,6 +5,7 @@ import platform
 from pathlib import Path
 
 from .config import StandaloneConfig
+from .provisioning import effective_server_url
 
 
 @dataclass(frozen=True)
@@ -29,13 +30,16 @@ def inspect_host(config: StandaloneConfig) -> list[Check]:
     else:
         checks.append(Check("ok", "memory", f"{memory_mb} MB detected"))
 
-    checks.extend(
-        (
-            _path_check(config.runtime.tater_python, executable=True, label="Tater Python"),
-            _path_check(config.runtime.tater_app_dir / "tateros_app.py", label="Tater app"),
-            _path_check(config.runtime.satellite_executable, executable=True, label="satellite runtime"),
+    if config.runtime.flavor == "standalone":
+        checks.extend(
+            (
+                _path_check(config.runtime.tater_python, executable=True, label="Tater Python"),
+                _path_check(config.runtime.tater_app_dir / "tateros_app.py", label="Tater app"),
+            )
         )
-    )
+    else:
+        checks.append(Check("ok", "Tater server", effective_server_url(config)))
+    checks.append(_path_check(config.runtime.satellite_executable, executable=True, label="satellite runtime"))
     return checks
 
 

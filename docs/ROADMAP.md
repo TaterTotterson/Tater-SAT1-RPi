@@ -21,6 +21,8 @@
 - [x] Build a Bookworm image with pinned FutureProofHomes Satellite1 packages
 - [ ] Add first-boot Wi-Fi and Tater provider setup
 - [x] Configure zram and bounded journal storage
+- [x] Add a satellite-only fleet image with unique first-boot identity
+- [x] Add per-device pairing with a main Tater server
 - [ ] Add read-only-root/overlay options and graceful power-loss handling
 - [ ] Add signed appliance updates and recovery documentation
 
@@ -30,3 +32,4 @@
 - [ ] Run a 24-hour memory/reconnect soak test
 - [ ] Confirm music playback does not starve Tater or wake detection
 - [ ] Establish the minimum supported Raspberry Pi model
+- [ ] Soak-test multiple satellite-only devices against one main Tater

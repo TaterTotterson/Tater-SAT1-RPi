@@ -25,6 +25,10 @@ Use its wake-word, audio session, playback, reconnect, and native WebSocket
 implementations. Add SAT1 hardware through an adapter rather than copying the
 transport into this repository.
 
+The fleet image also reuses Linux Satellite's short-code pairing exchange and
+durable per-device token persistence. This repository only supplies unique Pi
+identity, service supervision, and the pairing command.
+
 ## ThirdReality firmware
 
 Use its Buildroot work as a reference for an appliance-style boot flow,

@@ -8,6 +8,7 @@ from tater_sat1_standalone.config import StandaloneConfig, load_config
 class ConfigTests(unittest.TestCase):
     def test_defaults_are_remote_appliance_defaults(self) -> None:
         config = StandaloneConfig.from_mapping({})
+        self.assertEqual(config.runtime.flavor, "standalone")
         self.assertEqual(config.tater.port, 8501)
         self.assertEqual(config.satellite.board, "satellite1_rpi")
         self.assertEqual(config.satellite.pulse_server, "unix:/run/tater-sat1-audio/pulse/native")
@@ -38,6 +39,10 @@ extra_args = ["--debug"]
     def test_rejects_invalid_extra_arguments(self) -> None:
         with self.assertRaisesRegex(ValueError, "array of strings"):
             StandaloneConfig.from_mapping({"satellite": {"extra_args": "--debug"}})
+
+    def test_rejects_invalid_flavor(self) -> None:
+        with self.assertRaisesRegex(ValueError, "runtime flavor"):
+            StandaloneConfig.from_mapping({"runtime": {"flavor": "server"}})
 
 
 if __name__ == "__main__":

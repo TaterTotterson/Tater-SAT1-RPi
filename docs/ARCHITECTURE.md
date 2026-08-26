@@ -1,8 +1,8 @@
 # Architecture
 
-The appliance deliberately keeps Tater and the voice satellite in separate
-processes. This preserves the existing native satellite boundary and lets
-either side restart without taking down the other.
+The standalone flavor deliberately keeps Tater and the voice satellite in
+separate processes. The fleet flavor omits the local Tater process while
+reusing the same SAT1 hardware, audio, and voice layers.
 
 ```text
 Satellite1 HAT
@@ -20,15 +20,27 @@ Satellite1 HAT
                 |
                 v
   remote STT / LLM / TTS providers
+
+Fleet satellite flavor:
+
+  tater-sat1-satellite.service
+  Tater Linux Satellite + SAT1 hardware adapter
+                |
+       Wi-Fi / native WebSocket
+                |
+                v
+       main Tater server
 ```
 
-The Tater and voice services read a private token from the appliance state directory. Tater
-receives it as `TATER_NATIVE_SATELLITE_TOKEN`; the satellite receives the same
-path through `--tater-token-file`. The token is created once with mode `0600`.
+In standalone mode, Tater and the voice services read one private local token
+from the appliance state directory. In fleet mode, the token file initially
+contains a short pairing code and Linux Satellite replaces it with Tater's
+durable per-device credential after the first successful connection.
 
 The image also runs `tater-sat1-audio.service`, a private PulseAudio server for
-the satellite process. `tater-sat1-firstboot.service` creates the shared token
-on the device's first boot so cloned SD cards never share an identity.
+the satellite process. `tater-sat1-firstboot.service` derives a hostname and
+device ID from the Pi serial so cloned SD cards never share an identity. It
+also creates the local token when the image flavor is standalone.
 
 ## Intended base system
 
@@ -39,9 +51,9 @@ board.
 
 ## Process ownership
 
-`systemd` owns the Tater, audio, and satellite processes. The satellite service
-requires both Tater and audio, but Tater does not depend on the satellite. The
-satellite's normal reconnect loop handles Tater startup and restarts.
+`systemd` owns the Tater, audio, and satellite processes. The standalone voice
+service requires local Tater and audio. The fleet voice service requires audio
+and network availability, then reconnects to the main Tater automatically.
 
 ## Hardware adapter
 

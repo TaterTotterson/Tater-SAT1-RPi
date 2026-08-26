@@ -2,10 +2,12 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
+from unittest import mock
 
 from tater_sat1_standalone.commands import build_satellite_plan, build_tater_plan
 from tater_sat1_standalone.config import StandaloneConfig
 from tater_sat1_standalone.runtime import ensure_private_token, prepare_runtime
+from tater_sat1_standalone.provisioning import provision_pairing
 
 
 class RuntimeTests(unittest.TestCase):
@@ -48,6 +50,27 @@ class RuntimeTests(unittest.TestCase):
             self.assertIn("Kitchen", satellite.command)
             self.assertTrue(config.runtime.satellite_state_dir.is_dir())
             self.assertEqual(os.stat(config.runtime.state_dir).st_mode & 0o777, 0o700)
+
+    def test_satellite_flavor_pairs_with_remote_tater_without_local_token(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            config = StandaloneConfig.from_mapping(
+                {
+                    "runtime": {"flavor": "satellite", "state_dir": temp_dir},
+                    "tater": {"url": "http://main-tater.local:8501"},
+                    "satellite": {"name": "auto", "device_id": "auto"},
+                }
+            )
+            self.assertEqual(prepare_runtime(config.runtime), "")
+            self.assertFalse(config.runtime.token_path.exists())
+            with mock.patch("tater_sat1_standalone.identity.hardware_suffix", return_value="a1b2c3"):
+                satellite = build_satellite_plan(config)
+            self.assertIn("http://main-tater.local:8501", satellite.command)
+            self.assertIn("tater-sat1-a1b2c3", satellite.command)
+
+            url = provision_pairing(config, "123456")
+            self.assertEqual(url, "http://main-tater.local:8501")
+            self.assertEqual(config.runtime.token_path.read_text(encoding="utf-8").strip(), "123456")
+            self.assertEqual(config.runtime.token_path.stat().st_mode & 0o777, 0o600)
 
 
 if __name__ == "__main__":
