@@ -7,4 +7,5 @@ build/
 dist/
 .DS_Store
 config.local.toml
-
+.cache/
+out/

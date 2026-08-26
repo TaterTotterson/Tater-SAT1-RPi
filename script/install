@@ -7,9 +7,11 @@ MANIFEST_PATH="${PROJECT_DIR}/upstreams.toml"
 DRY_RUN=0
 ENABLE_SERVICES=1
 INSTALL_APT=1
+BUNDLED_SOURCES=0
+DEFER_INIT=0
 
 usage() {
-  printf '%s\n' "Usage: script/install [--dry-run] [--no-enable] [--skip-apt]"
+  printf '%s\n' "Usage: script/install [--dry-run] [--no-enable] [--skip-apt] [--bundled-sources] [--defer-init]"
   printf '%s\n' ""
   printf '%s\n' "Installs the pinned Tater edge runtime and Linux Satellite on a dedicated"
   printf '%s\n' "Raspberry Pi appliance. --dry-run is safe to use on a development host."
@@ -20,6 +22,8 @@ while [ "$#" -gt 0 ]; do
     --dry-run) DRY_RUN=1 ;;
     --no-enable) ENABLE_SERVICES=0 ;;
     --skip-apt) INSTALL_APT=0 ;;
+    --bundled-sources) BUNDLED_SOURCES=1 ;;
+    --defer-init) DEFER_INIT=1 ;;
     -h|--help) usage; exit 0 ;;
     *) printf 'Unknown option: %s\n' "$1" >&2; usage >&2; exit 2 ;;
   esac
@@ -107,14 +111,17 @@ section "System packages"
 if [ "${INSTALL_APT}" = "1" ]; then
   run apt-get update
   run apt-get install --yes --no-install-recommends \
+    alsa-utils \
     build-essential \
     ca-certificates \
     ffmpeg \
     git \
+    i2c-tools \
     libasound2-dev \
     libmpv-dev \
     mpv \
     portaudio19-dev \
+    pulseaudio \
     pulseaudio-utils \
     python3 \
     python3-dev \
@@ -142,8 +149,14 @@ else
 fi
 
 section "Pinned application sources"
-clone_pinned "${TATER_URL}" "${TATER_REVISION}" "${TATER_APP_DIR}"
-clone_pinned "${SATELLITE_URL}" "${SATELLITE_REVISION}" "${SATELLITE_APP_DIR}"
+if [ "${BUNDLED_SOURCES}" = "1" ]; then
+  [ -f "${TATER_APP_DIR}/setup_tater.sh" ] || { printf 'Bundled Tater source is missing: %s\n' "${TATER_APP_DIR}" >&2; exit 1; }
+  [ -f "${SATELLITE_APP_DIR}/pyproject.toml" ] || { printf 'Bundled Linux Satellite source is missing: %s\n' "${SATELLITE_APP_DIR}" >&2; exit 1; }
+  printf '%s\n' "  using source trees already embedded in the image"
+else
+  clone_pinned "${TATER_URL}" "${TATER_REVISION}" "${TATER_APP_DIR}"
+  clone_pinned "${SATELLITE_URL}" "${SATELLITE_REVISION}" "${SATELLITE_APP_DIR}"
+fi
 
 section "Tater remote-only edge environment"
 if [ "${DRY_RUN}" = "1" ]; then
@@ -185,15 +198,21 @@ else
   printf '  preserving existing configuration: %s\n' "${CONFIG_PATH}"
 fi
 run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-tater.service" "${SYSTEMD_DIR}/tater-sat1-tater.service"
+run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-audio.service" "${SYSTEMD_DIR}/tater-sat1-audio.service"
+run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-firstboot.service" "${SYSTEMD_DIR}/tater-sat1-firstboot.service"
 run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-voice.service" "${SYSTEMD_DIR}/tater-sat1-voice.service"
 run chown -R "${SERVICE_USER}:${SERVICE_USER}" "${STATE_DIR}"
-run runuser -u "${SERVICE_USER}" -- "${APPLIANCE_VENV_DIR}/bin/tater-sat1-standalone" --config "${CONFIG_PATH}" init
+if [ "${DEFER_INIT}" = "1" ]; then
+  printf '%s\n' "  deferring unique token creation until first boot"
+else
+  run runuser -u "${SERVICE_USER}" -- "${APPLIANCE_VENV_DIR}/bin/tater-sat1-standalone" --config "${CONFIG_PATH}" init
+fi
 run runuser -u "${SERVICE_USER}" -- "${APPLIANCE_VENV_DIR}/bin/tater-sat1-standalone" --config "${CONFIG_PATH}" doctor
 
 if [ "${ENABLE_SERVICES}" = "1" ]; then
   section "Enable appliance"
   run systemctl daemon-reload
-  run systemctl enable --now tater-sat1-tater.service tater-sat1-voice.service
+  run systemctl enable --now tater-sat1-firstboot.service tater-sat1-audio.service tater-sat1-tater.service tater-sat1-voice.service
 else
   printf '\n%s\n' "Services installed but not enabled (--no-enable)."
 fi

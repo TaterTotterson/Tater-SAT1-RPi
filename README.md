@@ -12,17 +12,17 @@ synthesis work can use remote APIs.
 
 This repository is an early runnable appliance scaffold. It currently provides:
 
-- separate `systemd` services for Tater and the SAT1 voice runtime
+- separate `systemd` services for Tater, SAT1 audio, and the voice runtime
 - automatic creation of a shared private native-satellite token
 - a loopback-only satellite connection to the local Tater server
 - configuration and deterministic launch plans
 - host diagnostics and unit tests
 - Tater's tested remote-only `edge` dependency and runtime profile
 - a pinned Raspberry Pi installer with a non-mutating dry-run mode
+- a Tater Tube-style `pi-gen` pipeline that exports a flashable `.img.xz`
 
-It does **not** yet provide a flashable image or the SAT1 LED/button hardware
-adapter. Audio through the HAT's XMOS USB device still needs validation on a
-physical Pi.
+The first image still needs validation on physical SAT1 hardware. The SAT1
+LED/button adapter is not included yet.
 
 ## Target flow
 
@@ -32,7 +32,7 @@ SAT1 HAT -> local wake/audio service -> Tater on localhost:8501
 ```
 
 The design follows the existing Tater Reachy Standalone pattern while keeping
-the two runtimes as independently supervised services.
+the runtimes as independently supervised services.
 
 ## Development
 
@@ -53,9 +53,17 @@ The plan command always redacts credentials.
 
 ## Pi installation direction
 
-The intended starting point is the experimental FutureProofHomes Satellite1
-Raspberry Pi Zero 2 W image because it already contains the board-specific
-kernel, USB-C PD, device-tree, and ALSA work.
+The primary installation path is now a complete image containing Raspberry Pi
+OS, the pinned FutureProofHomes board packages, and the Tater appliance.
+
+Build it with:
+
+```sh
+PI_FIRST_USER_PASS='choose-a-password' ./scripts/build-pi-image.sh
+```
+
+Flash the resulting `.img.xz` using Raspberry Pi Imager's **Use Custom**
+option. See [Image building and flashing](docs/IMAGE.md).
 
 Preview the complete installation without modifying the host:
 
@@ -77,7 +85,8 @@ The installer places:
 - persistent state at `/var/lib/tater-sat1-standalone`
 - configuration at `/etc/tater-sat1-standalone/config.toml`
 
-See [Installation](docs/INSTALL.md), [Architecture](docs/ARCHITECTURE.md),
+See [Image building and flashing](docs/IMAGE.md),
+[Installation](docs/INSTALL.md), [Architecture](docs/ARCHITECTURE.md),
 [Edge profile](docs/EDGE_PROFILE.md), [Upstream references](docs/UPSTREAMS.md),
 and [Roadmap](docs/ROADMAP.md) for the implementation path.
 

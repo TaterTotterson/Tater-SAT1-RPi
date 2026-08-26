@@ -1,7 +1,8 @@
 [Unit]
 Description=Tater server for the standalone Satellite1 appliance
+Requires=tater-sat1-firstboot.service
 Wants=network-online.target
-After=network-online.target
+After=network-online.target tater-sat1-firstboot.service
 
 [Service]
 Type=simple

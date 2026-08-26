@@ -91,7 +91,7 @@ class SatelliteConfig:
     room: str = ""
     audio_input_device: str = "default"
     audio_output_device: str = "default"
-    pulse_server: str = ""
+    pulse_server: str = "unix:/run/tater-sat1-audio/pulse/native"
     wake_model: str = "hey_tater"
     extra_args: tuple[str, ...] = field(default_factory=tuple)
 
@@ -104,7 +104,7 @@ class SatelliteConfig:
             room=str(values.get("room") or ""),
             audio_input_device=str(values.get("audio_input_device") or cls.audio_input_device),
             audio_output_device=str(values.get("audio_output_device") or cls.audio_output_device),
-            pulse_server=str(values.get("pulse_server") or ""),
+            pulse_server=str(values["pulse_server"]) if "pulse_server" in values else cls.pulse_server,
             wake_model=str(values.get("wake_model") or cls.wake_model),
             extra_args=_string_tuple(values.get("extra_args")),
         )

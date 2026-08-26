@@ -1,0 +1,21 @@
+[Unit]
+Description=PulseAudio server for the standalone Satellite1 appliance
+Wants=sound.target satellite1-init.service
+After=sound.target satellite1-init.service
+
+[Service]
+Type=simple
+User=tater
+Group=tater
+SupplementaryGroups=audio
+Environment=HOME=/var/lib/tater-sat1-standalone
+Environment=XDG_RUNTIME_DIR=/run/tater-sat1-audio
+RuntimeDirectory=tater-sat1-audio
+RuntimeDirectoryMode=0700
+ExecStart=/usr/bin/pulseaudio --daemonize=no --exit-idle-time=-1 --log-target=journal
+Restart=on-failure
+RestartSec=2
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target

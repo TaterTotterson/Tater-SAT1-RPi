@@ -18,9 +18,9 @@
 
 ## Phase 3: self-contained image
 
-- [ ] Build on the FutureProofHomes Satellite1 Raspberry Pi image
+- [x] Build a Bookworm image with pinned FutureProofHomes Satellite1 packages
 - [ ] Add first-boot Wi-Fi and Tater provider setup
-- [ ] Configure zram and conservative service memory limits
+- [x] Configure zram and bounded journal storage
 - [ ] Add read-only-root/overlay options and graceful power-loss handling
 - [ ] Add signed appliance updates and recovery documentation
 

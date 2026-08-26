@@ -1,7 +1,7 @@
 [Unit]
 Description=Satellite1 voice runtime connected to the local Tater server
-Requires=tater-sat1-tater.service
-After=tater-sat1-tater.service sound.target
+Requires=tater-sat1-audio.service tater-sat1-tater.service
+After=tater-sat1-audio.service tater-sat1-tater.service sound.target
 
 [Service]
 Type=simple
@@ -16,4 +16,3 @@ TimeoutStopSec=10
 
 [Install]
 WantedBy=multi-user.target
-

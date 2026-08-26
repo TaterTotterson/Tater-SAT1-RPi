@@ -1,9 +1,8 @@
 # Install on a Satellite1 Raspberry Pi
 
-This phase targets the FutureProofHomes Satellite1 Raspberry Pi image on a
-dedicated Pi Zero 2 W or larger Pi. The installer is deliberately separate
-from image building so the software layout can be exercised before producing
-a flashable image.
+The recommended path is the ready-to-flash image described in [IMAGE.md](IMAGE.md).
+This installer remains useful when developing on an existing Raspberry Pi OS
+installation or repairing an image without reflashing it.
 
 ## Before installing
 

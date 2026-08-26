@@ -15,8 +15,9 @@ This is the primary application-lifecycle reference. Reuse its approach for:
 - keeping the Tater Web UI reachable on the LAN
 - preserving state across application bundle replacements
 
-SAT1 differs by using two `systemd` services instead of the Reachy SDK app
-process tree. The protocol and credential lifecycle should remain equivalent.
+SAT1 differs by using independently supervised Tater, audio, and voice services
+instead of the Reachy SDK app process tree. The protocol and credential
+lifecycle should remain equivalent.
 
 ## Tater Linux Satellite
 
@@ -37,3 +38,9 @@ The full app remains upstream Tater. The desired edge profile belongs in Tater
 itself if possible, while this repository owns the appliance image, service
 configuration, source pinning, and SAT1-specific integration.
 
+## FutureProofHomes Satellite1-RPi
+
+The flashable image embeds the v0.1.4 custom kernel, board setup, and Python SDK
+packages. Their filenames and SHA-256 hashes are recorded in
+`packaging/image.lock`; the corresponding source revision is recorded in
+`upstreams.toml`.

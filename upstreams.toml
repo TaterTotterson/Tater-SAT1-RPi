@@ -19,5 +19,6 @@ reference_revision = "6c74e7bf0b14c5c788b20f4b6a26d847b06b3b8e"
 role = "Embedded Linux packaging, hardware bridge, provisioning, and update reference"
 
 [satellite1_rpi]
-url = "https://github.com/FutureProofHomes/Satellite1-RPi-Image.git"
+url = "https://github.com/FutureProofHomes/Satellite1-RPi.git"
+reference_revision = "06385423b72eb189535c7708390ab1b0f5351f6d"
 role = "Raspberry Pi OS image, FUSB302 kernel, device-tree overlays, ALSA, and SAT1 SDK"

@@ -1,0 +1,16 @@
+# Immutable inputs used by the ready-to-flash Raspberry Pi image.
+PI_GEN_REPOSITORY=https://github.com/RPi-Distro/pi-gen.git
+PI_GEN_REF=2025-11-24-raspios-bookworm-arm64
+PI_GEN_REVISION=67262a4ad0959aab2a9d84a6392b1967999e8f50
+
+SAT1_RELEASE_TAG=v0.1.4
+SAT1_RELEASE_BASE=https://github.com/FutureProofHomes/Satellite1-RPi/releases/download/v0.1.4
+
+SAT1_KERNEL_FILE=linux-image-6.12.58-v8-fusb302-v8_1fusb302_arm64.deb
+SAT1_KERNEL_SHA256=2ebcea73883f0db71379f8f25fcc77eb9766adcf83dc20d40f675cebb93bb886
+
+SAT1_SETUP_FILE=satellite1-rpi-setup_1.0-1_arm64.deb
+SAT1_SETUP_SHA256=37bb3d53d0abc97eb772631cc72128eb2aaabf61781b04f27cd99aaca480d795
+
+SAT1_SDK_FILE=satellite1-rpi-sdk_0.1.4-1_arm64.deb
+SAT1_SDK_SHA256=7bc8d24a79aa9815a938153008f6640b5d730efd613fd89919a58957cbca4d2b

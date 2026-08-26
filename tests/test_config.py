@@ -10,6 +10,7 @@ class ConfigTests(unittest.TestCase):
         config = StandaloneConfig.from_mapping({})
         self.assertEqual(config.tater.port, 8501)
         self.assertEqual(config.satellite.board, "satellite1_rpi")
+        self.assertEqual(config.satellite.pulse_server, "unix:/run/tater-sat1-audio/pulse/native")
         self.assertEqual(config.runtime.token_path.name, "native-satellite-token")
 
     def test_loads_paths_and_extra_arguments(self) -> None:
@@ -41,4 +42,3 @@ extra_args = ["--debug"]
 
 if __name__ == "__main__":
     unittest.main()
-
