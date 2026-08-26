@@ -2,6 +2,7 @@
 
 export DEBIAN_FRONTEND=noninteractive
 IMAGE_FLAVOR="$(cat /tmp/tater-sat1-image-flavor)"
+WIFI_COUNTRY="$(cat /tmp/tater-sat1-wifi-country)"
 
 apt-get install -y /tmp/sat1-assets/*.deb
 
@@ -18,6 +19,17 @@ apt-get install -y /tmp/sat1-assets/*.deb
 sed -i \
     's|^pulse_server = .*|pulse_server = "unix:/run/tater-sat1-audio/pulse/native"|' \
     /etc/tater-sat1-standalone/config.toml
+sed -i \
+    "s/^TATER_SETUP_WIFI_COUNTRY=.*/TATER_SETUP_WIFI_COUNTRY=${WIFI_COUNTRY}/" \
+    /etc/default/tater-sat1-setup
+if command -v raspi-config >/dev/null 2>&1; then
+    raspi-config nonint do_wifi_country "${WIFI_COUNTRY}" || true
+fi
+systemctl disable hostapd.service 2>/dev/null || true
+test -x /usr/local/sbin/tater-sat1-setup-hotspot
+test -x /opt/tater-sat1/venv/bin/tater-sat1-provisioning
+test ! -L /etc/systemd/system/multi-user.target.wants/hostapd.service
+grep -q "^TATER_SETUP_WIFI_COUNTRY=${WIFI_COUNTRY}$" /etc/default/tater-sat1-setup
 
 if [ "${IMAGE_FLAVOR}" = "standalone" ]; then
     # Tater starts a private Redis instance from the packaged binary. Do not
@@ -50,6 +62,7 @@ systemctl enable satellite1-init.service 2>/dev/null || true
 if [ "${IMAGE_FLAVOR}" = "standalone" ]; then
     systemctl enable \
         tater-sat1-firstboot.service \
+        tater-sat1-provisioning.service \
         tater-sat1-audio.service \
         tater-sat1-tater.service \
         tater-sat1-voice.service
@@ -57,14 +70,17 @@ else
     test ! -e /opt/tater/app/tateros_app.py
     systemctl enable \
         tater-sat1-firstboot.service \
+        tater-sat1-provisioning.service \
         tater-sat1-audio.service \
         tater-sat1-satellite.service
 fi
+test -L /etc/systemd/system/multi-user.target.wants/tater-sat1-provisioning.service
 
 rm -rf \
     /opt/tater-sat1-standalone-src \
     /opt/tater-sat1/linux-satellite/.git \
     /tmp/tater-sat1-image-flavor \
+    /tmp/tater-sat1-wifi-country \
     /tmp/sat1-assets
 apt-get clean
 rm -rf /var/lib/apt/lists/*

@@ -58,7 +58,16 @@ class ImageBuilderTests(unittest.TestCase):
         self.assertIn("--defer-init", stage)
         self.assertIn("test ! -e /var/lib/tater-sat1-standalone/native-satellite-token", stage)
         self.assertIn("tater-sat1-firstboot.service", stage)
+        self.assertIn("tater-sat1-provisioning.service", stage)
         self.assertIn("test ! -e /opt/tater/app/tateros_app.py", stage)
+
+    def test_image_includes_captive_portal_network_packages(self) -> None:
+        packages = (ROOT / "scripts/pi-image/stage-tater-sat1/00-install-appliance/00-packages").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("hostapd\n", packages)
+        self.assertIn("dnsmasq-base\n", packages)
+        self.assertIn("network-manager\n", packages)
 
     def test_builder_writes_a_checksum_for_the_finished_image(self) -> None:
         builder = (ROOT / "scripts" / "build-pi-image.sh").read_text(encoding="utf-8")

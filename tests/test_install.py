@@ -24,6 +24,8 @@ class InstallerTests(unittest.TestCase):
         self.assertIn("TATER_SETUP_REQUIRE_LOCAL_LLM=0", output)
         self.assertIn("setup_tater.sh edge", output)
         self.assertIn("pip install --editable /opt/tater-sat1/linux-satellite", output)
+        self.assertIn("tater-sat1-provisioning.service", output)
+        self.assertIn("tater-sat1-setup-hotspot", output)
         self.assertNotIn("apt-get update", output)
 
     def test_satellite_dry_run_omits_local_tater(self) -> None:
@@ -46,6 +48,7 @@ class InstallerTests(unittest.TestCase):
         self.assertIn("config.satellite.toml.example", output)
         self.assertIn("tater-sat1-satellite.service", output)
         self.assertIn("pip install --editable /opt/tater-sat1/linux-satellite", output)
+        self.assertIn("tater-sat1-provisioning.service", output)
         self.assertNotIn("setup_tater.sh edge", output)
         self.assertNotIn("git clone https://github.com/TaterTotterson/Tater.git", output)
 

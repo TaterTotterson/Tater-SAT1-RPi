@@ -18,6 +18,7 @@ Both flavors include:
   configuration, SDK, and DAC initialization service
 - Tater Linux Satellite with local wake-word detection
 - a private PulseAudio service for capture and playback
+- a first-boot and recovery Wi-Fi hotspot with a captive setup portal
 - zram sized to 50 percent of RAM
 
 The standalone flavor additionally includes full Tater with its remote-only
@@ -80,9 +81,15 @@ set `PI_FIRST_USER_PASS` or an SSH public key before sharing an image.
 5. Attach the Satellite1 HAT to the powered-off Pi Zero 2 W and insert the
    card.
 6. Apply power and allow several minutes for the first boot.
-7. For standalone, open the unique `tater-sat1-xxxxxx.local:8501` hostname or
-   use the Pi's IP address. For satellite-only, follow the pairing steps in
-   [Fleet satellite image](FLEET_IMAGE.md).
+7. Join `Tater-SAT1-Setup-XXXXXX` and complete the captive setup page. If it
+   does not open automatically, browse to `http://192.168.4.1`.
+8. For standalone, open the unique `tater-sat1-xxxxxx.local:8501` hostname or
+   use the Pi's IP address. The satellite-only portal also collects its Tater
+   address and pairing code.
+
+Wi-Fi may still be customized in Raspberry Pi Imager or baked in with the
+builder variables. When that connection works, the image skips the hotspot.
+See [Wi-Fi hotspot setup](PROVISIONING.md) for the complete flow.
 
 The first-boot service derives a unique hostname and device ID on every Pi. In
 the standalone flavor it also generates the local credential. The satellite

@@ -45,13 +45,15 @@ the required Debian packages are already present.
   state owned by the unprivileged `tater` service account
 - `/etc/tater-sat1-standalone/config.toml`: audio and appliance settings
 - supervised audio and voice services, plus local Tater in standalone mode
+- `tater-sat1-provisioning.service`: Wi-Fi fallback hotspot and local portal
 
 The generated native-satellite token is owner-only and is shared only through
 the local state directory. The satellite connects to Tater through loopback;
 the Tater web interface listens on port 8501 for LAN setup and use.
 
-For a satellite-only manual install, create a pairing code in the main Tater
-and run:
+On an unconfigured system, join `Tater-SAT1-Setup-XXXXXX` and use the captive
+page. For a satellite-only manual install that already has Wi-Fi, create a
+pairing code in the main Tater and run:
 
 ```sh
 sudo tater-sat1-pair --url http://MAIN_TATER_ADDRESS:8501 PAIRING_CODE

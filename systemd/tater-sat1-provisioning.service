@@ -1,0 +1,17 @@
+[Unit]
+Description=Tater SAT1 Wi-Fi setup hotspot and captive portal
+Requires=tater-sat1-firstboot.service
+Wants=NetworkManager.service
+After=tater-sat1-firstboot.service NetworkManager.service
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/default/tater-sat1-setup
+ExecStart=/usr/local/sbin/tater-sat1-setup-hotspot ensure
+ExecStop=/usr/local/sbin/tater-sat1-setup-hotspot stop
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target

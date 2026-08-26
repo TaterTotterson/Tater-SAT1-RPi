@@ -42,6 +42,13 @@ the satellite process. `tater-sat1-firstboot.service` derives a hostname and
 device ID from the Pi serial so cloned SD cards never share an identity. It
 also creates the local token when the image flavor is standalone.
 
+`tater-sat1-provisioning.service` checks NetworkManager at boot. With working
+Wi-Fi it exits without changing the network. Otherwise it temporarily places
+`wlan0` in access-point mode, runs hostapd and an isolated dnsmasq instance,
+and serves the local setup page at `192.168.4.1`. Saving creates a private,
+autoconnecting NetworkManager profile and reboots. The satellite flavor also
+stores its one-time Tater pairing code before rebooting.
+
 ## Intended base system
 
 The image composes Raspberry Pi OS Lite Bookworm with FutureProofHomes' pinned

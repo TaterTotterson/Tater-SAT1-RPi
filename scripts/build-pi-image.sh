@@ -314,7 +314,7 @@ patch_export_margin() {
 }
 patch_export_margin
 
-PIGEN_MOUNTS="${PIGEN_DOCKER_OPTS:-} --mount type=bind,source=${REPO_ROOT},target=/tater-sat1-src,readonly --mount type=bind,source=${SATELLITE_SOURCE_DIR},target=/linux-satellite-src,readonly --mount type=bind,source=${PI_ASSET_DIR},target=/sat1-assets,readonly -e TATER_SAT1_SOURCE_DIR=/tater-sat1-src -e LINUX_SATELLITE_SOURCE_DIR=/linux-satellite-src -e SAT1_ASSET_DIR=/sat1-assets -e TATER_SAT1_IMAGE_FLAVOR=${PI_IMAGE_FLAVOR}"
+PIGEN_MOUNTS="${PIGEN_DOCKER_OPTS:-} --mount type=bind,source=${REPO_ROOT},target=/tater-sat1-src,readonly --mount type=bind,source=${SATELLITE_SOURCE_DIR},target=/linux-satellite-src,readonly --mount type=bind,source=${PI_ASSET_DIR},target=/sat1-assets,readonly -e TATER_SAT1_SOURCE_DIR=/tater-sat1-src -e LINUX_SATELLITE_SOURCE_DIR=/linux-satellite-src -e SAT1_ASSET_DIR=/sat1-assets -e TATER_SAT1_IMAGE_FLAVOR=${PI_IMAGE_FLAVOR} -e TATER_SAT1_WIFI_COUNTRY=${PI_WIFI_COUNTRY}"
 if [ "${PI_IMAGE_FLAVOR}" = "standalone" ]; then
     PIGEN_MOUNTS="${PIGEN_MOUNTS} --mount type=bind,source=${TATER_SOURCE_DIR},target=/tater-src,readonly -e TATER_SOURCE_DIR=/tater-src"
 fi

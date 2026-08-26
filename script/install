@@ -125,21 +125,28 @@ if [ "${INSTALL_APT}" = "1" ]; then
     alsa-utils \
     build-essential \
     ca-certificates \
+    dnsmasq-base \
     ffmpeg \
     git \
+    hostapd \
     i2c-tools \
+    iproute2 \
     libasound2-dev \
     libmpv-dev \
     mpv \
+    network-manager \
     portaudio19-dev \
     pulseaudio \
     pulseaudio-utils \
     python3 \
     python3-dev \
-    python3-venv
+    python3-venv \
+    rfkill
   if [ "${FLAVOR}" = "standalone" ]; then
     run apt-get install --yes --no-install-recommends redis-server
   fi
+  # The Tater service invokes hostapd directly only while setup mode is active.
+  run systemctl disable --now hostapd.service
 else
   printf '%s\n' "  skipping apt packages"
 fi
@@ -226,7 +233,12 @@ else
 fi
 run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-audio.service" "${SYSTEMD_DIR}/tater-sat1-audio.service"
 run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-firstboot.service" "${SYSTEMD_DIR}/tater-sat1-firstboot.service"
+run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-provisioning.service" "${SYSTEMD_DIR}/tater-sat1-provisioning.service"
 run install -m 0755 "${PROJECT_DIR}/script/firstboot" "/usr/local/sbin/tater-sat1-firstboot"
+run install -m 0755 "${PROJECT_DIR}/script/setup-hotspot" "/usr/local/sbin/tater-sat1-setup-hotspot"
+if [ "${DRY_RUN}" = "1" ] || [ ! -e /etc/default/tater-sat1-setup ]; then
+  run install -m 0644 "${PROJECT_DIR}/config/setup-hotspot.env.example" "/etc/default/tater-sat1-setup"
+fi
 if [ "${FLAVOR}" = "standalone" ]; then
   run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-tater.service" "${SYSTEMD_DIR}/tater-sat1-tater.service"
   run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-voice.service" "${SYSTEMD_DIR}/tater-sat1-voice.service"
@@ -246,9 +258,9 @@ if [ "${ENABLE_SERVICES}" = "1" ]; then
   section "Enable appliance"
   run systemctl daemon-reload
   if [ "${FLAVOR}" = "standalone" ]; then
-    run systemctl enable --now tater-sat1-firstboot.service tater-sat1-audio.service tater-sat1-tater.service tater-sat1-voice.service
+    run systemctl enable --now tater-sat1-firstboot.service tater-sat1-provisioning.service tater-sat1-audio.service tater-sat1-tater.service tater-sat1-voice.service
   else
-    run systemctl enable --now tater-sat1-firstboot.service tater-sat1-audio.service tater-sat1-satellite.service
+    run systemctl enable --now tater-sat1-firstboot.service tater-sat1-provisioning.service tater-sat1-audio.service tater-sat1-satellite.service
   fi
 else
   printf '\n%s\n' "Services installed but not enabled (--no-enable)."

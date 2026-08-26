@@ -19,7 +19,7 @@
 ## Phase 3: self-contained image
 
 - [x] Build a Bookworm image with pinned FutureProofHomes Satellite1 packages
-- [ ] Add first-boot Wi-Fi and Tater provider setup
+- [x] Add first-boot Wi-Fi hotspot and satellite pairing setup
 - [x] Configure zram and bounded journal storage
 - [x] Add a satellite-only fleet image with unique first-boot identity
 - [x] Add per-device pairing with a main Tater server

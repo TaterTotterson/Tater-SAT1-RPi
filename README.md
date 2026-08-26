@@ -29,6 +29,7 @@ This repository is an early runnable appliance scaffold. It currently provides:
 - a fleet satellite flavor that contains no Tater application or Redis service
 - unique hostnames and device IDs derived on first boot
 - one-time pairing with durable per-device native-satellite credentials
+- a shared first-boot Wi-Fi hotspot and captive setup portal
 
 The first image still needs validation on physical SAT1 hardware. The SAT1
 LED/button adapter is not included yet.
@@ -81,7 +82,10 @@ PI_FIRST_USER_PASS='choose-a-password' \
 ```
 
 Flash the resulting `.img.xz` using Raspberry Pi Imager's **Use Custom**
-option. See [Image building and flashing](docs/IMAGE.md).
+option. On first boot, join the unique `Tater-SAT1-Setup-XXXXXX` hotspot and
+follow the captive page; SSH is not required for normal setup. See
+[Wi-Fi hotspot setup](docs/PROVISIONING.md) and
+[Image building and flashing](docs/IMAGE.md).
 
 Preview the complete installation without modifying the host:
 
@@ -103,6 +107,7 @@ The installer places:
 - configuration at `/etc/tater-sat1-standalone/config.toml`
 
 See [Image building and flashing](docs/IMAGE.md),
+[Wi-Fi hotspot setup](docs/PROVISIONING.md),
 [Fleet satellite image](docs/FLEET_IMAGE.md),
 [Installation](docs/INSTALL.md), [Architecture](docs/ARCHITECTURE.md),
 [Edge profile](docs/EDGE_PROFILE.md), [Upstream references](docs/UPSTREAMS.md),
