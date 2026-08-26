@@ -18,6 +18,7 @@ dev = ["pytest>=8", "ruff>=0.9"]
 [project.scripts]
 tater-sat1-standalone = "tater_sat1_standalone.cli:main"
 tater-sat1-provisioning = "tater_sat1_standalone.setup_portal:main"
+tater-sat1-voice = "tater_sat1_standalone.voice:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -10,7 +10,8 @@ class ConfigTests(unittest.TestCase):
         config = StandaloneConfig.from_mapping({})
         self.assertEqual(config.runtime.flavor, "standalone")
         self.assertEqual(config.tater.port, 8501)
-        self.assertEqual(config.satellite.board, "satellite1_rpi")
+        self.assertEqual(config.satellite.board, "satellite1_rpi_standalone")
+        self.assertEqual(config.runtime.satellite_executable.name, "tater-sat1-voice")
         self.assertEqual(config.satellite.pulse_server, "unix:/run/tater-sat1-audio/pulse/native")
         self.assertEqual(config.runtime.token_path.name, "native-satellite-token")
 
@@ -43,6 +44,10 @@ extra_args = ["--debug"]
     def test_rejects_invalid_flavor(self) -> None:
         with self.assertRaisesRegex(ValueError, "runtime flavor"):
             StandaloneConfig.from_mapping({"runtime": {"flavor": "server"}})
+
+    def test_satellite_flavor_gets_its_ota_board_identity(self) -> None:
+        config = StandaloneConfig.from_mapping({"runtime": {"flavor": "satellite"}})
+        self.assertEqual(config.satellite.board, "satellite1_rpi_satellite")
 
 
 if __name__ == "__main__":

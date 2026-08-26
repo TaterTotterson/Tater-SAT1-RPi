@@ -12,6 +12,7 @@ libasound2-dev
 libmpv-dev
 mpv
 network-manager
+openssl
 openssh-server
 portaudio19-dev
 pulseaudio

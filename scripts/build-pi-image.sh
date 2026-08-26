@@ -29,6 +29,10 @@ PI_LOCALE="${PI_LOCALE:-en_US.UTF-8}"
 PI_KEYBOARD="${PI_KEYBOARD:-us}"
 PI_ASSET_DIR="${PI_ASSET_DIR:-${REPO_ROOT}/.cache/sat1-release-${SAT1_RELEASE_TAG}}"
 PI_ALLOW_DIRTY_SOURCES="${PI_ALLOW_DIRTY_SOURCES:-0}"
+PI_RELEASE_VERSION="${PI_RELEASE_VERSION:-$(git -C "${REPO_ROOT}" describe --tags --always --dirty 2>/dev/null || printf '%s' development)}"
+TATER_SAT1_FIRMWARE_VERSION="tater-sat1-${PI_IMAGE_FLAVOR}-${PI_RELEASE_VERSION}"
+TATER_SAT1_OTA_PRIVATE_KEY_FILE="${TATER_SAT1_OTA_PRIVATE_KEY_FILE:-${REPO_ROOT}/.secrets/tater-sat1-ota-private.pem}"
+TATER_SAT1_OTA_PRIVATE_KEY_CACHE="${REPO_ROOT}/.cache/ota-signing/private.pem"
 
 PLAN_ONLY=0
 PREPARE_ONLY=0
@@ -65,6 +69,11 @@ case "${PI_IMAGE_FLAVOR}" in
     standalone|satellite) ;;
     *) printf 'Unknown image flavor: %s\n' "${PI_IMAGE_FLAVOR}" >&2; exit 2 ;;
 esac
+if [[ ! "${PI_RELEASE_VERSION}" =~ ^[A-Za-z0-9][A-Za-z0-9._+-]{0,127}$ ]]; then
+    printf 'Invalid image release version: %s\n' "${PI_RELEASE_VERSION}" >&2
+    exit 2
+fi
+TATER_SAT1_FIRMWARE_VERSION="tater-sat1-${PI_IMAGE_FLAVOR}-${PI_RELEASE_VERSION}"
 if [ -z "${PI_IMAGE_NAME}" ]; then
     PI_IMAGE_NAME="tater-sat1-${PI_IMAGE_FLAVOR}"
 fi
@@ -111,6 +120,9 @@ sat1_release=${SAT1_RELEASE_TAG}
 tater_revision=${tater_plan}
 linux_satellite_revision=${SATELLITE_REVISION}
 compression=xz
+release_version=${PI_RELEASE_VERSION}
+firmware_version=${TATER_SAT1_FIRMWARE_VERSION}
+ota_format=tater_sat1_signed_bundle_v1
 first_boot_identity=${identity_plan}
 output=${PI_GEN_DIR}/deploy
 EOF
@@ -243,6 +255,36 @@ if [ "${PREPARE_ONLY}" = "1" ]; then
 fi
 
 require_cmd docker
+require_cmd openssl
+
+prepare_signing_key() {
+    local source_key="${TATER_SAT1_OTA_PRIVATE_KEY_FILE}"
+    local derived_public="${REPO_ROOT}/.cache/ota-signing/public.pem"
+    mkdir -p "$(dirname "${TATER_SAT1_OTA_PRIVATE_KEY_CACHE}")"
+    umask 077
+    if [ -n "${TATER_SAT1_OTA_PRIVATE_KEY_PEM:-}" ]; then
+        printf '%s\n' "${TATER_SAT1_OTA_PRIVATE_KEY_PEM}" > "${TATER_SAT1_OTA_PRIVATE_KEY_CACHE}"
+    else
+        if [[ "${source_key}" != /* ]]; then
+            source_key="${REPO_ROOT}/${source_key}"
+        fi
+        [ -r "${source_key}" ] || {
+            printf '%s\n' 'No SAT1 OTA signing key was supplied.' >&2
+            printf '%s\n' 'Set TATER_SAT1_OTA_PRIVATE_KEY_PEM, TATER_SAT1_OTA_PRIVATE_KEY_FILE, or run script/generate_development_ota_key.sh.' >&2
+            exit 1
+        }
+        cp "${source_key}" "${TATER_SAT1_OTA_PRIVATE_KEY_CACHE}"
+    fi
+    chmod 0600 "${TATER_SAT1_OTA_PRIVATE_KEY_CACHE}"
+    openssl rsa -in "${TATER_SAT1_OTA_PRIVATE_KEY_CACHE}" -check -noout >/dev/null
+    openssl pkey -in "${TATER_SAT1_OTA_PRIVATE_KEY_CACHE}" -pubout -out "${derived_public}"
+    cmp -s "${derived_public}" "${REPO_ROOT}/keys/update-public.pem" || {
+        printf '%s\n' 'The OTA private key does not match keys/update-public.pem.' >&2
+        exit 1
+    }
+}
+
+prepare_signing_key
 
 mkdir -p "$(dirname "${PI_GEN_DIR}")" "$(dirname "${PI_GEN_CONFIG}")"
 if [ ! -d "${PI_GEN_DIR}/.git" ]; then
@@ -314,7 +356,7 @@ patch_export_margin() {
 }
 patch_export_margin
 
-PIGEN_MOUNTS="${PIGEN_DOCKER_OPTS:-} --mount type=bind,source=${REPO_ROOT},target=/tater-sat1-src,readonly --mount type=bind,source=${SATELLITE_SOURCE_DIR},target=/linux-satellite-src,readonly --mount type=bind,source=${PI_ASSET_DIR},target=/sat1-assets,readonly -e TATER_SAT1_SOURCE_DIR=/tater-sat1-src -e LINUX_SATELLITE_SOURCE_DIR=/linux-satellite-src -e SAT1_ASSET_DIR=/sat1-assets -e TATER_SAT1_IMAGE_FLAVOR=${PI_IMAGE_FLAVOR} -e TATER_SAT1_WIFI_COUNTRY=${PI_WIFI_COUNTRY}"
+PIGEN_MOUNTS="${PIGEN_DOCKER_OPTS:-} --mount type=bind,source=${REPO_ROOT},target=/tater-sat1-src,readonly --mount type=bind,source=${SATELLITE_SOURCE_DIR},target=/linux-satellite-src,readonly --mount type=bind,source=${PI_ASSET_DIR},target=/sat1-assets,readonly --mount type=bind,source=${TATER_SAT1_OTA_PRIVATE_KEY_CACHE},target=/tater-sat1-ota-private.pem,readonly -e TATER_SAT1_SOURCE_DIR=/tater-sat1-src -e LINUX_SATELLITE_SOURCE_DIR=/linux-satellite-src -e SAT1_ASSET_DIR=/sat1-assets -e TATER_SAT1_IMAGE_FLAVOR=${PI_IMAGE_FLAVOR} -e TATER_SAT1_WIFI_COUNTRY=${PI_WIFI_COUNTRY} -e TATER_SAT1_FIRMWARE_VERSION=${TATER_SAT1_FIRMWARE_VERSION} -e TATER_SAT1_RELEASE_VERSION=${PI_RELEASE_VERSION} -e TATER_SAT1_OTA_PRIVATE_KEY=/tater-sat1-ota-private.pem"
 if [ "${PI_IMAGE_FLAVOR}" = "standalone" ]; then
     PIGEN_MOUNTS="${PIGEN_MOUNTS} --mount type=bind,source=${TATER_SOURCE_DIR},target=/tater-src,readonly -e TATER_SOURCE_DIR=/tater-src"
 fi
@@ -336,6 +378,7 @@ printf 'Initial SSH login: %s (change the image password for non-lab use)\n' "${
 
 DEPLOY_DIR="${PI_GEN_DIR}/deploy"
 IMAGE_FOUND=0
+OTA_FOUND=0
 : > "${DEPLOY_DIR}/SHA256SUMS.txt"
 for image_path in "${DEPLOY_DIR}"/image_*"${PI_IMAGE_NAME}".img.xz; do
     [ -f "${image_path}" ] || continue
@@ -344,8 +387,19 @@ for image_path in "${DEPLOY_DIR}"/image_*"${PI_IMAGE_NAME}".img.xz; do
         "$(sha256_file "${image_path}")" \
         "$(basename "${image_path}")" >> "${DEPLOY_DIR}/SHA256SUMS.txt"
 done
+for ota_path in "${DEPLOY_DIR}"/tater-sat1-"${PI_IMAGE_FLAVOR}"-*-ota.sat1; do
+    [ -f "${ota_path}" ] || continue
+    OTA_FOUND=1
+    printf '%s  %s\n' \
+        "$(sha256_file "${ota_path}")" \
+        "$(basename "${ota_path}")" >> "${DEPLOY_DIR}/SHA256SUMS.txt"
+done
 [ "${IMAGE_FOUND}" = "1" ] || {
     printf 'pi-gen completed without producing an image in %s\n' "${DEPLOY_DIR}" >&2
+    exit 1
+}
+[ "${OTA_FOUND}" = "1" ] || {
+    printf 'pi-gen completed without producing a signed OTA bundle in %s\n' "${DEPLOY_DIR}" >&2
     exit 1
 }
 

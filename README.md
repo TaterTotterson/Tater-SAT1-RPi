@@ -30,6 +30,7 @@ This repository is an early runnable appliance scaffold. It currently provides:
 - unique hostnames and device IDs derived on first boot
 - one-time pairing with durable per-device native-satellite credentials
 - a shared first-boot Wi-Fi hotspot and captive setup portal
+- signed, flavor-specific appliance OTA through Tater with automatic rollback
 
 The first image still needs validation on physical SAT1 hardware. The SAT1
 LED/button adapter is not included yet.
@@ -109,6 +110,7 @@ The installer places:
 See [Image building and flashing](docs/IMAGE.md),
 [Wi-Fi hotspot setup](docs/PROVISIONING.md),
 [Fleet satellite image](docs/FLEET_IMAGE.md),
+[Signed appliance updates](docs/OTA.md),
 [Installation](docs/INSTALL.md), [Architecture](docs/ARCHITECTURE.md),
 [Edge profile](docs/EDGE_PROFILE.md), [Upstream references](docs/UPSTREAMS.md),
 and [Roadmap](docs/ROADMAP.md) for the implementation path.

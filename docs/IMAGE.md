@@ -20,6 +20,7 @@ Both flavors include:
 - a private PulseAudio service for capture and playback
 - a first-boot and recovery Wi-Fi hotspot with a captive setup portal
 - zram sized to 50 percent of RAM
+- signed SAT1 appliance updates with a post-boot rollback health check
 
 The standalone flavor additionally includes full Tater with its remote-only
 `edge` dependency profile and enables the Tater web interface at boot.
@@ -35,11 +36,19 @@ Requirements:
 - Git, curl, and Docker
 - enough storage for a Raspberry Pi OS image build (allow roughly 20 GB)
 - preferably an ARM64 Linux build host; Docker emulation on macOS is slower
+- the private OTA key matching `keys/update-public.pem`
 
 Inspect the image inputs:
 
 ```sh
 ./scripts/build-pi-image.sh --plan
+```
+
+For a new development trust root, generate and securely back up a key before
+the first full build:
+
+```sh
+./script/generate_development_ota_key.sh
 ```
 
 Download and verify the pinned inputs without starting pi-gen:
@@ -65,6 +74,7 @@ The compressed image is written under:
 
 ```text
 .cache/pi-gen-bookworm-arm64/deploy/image_*.img.xz
+.cache/pi-gen-bookworm-arm64/deploy/tater-sat1-*-ota.sat1
 ```
 
 If Wi-Fi is not embedded, use Raspberry Pi Imager's customization screen when
@@ -95,6 +105,12 @@ The first-boot service derives a unique hostname and device ID on every Pi. In
 the standalone flavor it also generates the local credential. The satellite
 flavor receives a one-time code during pairing and stores the resulting
 per-device credential. No credential is stored in either distributable image.
+
+Once an OTA-capable image has been flashed, later application releases can be
+installed from the connected device's firmware action in Tater. Wi-Fi,
+configuration, credentials, and state are preserved, and an unhealthy update
+rolls back automatically. Base OS, kernel, boot, and partition changes still
+require flashing a new image. See [Signed appliance updates](OTA.md).
 
 ## What still needs hardware validation
 

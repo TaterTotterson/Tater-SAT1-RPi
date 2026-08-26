@@ -49,6 +49,13 @@ and serves the local setup page at `192.168.4.1`. Saving creates a private,
 autoconnecting NetworkManager profile and reboots. The satellite flavor also
 stores its one-time Tater pairing code before rebooting.
 
+`tater-sat1-update.path` watches the persistent state directory for bundles
+downloaded through the authenticated native-satellite connection. The updater
+verifies a release signature before replacing the immutable application roots.
+On the next boot, `tater-sat1-update-health.service` accepts the release or
+restores its rollback. Configuration, Wi-Fi, pairing credentials, and runtime
+state live outside the replaced roots.
+
 ## Intended base system
 
 The image composes Raspberry Pi OS Lite Bookworm with FutureProofHomes' pinned

@@ -29,8 +29,10 @@ jobs:
         env:
           PI_IMAGE_FLAVOR: ${{ matrix.flavor }}
           PI_IMAGE_NAME: tater-sat1-${{ matrix.flavor }}-${{ github.ref_name }}
+          PI_RELEASE_VERSION: ${{ github.ref_name }}
           PI_FIRST_USER_NAME: tater
           PI_FIRST_USER_PASS: tater
+          TATER_SAT1_OTA_PRIVATE_KEY_PEM: ${{ secrets.TATER_SAT1_OTA_PRIVATE_KEY_PEM }}
         run: ./scripts/build-pi-image.sh --flavor "${PI_IMAGE_FLAVOR}"
 
       - name: Collect image and checksum
@@ -40,9 +42,10 @@ jobs:
           set -euo pipefail
           mkdir -p out/image
           cp .cache/pi-gen-bookworm-arm64/deploy/image_*.img.xz out/image/
+          cp .cache/pi-gen-bookworm-arm64/deploy/tater-sat1-${IMAGE_FLAVOR}-*-ota.sat1 out/image/
           cp .cache/pi-gen-bookworm-arm64/deploy/*.info out/image/ 2>/dev/null || true
           cd out/image
-          sha256sum image_*.img.xz > "SHA256SUMS-${IMAGE_FLAVOR}.txt"
+          sha256sum image_*.img.xz tater-sat1-*-ota.sat1 > "SHA256SUMS-${IMAGE_FLAVOR}.txt"
 
       - name: Upload image artifact
         uses: actions/upload-artifact@v4.6.2
@@ -61,6 +64,9 @@ jobs:
       contents: write
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
       - name: Download both images
         uses: actions/download-artifact@v5.0.0
         with:
@@ -68,11 +74,21 @@ jobs:
           path: out/release
           merge-multiple: true
 
+      - name: Build Tater OTA feed
+        run: |
+          python3 script/build_release_manifest.py \
+            --version "${GITHUB_REF_NAME}" \
+            --release-tag "${GITHUB_REF_NAME}" \
+            --release-dir out/release
+
       - name: Publish tagged release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             out/release/*.img.xz
+            out/release/*.sat1
+            out/release/latest.json
+            out/release/*-manifest.json
             out/release/*.info
             out/release/SHA256SUMS-*.txt
           body: |
@@ -80,6 +96,10 @@ jobs:
 
             - `standalone` runs Tater and the voice satellite together.
             - `satellite` runs only the voice satellite and pairs with a main Tater server.
+
+            Both flavors support signed appliance OTA from Tater after this
+            OTA-capable image has been flashed once. Base OS and kernel changes
+            still require flashing a new image.
 
             Flash the desired `.img.xz` with Raspberry Pi Imager, customize
             Wi-Fi and login settings, attach the Satellite1 HAT, and boot.

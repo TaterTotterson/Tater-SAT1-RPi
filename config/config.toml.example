@@ -3,7 +3,7 @@ flavor = "standalone"
 state_dir = "/var/lib/tater-sat1-standalone"
 tater_app_dir = "/opt/tater/app"
 tater_python = "/opt/tater/venv/bin/python"
-satellite_executable = "/opt/tater-sat1/venv/bin/linux-voice-assistant"
+satellite_executable = "/opt/tater-sat1/venv/bin/tater-sat1-voice"
 
 [tater]
 host = "0.0.0.0"
@@ -15,7 +15,7 @@ extra_args = []
 [satellite]
 name = "auto"
 device_id = "auto"
-board = "satellite1_rpi"
+board = "satellite1_rpi_standalone"
 room = ""
 
 # Replace these after running linux-voice-assistant with --list-input-devices

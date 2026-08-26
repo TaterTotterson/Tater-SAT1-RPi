@@ -19,13 +19,16 @@ class InstallerTests(unittest.TestCase):
         )
         self.assertEqual(completed.returncode, 0, completed.stderr)
         output = completed.stdout
-        self.assertIn("432fa2873dde07eeca17d823166ed565000c1d76", output)
+        self.assertIn("67bd00361622b01bc167233b13d0feaeef0a4fc0", output)
         self.assertIn("5fcba46b1f5262efc3c49c4e43ef093222f42843", output)
         self.assertIn("TATER_SETUP_REQUIRE_LOCAL_LLM=0", output)
         self.assertIn("setup_tater.sh edge", output)
         self.assertIn("pip install --editable /opt/tater-sat1/linux-satellite", output)
         self.assertIn("tater-sat1-provisioning.service", output)
         self.assertIn("tater-sat1-setup-hotspot", output)
+        self.assertIn("tater-sat1-apply-update", output)
+        self.assertIn("tater-sat1-update.path", output)
+        self.assertIn("update-public.pem", output)
         self.assertNotIn("apt-get update", output)
 
     def test_satellite_dry_run_omits_local_tater(self) -> None:

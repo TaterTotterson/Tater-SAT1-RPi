@@ -1,0 +1,13 @@
+[Unit]
+Description=Accept or roll back a Tater SAT1 appliance update
+ConditionPathExists=/var/lib/tater-sat1-standalone/updates/health-pending.json
+Wants=network-online.target
+After=network-online.target tater-sat1-audio.service tater-sat1-tater.service tater-sat1-voice.service tater-sat1-satellite.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/tater-sat1-update-health
+TimeoutStartSec=180
+
+[Install]
+WantedBy=multi-user.target

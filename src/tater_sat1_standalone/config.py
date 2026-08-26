@@ -45,7 +45,7 @@ class RuntimeConfig:
     state_dir: Path = Path("/var/lib/tater-sat1-standalone")
     tater_app_dir: Path = Path("/opt/tater/app")
     tater_python: Path = Path("/opt/tater/venv/bin/python")
-    satellite_executable: Path = Path("/opt/tater-sat1/venv/bin/linux-voice-assistant")
+    satellite_executable: Path = Path("/opt/tater-sat1/venv/bin/tater-sat1-voice")
 
     @classmethod
     def from_mapping(cls, values: Mapping[str, Any]) -> RuntimeConfig:
@@ -138,10 +138,14 @@ class StandaloneConfig:
 
     @classmethod
     def from_mapping(cls, values: Mapping[str, Any]) -> StandaloneConfig:
+        runtime = RuntimeConfig.from_mapping(_section(values, "runtime"))
+        satellite_values = dict(_section(values, "satellite"))
+        if not str(satellite_values.get("board") or "").strip():
+            satellite_values["board"] = f"satellite1_rpi_{runtime.flavor}"
         return cls(
-            runtime=RuntimeConfig.from_mapping(_section(values, "runtime")),
+            runtime=runtime,
             tater=TaterConfig.from_mapping(_section(values, "tater")),
-            satellite=SatelliteConfig.from_mapping(_section(values, "satellite")),
+            satellite=SatelliteConfig.from_mapping(satellite_values),
         )
 
 

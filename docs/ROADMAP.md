@@ -24,7 +24,7 @@
 - [x] Add a satellite-only fleet image with unique first-boot identity
 - [x] Add per-device pairing with a main Tater server
 - [ ] Add read-only-root/overlay options and graceful power-loss handling
-- [ ] Add signed appliance updates and recovery documentation
+- [x] Add signed appliance updates and automatic rollback documentation
 
 ## Phase 4: performance gate
 

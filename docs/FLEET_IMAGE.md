@@ -56,6 +56,12 @@ the one-time pairing code is replaced by an owner-only durable device token.
 The satellite reconnects automatically whenever Wi-Fi or the main Tater
 restarts.
 
+After the first OTA-capable image is flashed, the main Tater can also install
+signed SAT1 appliance releases for the connected device. The satellite keeps
+its Wi-Fi profile and durable pairing token across updates; failed health
+checks restore the previous voice appliance automatically. See
+[Signed appliance updates](OTA.md).
+
 See [Wi-Fi hotspot setup](PROVISIONING.md) for recovery behavior and security
 details.
 

@@ -1,0 +1,9 @@
+[Unit]
+Description=Watch for a downloaded Tater SAT1 appliance update
+
+[Path]
+PathExists=/var/lib/tater-sat1-standalone/updates/pending.sat1-ota
+Unit=tater-sat1-update.service
+
+[Install]
+WantedBy=multi-user.target

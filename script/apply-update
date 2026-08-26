@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+
+export PYTHONPATH=/usr/local/lib/tater-sat1
+exec /usr/bin/python3 -m tater_sat1_standalone.update_installer "$@"

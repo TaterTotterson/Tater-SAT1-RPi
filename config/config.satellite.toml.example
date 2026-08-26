@@ -3,7 +3,7 @@ flavor = "satellite"
 state_dir = "/var/lib/tater-sat1-standalone"
 tater_app_dir = "/opt/tater/app"
 tater_python = "/opt/tater/venv/bin/python"
-satellite_executable = "/opt/tater-sat1/venv/bin/linux-voice-assistant"
+satellite_executable = "/opt/tater-sat1/venv/bin/tater-sat1-voice"
 
 [tater]
 # This can be changed while pairing with `sudo tater-sat1-pair --url ... CODE`.
@@ -16,7 +16,7 @@ extra_args = []
 # "auto" derives a stable identity from the Raspberry Pi serial number.
 name = "auto"
 device_id = "auto"
-board = "satellite1_rpi"
+board = "satellite1_rpi_satellite"
 room = ""
 audio_input_device = "default"
 audio_output_device = "default"

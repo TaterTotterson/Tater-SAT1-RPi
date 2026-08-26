@@ -1,0 +1,9 @@
+[Unit]
+Description=Install a signed Tater SAT1 appliance update
+ConditionPathExists=/var/lib/tater-sat1-standalone/updates/pending.sat1-ota
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/tater-sat1-apply-update
+TimeoutStartSec=infinity

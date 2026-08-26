@@ -9,3 +9,5 @@ dist/
 config.local.toml
 .cache/
 out/
+.secrets/
+release_assets/

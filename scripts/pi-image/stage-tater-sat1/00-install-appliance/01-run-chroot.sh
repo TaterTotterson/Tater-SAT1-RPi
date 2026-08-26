@@ -3,10 +3,11 @@
 export DEBIAN_FRONTEND=noninteractive
 IMAGE_FLAVOR="$(cat /tmp/tater-sat1-image-flavor)"
 WIFI_COUNTRY="$(cat /tmp/tater-sat1-wifi-country)"
+FIRMWARE_VERSION="$(cat /tmp/tater-sat1-firmware-version)"
 
 apt-get install -y /tmp/sat1-assets/*.deb
 
-/opt/tater-sat1-standalone-src/script/install \
+TATER_SAT1_VERSION="${FIRMWARE_VERSION}" /opt/tater-sat1-standalone-src/script/install \
     --flavor "${IMAGE_FLAVOR}" \
     --bundled-sources \
     --defer-init \
@@ -27,7 +28,12 @@ if command -v raspi-config >/dev/null 2>&1; then
 fi
 systemctl disable hostapd.service 2>/dev/null || true
 test -x /usr/local/sbin/tater-sat1-setup-hotspot
+test -x /usr/local/sbin/tater-sat1-apply-update
+test -x /usr/local/sbin/tater-sat1-update-health
 test -x /opt/tater-sat1/venv/bin/tater-sat1-provisioning
+test -x /opt/tater-sat1/venv/bin/tater-sat1-voice
+test -s /etc/tater-sat1-standalone/update-public.pem
+test "$(cat /etc/tater-sat1-standalone/version)" = "${FIRMWARE_VERSION}"
 test ! -L /etc/systemd/system/multi-user.target.wants/hostapd.service
 grep -q "^TATER_SETUP_WIFI_COUNTRY=${WIFI_COUNTRY}$" /etc/default/tater-sat1-setup
 
@@ -59,7 +65,9 @@ EOF
 # Every flashed device creates its native-satellite credential on first boot.
 test ! -e /var/lib/tater-sat1-standalone/native-satellite-token
 systemctl enable satellite1-init.service 2>/dev/null || true
+systemctl enable tater-sat1-update.path tater-sat1-update-health.service
 if [ "${IMAGE_FLAVOR}" = "standalone" ]; then
+    grep -q '^board = "satellite1_rpi_standalone"$' /etc/tater-sat1-standalone/config.toml
     systemctl enable \
         tater-sat1-firstboot.service \
         tater-sat1-provisioning.service \
@@ -67,6 +75,7 @@ if [ "${IMAGE_FLAVOR}" = "standalone" ]; then
         tater-sat1-tater.service \
         tater-sat1-voice.service
 else
+    grep -q '^board = "satellite1_rpi_satellite"$' /etc/tater-sat1-standalone/config.toml
     test ! -e /opt/tater/app/tateros_app.py
     systemctl enable \
         tater-sat1-firstboot.service \
@@ -75,6 +84,8 @@ else
         tater-sat1-satellite.service
 fi
 test -L /etc/systemd/system/multi-user.target.wants/tater-sat1-provisioning.service
+test -L /etc/systemd/system/multi-user.target.wants/tater-sat1-update.path
+test -L /etc/systemd/system/multi-user.target.wants/tater-sat1-update-health.service
 
 rm -rf \
     /opt/tater-sat1-standalone-src \

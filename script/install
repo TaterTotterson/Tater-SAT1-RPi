@@ -85,7 +85,11 @@ STATE_DIR="${TATER_INSTALL_STATE_DIR:-/var/lib/tater-sat1-standalone}"
 CONFIG_DIR="${TATER_INSTALL_CONFIG_DIR:-/etc/tater-sat1-standalone}"
 SYSTEMD_DIR="${TATER_INSTALL_SYSTEMD_DIR:-/etc/systemd/system}"
 CONFIG_PATH="${CONFIG_DIR}/config.toml"
+VERSION_PATH="${CONFIG_DIR}/version"
+UPDATE_PUBLIC_KEY_PATH="${CONFIG_DIR}/update-public.pem"
+UPDATE_LIB_DIR="/usr/local/lib/tater-sat1/tater_sat1_standalone"
 SERVICE_USER="${TATER_INSTALL_USER:-tater}"
+FIRMWARE_VERSION="${TATER_SAT1_VERSION:-tater-sat1-${FLAVOR}-development}"
 
 if [ "${DRY_RUN}" != "1" ]; then
   [ "$(uname -s)" = "Linux" ] || { printf '%s\n' "This installer targets Linux; use --dry-run elsewhere." >&2; exit 1; }
@@ -135,6 +139,7 @@ if [ "${INSTALL_APT}" = "1" ]; then
     libmpv-dev \
     mpv \
     network-manager \
+    openssl \
     portaudio19-dev \
     pulseaudio \
     pulseaudio-utils \
@@ -159,7 +164,7 @@ run install -d -m 0755 "${APPLIANCE_ROOT}" "${CONFIG_DIR}" "${SYSTEMD_DIR}"
 if [ "${FLAVOR}" = "standalone" ]; then
   run install -d -m 0755 "${TATER_ROOT}"
 fi
-run install -d -m 0700 -o "${SERVICE_USER}" -g "${SERVICE_USER}" "${STATE_DIR}"
+run install -d -m 0700 -o "${SERVICE_USER}" -g "${SERVICE_USER}" "${STATE_DIR}" "${STATE_DIR}/updates"
 
 if [ "${DRY_RUN}" != "1" ]; then
   for group_name in audio gpio i2c spi; do
@@ -231,11 +236,30 @@ if [ "${DRY_RUN}" = "1" ] || [ ! -e "${CONFIG_PATH}" ]; then
 else
   printf '  preserving existing configuration: %s\n' "${CONFIG_PATH}"
 fi
+if [ "${DRY_RUN}" = "1" ]; then
+  printf '  + write firmware version %s to %s\n' "${FIRMWARE_VERSION}" "${VERSION_PATH}"
+else
+  printf '%s\n' "${FIRMWARE_VERSION}" > "${VERSION_PATH}"
+  chmod 0644 "${VERSION_PATH}"
+  if grep -q '^satellite_executable = "/opt/tater-sat1/venv/bin/linux-voice-assistant"$' "${CONFIG_PATH}"; then
+    sed -i 's|^satellite_executable = "/opt/tater-sat1/venv/bin/linux-voice-assistant"$|satellite_executable = "/opt/tater-sat1/venv/bin/tater-sat1-voice"|' "${CONFIG_PATH}"
+  fi
+fi
 run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-audio.service" "${SYSTEMD_DIR}/tater-sat1-audio.service"
 run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-firstboot.service" "${SYSTEMD_DIR}/tater-sat1-firstboot.service"
 run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-provisioning.service" "${SYSTEMD_DIR}/tater-sat1-provisioning.service"
+run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-update.path" "${SYSTEMD_DIR}/tater-sat1-update.path"
+run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-update.service" "${SYSTEMD_DIR}/tater-sat1-update.service"
+run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-update-health.service" "${SYSTEMD_DIR}/tater-sat1-update-health.service"
 run install -m 0755 "${PROJECT_DIR}/script/firstboot" "/usr/local/sbin/tater-sat1-firstboot"
 run install -m 0755 "${PROJECT_DIR}/script/setup-hotspot" "/usr/local/sbin/tater-sat1-setup-hotspot"
+run install -d -m 0755 "${UPDATE_LIB_DIR}"
+run install -m 0644 "${PROJECT_DIR}/src/tater_sat1_standalone/__init__.py" "${UPDATE_LIB_DIR}/__init__.py"
+run install -m 0644 "${PROJECT_DIR}/src/tater_sat1_standalone/update_installer.py" "${UPDATE_LIB_DIR}/update_installer.py"
+run install -m 0644 "${PROJECT_DIR}/src/tater_sat1_standalone/update_health.py" "${UPDATE_LIB_DIR}/update_health.py"
+run install -m 0755 "${PROJECT_DIR}/script/apply-update" "/usr/local/sbin/tater-sat1-apply-update"
+run install -m 0755 "${PROJECT_DIR}/script/update-health" "/usr/local/sbin/tater-sat1-update-health"
+run install -m 0644 "${PROJECT_DIR}/keys/update-public.pem" "${UPDATE_PUBLIC_KEY_PATH}"
 if [ "${DRY_RUN}" = "1" ] || [ ! -e /etc/default/tater-sat1-setup ]; then
   run install -m 0644 "${PROJECT_DIR}/config/setup-hotspot.env.example" "/etc/default/tater-sat1-setup"
 fi
@@ -257,10 +281,11 @@ run runuser -u "${SERVICE_USER}" -- "${APPLIANCE_VENV_DIR}/bin/tater-sat1-standa
 if [ "${ENABLE_SERVICES}" = "1" ]; then
   section "Enable appliance"
   run systemctl daemon-reload
+  run systemctl enable tater-sat1-update-health.service
   if [ "${FLAVOR}" = "standalone" ]; then
-    run systemctl enable --now tater-sat1-firstboot.service tater-sat1-provisioning.service tater-sat1-audio.service tater-sat1-tater.service tater-sat1-voice.service
+    run systemctl enable --now tater-sat1-firstboot.service tater-sat1-provisioning.service tater-sat1-audio.service tater-sat1-tater.service tater-sat1-voice.service tater-sat1-update.path
   else
-    run systemctl enable --now tater-sat1-firstboot.service tater-sat1-provisioning.service tater-sat1-audio.service tater-sat1-satellite.service
+    run systemctl enable --now tater-sat1-firstboot.service tater-sat1-provisioning.service tater-sat1-audio.service tater-sat1-satellite.service tater-sat1-update.path
   fi
 else
   printf '\n%s\n' "Services installed but not enabled (--no-enable)."
