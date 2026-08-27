@@ -14,6 +14,9 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(config.runtime.satellite_executable.name, "tater-sat1-voice")
         self.assertEqual(config.satellite.pulse_server, "unix:/run/tater-sat1-audio/pulse/native")
         self.assertEqual(config.runtime.token_path.name, "native-satellite-token")
+        self.assertTrue(config.leds.enabled)
+        self.assertEqual(config.leds.pixel_count, 24)
+        self.assertEqual(config.leds.gpio_pin, 12)
 
     def test_loads_paths_and_extra_arguments(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -28,6 +31,9 @@ extra_args = ["--log-level", "debug"]
 [satellite]
 room = "Kitchen"
 extra_args = ["--debug"]
+[leds]
+brightness = 0.5
+gpio_pin = 18
 """.strip(),
                 encoding="utf-8",
             )
@@ -36,6 +42,8 @@ extra_args = ["--debug"]
         self.assertEqual(config.tater.port, 9501)
         self.assertEqual(config.tater.extra_args, ("--log-level", "debug"))
         self.assertEqual(config.satellite.room, "Kitchen")
+        self.assertEqual(config.leds.brightness, 0.5)
+        self.assertEqual(config.leds.gpio_pin, 18)
 
     def test_rejects_invalid_extra_arguments(self) -> None:
         with self.assertRaisesRegex(ValueError, "array of strings"):
@@ -48,6 +56,12 @@ extra_args = ["--debug"]
     def test_satellite_flavor_gets_its_ota_board_identity(self) -> None:
         config = StandaloneConfig.from_mapping({"runtime": {"flavor": "satellite"}})
         self.assertEqual(config.satellite.board, "satellite1_rpi_satellite")
+
+    def test_rejects_odd_led_ring_or_invalid_brightness(self) -> None:
+        with self.assertRaisesRegex(ValueError, "must be even"):
+            StandaloneConfig.from_mapping({"leds": {"pixel_count": 23}})
+        with self.assertRaisesRegex(ValueError, "between 0 and 1"):
+            StandaloneConfig.from_mapping({"leds": {"brightness": 1.1}})
 
 
 if __name__ == "__main__":

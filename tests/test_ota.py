@@ -92,6 +92,11 @@ class OtaTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_update_integrity("0" * 64, 0)
 
+    def test_led_controller_is_part_of_both_signed_ota_flavors(self) -> None:
+        led_unit = "etc/systemd/system/tater-sat1-leds.service"
+        self.assertIn(led_unit, managed_files("standalone"))
+        self.assertIn(led_unit, managed_files("satellite"))
+
     def test_signed_bundle_verifies_for_only_its_flavor(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

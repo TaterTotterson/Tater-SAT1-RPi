@@ -32,6 +32,7 @@ test -x /usr/local/sbin/tater-sat1-apply-update
 test -x /usr/local/sbin/tater-sat1-update-health
 test -x /opt/tater-sat1/venv/bin/tater-sat1-provisioning
 test -x /opt/tater-sat1/venv/bin/tater-sat1-voice
+test -x /opt/tater-sat1/venv/bin/tater-sat1-leds
 test -s /etc/tater-sat1-standalone/update-public.pem
 test "$(cat /etc/tater-sat1-standalone/version)" = "${FIRMWARE_VERSION}"
 test ! -L /etc/systemd/system/multi-user.target.wants/hostapd.service
@@ -72,6 +73,7 @@ if [ "${IMAGE_FLAVOR}" = "standalone" ]; then
         tater-sat1-firstboot.service \
         tater-sat1-provisioning.service \
         tater-sat1-audio.service \
+        tater-sat1-leds.service \
         tater-sat1-tater.service \
         tater-sat1-voice.service
 else
@@ -81,9 +83,11 @@ else
         tater-sat1-firstboot.service \
         tater-sat1-provisioning.service \
         tater-sat1-audio.service \
+        tater-sat1-leds.service \
         tater-sat1-satellite.service
 fi
 test -L /etc/systemd/system/multi-user.target.wants/tater-sat1-provisioning.service
+test -L /etc/systemd/system/multi-user.target.wants/tater-sat1-leds.service
 test -L /etc/systemd/system/multi-user.target.wants/tater-sat1-update.path
 test -L /etc/systemd/system/multi-user.target.wants/tater-sat1-update-health.service
 

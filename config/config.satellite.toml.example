@@ -12,6 +12,24 @@ host = "0.0.0.0"
 port = 8501
 extra_args = []
 
+[leds]
+# The Raspberry Pi HAT reference routes the ring through PWM GPIO 12. The
+# animation layout follows the production SAT1 ESP32 firmware's 24-pixel GRB
+# ring. These values can be changed without rebuilding the image.
+enabled = true
+pixel_count = 24
+gpio_pin = 12
+frequency_hz = 800000
+dma_channel = 10
+channel = 0
+invert = false
+brightness = 0.66
+red = 0.094
+green = 0.733
+blue = 0.949
+peripheral_host = "127.0.0.1"
+peripheral_port = 6055
+
 [satellite]
 # "auto" derives a stable identity from the Raspberry Pi serial number.
 name = "auto"

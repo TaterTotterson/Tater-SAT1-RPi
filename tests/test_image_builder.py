@@ -60,6 +60,8 @@ class ImageBuilderTests(unittest.TestCase):
         self.assertIn("test ! -e /var/lib/tater-sat1-standalone/native-satellite-token", stage)
         self.assertIn("tater-sat1-firstboot.service", stage)
         self.assertIn("tater-sat1-provisioning.service", stage)
+        self.assertIn("tater-sat1-leds.service", stage)
+        self.assertIn("test -x /opt/tater-sat1/venv/bin/tater-sat1-leds", stage)
         self.assertIn("test ! -e /opt/tater/app/tateros_app.py", stage)
 
     def test_image_includes_captive_portal_network_packages(self) -> None:

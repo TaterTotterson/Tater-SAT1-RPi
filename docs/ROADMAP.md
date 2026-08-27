@@ -12,7 +12,8 @@
 
 - [ ] Validate capture and playback ALSA device names on a Pi Zero 2 W
 - [ ] Initialize PCM5122/TAS2780 and XMOS through the Satellite1 SDK
-- [ ] Add the 24-pixel LED ring and physical buttons
+- [x] Add the 24-pixel LED ring with the ESP32 firmware's animations
+- [ ] Add physical buttons
 - [ ] Bridge volume, microphone mute, sensors, and DoA telemetry
 - [ ] Verify playback-reference AEC and wake-word operation during playback
 

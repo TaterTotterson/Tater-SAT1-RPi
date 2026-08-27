@@ -1,0 +1,18 @@
+[Unit]
+Description=Satellite1 24-pixel Tater LED animations
+After=local-fs.target
+Before=tater-sat1-voice.service tater-sat1-satellite.service
+
+[Service]
+Type=simple
+# rpi-ws281x uses the Raspberry Pi PWM/DMA peripheral and requires root.
+User=root
+Group=root
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/tater-sat1/venv/bin/tater-sat1-leds --config /etc/tater-sat1-standalone/config.toml
+Restart=on-failure
+RestartSec=2
+TimeoutStopSec=5
+
+[Install]
+WantedBy=multi-user.target

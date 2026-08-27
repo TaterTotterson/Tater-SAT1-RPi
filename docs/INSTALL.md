@@ -45,6 +45,7 @@ the required Debian packages are already present.
   state owned by the unprivileged `tater` service account
 - `/etc/tater-sat1-standalone/config.toml`: audio and appliance settings
 - supervised audio and voice services, plus local Tater in standalone mode
+- `tater-sat1-leds.service`: the SAT1 24-pixel ring controller
 - `tater-sat1-provisioning.service`: Wi-Fi fallback hotspot and local portal
 
 The generated native-satellite token is owner-only and is shared only through
@@ -83,6 +84,25 @@ curl http://127.0.0.1:8501/api/health
 sudo journalctl -u tater-sat1-tater.service -u tater-sat1-voice.service -f
 ```
 
+## SAT1 LED ring
+
+The LED controller follows the production ESP32 SAT1 firmware: slow waiting
+spin, fast listening spin, opposing thinking pulse, reverse replying spin,
+volume arc, timer arc/ring, microphone and speaker mute markers, error pulse,
+and disconnected red twinkle. It receives the same voice events from the
+Linux Satellite peripheral API in either image flavor.
+
+The defaults are a 24-pixel GRB WS2812 ring on BCM GPIO 12. If a hardware
+revision routes the ring differently, edit `[leds]` in
+`/etc/tater-sat1-standalone/config.toml`, then restart and inspect the service:
+
+```sh
+sudo systemctl restart tater-sat1-leds.service
+sudo journalctl -u tater-sat1-leds.service -f
+```
+
+Set `enabled = false` to disable ring output without rebuilding or reflashing.
+
 ## Configure remote providers
 
 Open `http://<pi-address>:8501`, then configure:
@@ -97,7 +117,6 @@ process. Generic OpenAI-compatible STT is planned but is not implemented yet.
 
 ## Current hardware boundary
 
-This milestone carries microphone capture, local wake detection, playback, and
-the native Tater conversation loop. The SAT1 LED ring and physical buttons use
-Linux Satellite's peripheral API but are not yet installed by this repository.
-That adapter is the next hardware milestone.
+This milestone carries microphone capture, local wake detection, playback, the
+native Tater conversation loop, and the 24-pixel LED ring. Physical buttons and
+sensor/DoA telemetry are not yet installed by this repository.

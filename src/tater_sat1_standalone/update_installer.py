@@ -27,6 +27,7 @@ COMMON_DIRECTORIES = ("opt/tater-sat1",)
 FLAVOR_DIRECTORIES = {"standalone": ("opt/tater",), "satellite": ()}
 COMMON_FILES = (
     "etc/systemd/system/tater-sat1-audio.service",
+    "etc/systemd/system/tater-sat1-leds.service",
     "etc/systemd/system/tater-sat1-firstboot.service",
     "etc/systemd/system/tater-sat1-provisioning.service",
     "etc/tater-sat1-standalone/version",
@@ -323,8 +324,13 @@ def _remove_path(path: Path) -> None:
 
 def _service_names(flavor: str) -> tuple[str, ...]:
     if flavor == "standalone":
-        return ("tater-sat1-voice.service", "tater-sat1-tater.service", "tater-sat1-audio.service")
-    return ("tater-sat1-satellite.service", "tater-sat1-audio.service")
+        return (
+            "tater-sat1-voice.service",
+            "tater-sat1-tater.service",
+            "tater-sat1-audio.service",
+            "tater-sat1-leds.service",
+        )
+    return ("tater-sat1-satellite.service", "tater-sat1-audio.service", "tater-sat1-leds.service")
 
 
 def _systemctl(*arguments: str, check: bool = True) -> subprocess.CompletedProcess[str]:

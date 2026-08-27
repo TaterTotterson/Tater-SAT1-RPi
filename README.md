@@ -31,9 +31,11 @@ This repository is an early runnable appliance scaffold. It currently provides:
 - one-time pairing with durable per-device native-satellite credentials
 - a shared first-boot Wi-Fi hotspot and captive setup portal
 - signed, flavor-specific appliance OTA through Tater with automatic rollback
+- the SAT1 24-pixel GRB ring with the voice, timer, volume, mute, and connection
+  animations used by the ESP32 firmware
 
-The first image still needs validation on physical SAT1 hardware. The SAT1
-LED/button adapter is not included yet.
+The first image still needs validation on physical SAT1 hardware. Physical
+buttons and sensor telemetry are not included yet.
 
 ## Runtime flows
 

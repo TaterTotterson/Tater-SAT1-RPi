@@ -18,6 +18,7 @@ Both flavors include:
   configuration, SDK, and DAC initialization service
 - Tater Linux Satellite with local wake-word detection
 - a private PulseAudio service for capture and playback
+- the 24-pixel SAT1 GRB ring with animations matching the ESP32 firmware
 - a first-boot and recovery Wi-Fi hotspot with a captive setup portal
 - zram sized to 50 percent of RAM
 - signed SAT1 appliance updates with a post-boot rollback health check
@@ -116,5 +117,6 @@ require flashing a new image. See [Signed appliance updates](OTA.md).
 
 The image is designed to boot directly into the voice appliance, but the first
 card is still a bring-up build. Validate the actual ALSA capture/playback names,
-Pi Zero 2 W memory pressure, wake-word behavior during playback, and clean
-restarts. The SAT1 LED ring and buttons remain a separate adapter milestone.
+Pi Zero 2 W memory pressure, wake-word behavior during playback, clean
+restarts, and the physical ring's GPIO, color order, orientation, and safe
+brightness. Physical buttons remain a separate adapter milestone.

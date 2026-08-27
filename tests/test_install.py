@@ -25,6 +25,7 @@ class InstallerTests(unittest.TestCase):
         self.assertIn("setup_tater.sh edge", output)
         self.assertIn("pip install --editable /opt/tater-sat1/linux-satellite", output)
         self.assertIn("tater-sat1-provisioning.service", output)
+        self.assertIn("tater-sat1-leds.service", output)
         self.assertIn("tater-sat1-setup-hotspot", output)
         self.assertIn("tater-sat1-apply-update", output)
         self.assertIn("tater-sat1-update.path", output)

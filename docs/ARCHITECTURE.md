@@ -6,15 +6,19 @@ reusing the same SAT1 hardware, audio, and voice layers.
 
 ```text
 Satellite1 HAT
-  XMOS / I2S / GPIO / LEDs / DAC
-                |
-                v
-  tater-sat1-voice.service
-  Tater Linux Satellite + SAT1 hardware adapter
-                |
+  XMOS / I2S / DAC --------------------+
+  24-pixel GRB ring on GPIO 12         |
+                |                      |
+                v                      v
+  tater-sat1-leds.service     tater-sat1-voice.service
+                ^             Tater Linux Satellite
+                |                      |
+       peripheral events on            |
+          127.0.0.1:6055 <--------------+
+                                       |
       ws://127.0.0.1:8501
-                |
-                v
+                                       |
+                                       v
   tater-sat1-tater.service
   Tater Web UI, Hydra, Verbas, integrations, Redis
                 |
@@ -65,13 +69,18 @@ board.
 
 ## Process ownership
 
-`systemd` owns the Tater, audio, and satellite processes. The standalone voice
-service requires local Tater and audio. The fleet voice service requires audio
-and network availability, then reconnects to the main Tater automatically.
+`systemd` owns the Tater, audio, LED, and satellite processes. The LED service
+runs as root because the Raspberry Pi WS281x PWM/DMA driver requires direct
+hardware access. The standalone voice service requires local Tater and audio.
+The fleet voice service requires audio and network availability, then
+reconnects to the main Tater automatically.
 
 ## Hardware adapter
 
-The first hardware adapter should use the FutureProofHomes Satellite1 Python
-SDK for XMOS, DAC, and USB-C PD control. LED, button, mute, and sensor support
-can connect through Tater Linux Satellite's peripheral WebSocket API until a
-direct plugin interface is available.
+The FutureProofHomes Satellite1 Python SDK supplies XMOS, DAC, and USB-C PD
+control. `tater-sat1-leds.service` listens to Tater Linux Satellite's local
+peripheral WebSocket API and reproduces the 24-pixel effects and state priority
+from `Satellite1-ESPHome/sat1/led_ring.yaml`. The ring defaults to BCM GPIO 12,
+800 kHz, GRB ordering, DMA channel 10, and PWM channel 0; all except ordering
+are configurable. Physical buttons, mute input, and sensors remain separate
+adapter work.

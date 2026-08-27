@@ -40,6 +40,14 @@ def inspect_host(config: StandaloneConfig) -> list[Check]:
     else:
         checks.append(Check("ok", "Tater server", effective_server_url(config)))
     checks.append(_path_check(config.runtime.satellite_executable, executable=True, label="satellite runtime"))
+    if config.leds.enabled:
+        checks.append(
+            _path_check(
+                config.runtime.satellite_executable.parent / "tater-sat1-leds",
+                executable=True,
+                label="LED runtime",
+            )
+        )
     return checks
 
 

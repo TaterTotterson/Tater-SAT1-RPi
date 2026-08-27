@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import tomllib
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Mapping
-import tomllib
+from typing import Any
 
 
 DEFAULT_CONFIG_PATH = Path("/etc/tater-sat1-standalone/config.toml")
@@ -22,6 +23,20 @@ def _port(value: Any, default: int) -> int:
     if not 1 <= port <= 65535:
         raise ValueError(f"port must be between 1 and 65535, got {port}")
     return port
+
+
+def _integer(value: Any, default: int, *, label: str, minimum: int, maximum: int) -> int:
+    number = int(value if value is not None else default)
+    if not minimum <= number <= maximum:
+        raise ValueError(f"{label} must be between {minimum} and {maximum}, got {number}")
+    return number
+
+
+def _ratio(value: Any, default: float, *, label: str) -> float:
+    number = float(value if value is not None else default)
+    if not 0.0 <= number <= 1.0:
+        raise ValueError(f"{label} must be between 0 and 1, got {number}")
+    return number
 
 
 def _string_tuple(value: Any) -> tuple[str, ...]:
@@ -131,10 +146,68 @@ class SatelliteConfig:
 
 
 @dataclass(frozen=True)
+class LedConfig:
+    enabled: bool = True
+    pixel_count: int = 24
+    gpio_pin: int = 12
+    frequency_hz: int = 800_000
+    dma_channel: int = 10
+    channel: int = 0
+    invert: bool = False
+    brightness: float = 0.66
+    red: float = 0.094
+    green: float = 0.733
+    blue: float = 0.949
+    peripheral_host: str = "127.0.0.1"
+    peripheral_port: int = 6055
+
+    @classmethod
+    def from_mapping(cls, values: Mapping[str, Any]) -> LedConfig:
+        enabled = values.get("enabled", cls.enabled)
+        invert = values.get("invert", cls.invert)
+        if not isinstance(enabled, bool):
+            raise ValueError("leds.enabled must be a boolean")
+        if not isinstance(invert, bool):
+            raise ValueError("leds.invert must be a boolean")
+        pixel_count = _integer(
+            values.get("pixel_count"), cls.pixel_count, label="leds.pixel_count", minimum=2, maximum=1024
+        )
+        if pixel_count % 2:
+            raise ValueError("leds.pixel_count must be even so opposing SAT1 animations remain symmetric")
+        host = str(values.get("peripheral_host") or cls.peripheral_host).strip()
+        if not host or any(character.isspace() for character in host):
+            raise ValueError("leds.peripheral_host must be a non-empty host without whitespace")
+        return cls(
+            enabled=enabled,
+            pixel_count=pixel_count,
+            gpio_pin=_integer(values.get("gpio_pin"), cls.gpio_pin, label="leds.gpio_pin", minimum=0, maximum=53),
+            frequency_hz=_integer(
+                values.get("frequency_hz"),
+                cls.frequency_hz,
+                label="leds.frequency_hz",
+                minimum=100_000,
+                maximum=2_000_000,
+            ),
+            dma_channel=_integer(
+                values.get("dma_channel"), cls.dma_channel, label="leds.dma_channel", minimum=0, maximum=15
+            ),
+            channel=_integer(values.get("channel"), cls.channel, label="leds.channel", minimum=0, maximum=1),
+            invert=invert,
+            brightness=_ratio(values.get("brightness"), cls.brightness, label="leds.brightness"),
+            red=_ratio(values.get("red"), cls.red, label="leds.red"),
+            green=_ratio(values.get("green"), cls.green, label="leds.green"),
+            blue=_ratio(values.get("blue"), cls.blue, label="leds.blue"),
+            peripheral_host=host,
+            peripheral_port=_port(values.get("peripheral_port"), cls.peripheral_port),
+        )
+
+
+@dataclass(frozen=True)
 class StandaloneConfig:
     runtime: RuntimeConfig = field(default_factory=RuntimeConfig)
     tater: TaterConfig = field(default_factory=TaterConfig)
     satellite: SatelliteConfig = field(default_factory=SatelliteConfig)
+    leds: LedConfig = field(default_factory=LedConfig)
 
     @classmethod
     def from_mapping(cls, values: Mapping[str, Any]) -> StandaloneConfig:
@@ -146,6 +219,7 @@ class StandaloneConfig:
             runtime=runtime,
             tater=TaterConfig.from_mapping(_section(values, "tater")),
             satellite=SatelliteConfig.from_mapping(satellite_values),
+            leds=LedConfig.from_mapping(_section(values, "leds")),
         )
 
 
