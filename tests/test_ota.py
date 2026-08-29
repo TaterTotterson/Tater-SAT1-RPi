@@ -165,6 +165,10 @@ class OtaTests(unittest.TestCase):
             self.assertEqual(handoff.read_text(encoding="utf-8"), '{"session_id":"fw_test"}\n')
             self.assertEqual((root / "opt/tater-sat1/release-marker").read_text(encoding="utf-8"), "new\n")
             self.assertFalse(layout.rollback_dir.exists())
+            app_update_status = json.loads(
+                (layout.tater_app_update_dir / "status.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(app_update_status["status"], "firmware_override")
 
     def test_failed_health_check_restores_previous_appliance(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -187,6 +191,34 @@ class OtaTests(unittest.TestCase):
             self.assertEqual(layout.version.read_text(encoding="utf-8").strip(), "tater-sat1-test-v1")
             self.assertEqual((root / "opt/tater-sat1/release-marker").read_text(encoding="utf-8"), "old\n")
             self.assertEqual((layout.state_dir / "native-satellite-token").read_text(encoding="utf-8"), "keep-me\n")
+
+    def test_failed_firmware_health_preserves_app_release_rollback(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "installed"
+            layout = self._installed_layout(root, "standalone")
+            app_release = layout.tater_app_release_dir / "v1.2.3"
+            app_release.parent.mkdir(parents=True, exist_ok=True)
+            os.replace(root / "opt/tater", app_release)
+            (root / "opt/tater").symlink_to(app_release)
+
+            bundle = self._bundle(Path(temporary) / "release", "standalone")
+            layout.update_dir.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(bundle, layout.pending_bundle)
+            environment = {
+                "TATER_SAT1_UPDATE_NO_SYSTEMD": "1",
+                "TATER_SAT1_UPDATE_NO_REBOOT": "1",
+                "TATER_SAT1_UPDATE_HEALTH_WAIT_SECONDS": "0",
+                "TATER_SAT1_UPDATE_HEALTH_ATTEMPTS": "1",
+            }
+            with mock.patch.dict(os.environ, environment, clear=False):
+                apply_pending(layout)
+                layout.version.write_text("broken\n", encoding="utf-8")
+                health = run_health_check(layout)
+
+            self.assertEqual(health["status"], "rolled_back")
+            self.assertTrue((root / "opt/tater").is_symlink())
+            self.assertEqual((root / "opt/tater").resolve(), app_release.resolve())
+            self.assertTrue(app_release.is_dir())
 
 
 if __name__ == "__main__":

@@ -24,6 +24,7 @@ tater-sat1-standalone = "tater_sat1_standalone.cli:main"
 tater-sat1-provisioning = "tater_sat1_standalone.setup_portal:main"
 tater-sat1-voice = "tater_sat1_standalone.voice:main"
 tater-sat1-leds = "tater_sat1_standalone.leds:main"
+tater-sat1-app-update = "tater_sat1_standalone.tater_app_update:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

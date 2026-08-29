@@ -62,6 +62,19 @@ On the next boot, `tater-sat1-update-health.service` accepts the release or
 restores its rollback. Configuration, Wi-Fi, pairing credentials, and runtime
 state live outside the replaced roots.
 
+On the standalone flavor only, `tater-sat1-app-update.timer` also checks
+GitHub's latest stable Tater release once daily with a randomized delay. It
+never follows ordinary branch commits. A new release is downloaded into a
+separate version slot and receives a fresh edge virtual environment while the
+current app remains online. The updater briefly stops local voice and Tater,
+switches `/opt/tater` to the staged slot, and accepts it only after the local
+health endpoint responds. It retains one known-good slot for rollback.
+
+The signed appliance updater has priority over this app-only path. It replaces
+`/opt/tater` with the Tater version bundled in the signed firmware. App release
+slots are cleared only after that firmware passes its boot health check, so a
+failed firmware installation can still restore the exact previous app.
+
 ## Intended base system
 
 The image composes Raspberry Pi OS Lite Bookworm with FutureProofHomes' pinned

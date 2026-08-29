@@ -53,6 +53,8 @@ This repository is an early runnable appliance scaffold. It currently provides:
 - Tater's optional second-STT wake verification, including Observe, Enabled,
   and fail-open behavior matching the ESP firmware
 - signed, flavor-specific appliance OTA through Tater with automatic rollback
+- daily, stable-release-only Tater app updates on the embedded image, with a
+  staged environment, local health check, and automatic rollback
 - the SAT1 24-pixel ring, driven through its XMOS controller, with the voice,
   timer, volume, mute, and connection animations used by the ESP32 firmware
 - XMOS direction-of-arrival input for the warm-tipped listening beam and saved
@@ -138,6 +140,12 @@ The installer places:
 - this launcher and Tater Linux Satellite at `/opt/tater-sat1/venv`
 - persistent state at `/var/lib/tater-sat1-standalone`
 - configuration at `/etc/tater-sat1-standalone/config.toml`
+
+The Tater Embedded flavor checks once daily for a newer official stable Tater
+release. Ordinary commits, drafts, and prereleases are ignored. The update is
+prepared while the current Tater keeps running, then switched only after its
+dependencies are ready. A failed local health check restores the previous
+known-good release. See [Tater app and signed appliance updates](docs/OTA.md).
 
 See [Image building and flashing](docs/IMAGE.md),
 [Wi-Fi hotspot setup](docs/PROVISIONING.md),

@@ -1,0 +1,15 @@
+[Unit]
+Description=Update embedded Tater from its latest stable release
+ConditionPathExists=/opt/tater/app/tateros_app.py
+ConditionPathExists=!/var/lib/tater-sat1-standalone/updates/pending.sat1-ota
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/default/tater-sat1-app-update
+ExecStart=/opt/tater-sat1/venv/bin/tater-sat1-app-update --automatic
+TimeoutStartSec=infinity
+Nice=10
+IOSchedulingClass=idle
+UMask=0022

@@ -60,6 +60,8 @@ grep -q '^backend = "xmos"$' /etc/tater-sat1-standalone/config.toml
 if [ "${IMAGE_FLAVOR}" = "standalone" ]; then
     /opt/tater/venv/bin/python -c 'import websockets'
     test -s /opt/tater/app/.tater-sat1-build.json
+    test -x /opt/tater-sat1/venv/bin/tater-sat1-app-update
+    test -s /etc/default/tater-sat1-app-update
 fi
 test -s /etc/tater-sat1-standalone/update-public.pem
 test "$(cat /etc/tater-sat1-standalone/version)" = "${FIRMWARE_VERSION}"
@@ -103,7 +105,8 @@ if [ "${IMAGE_FLAVOR}" = "standalone" ]; then
         tater-sat1-audio.service \
         tater-sat1-leds.service \
         tater-sat1-tater.service \
-        tater-sat1-voice.service
+        tater-sat1-voice.service \
+        tater-sat1-app-update.timer
 else
     grep -q '^board = "satellite1_rpi_satellite"$' /etc/tater-sat1-standalone/config.toml
     test ! -e /opt/tater/app/tateros_app.py
@@ -119,6 +122,9 @@ test -L /etc/systemd/system/multi-user.target.wants/tater-sat1-leds.service
 test -L /etc/systemd/system/multi-user.target.wants/tater-sat1-update.path
 test -L /etc/systemd/system/multi-user.target.wants/tater-sat1-update-health.service
 test -L /etc/systemd/system/timers.target.wants/tater-sat1-audio-watchdog.timer
+if [ "${IMAGE_FLAVOR}" = "standalone" ]; then
+    test -L /etc/systemd/system/timers.target.wants/tater-sat1-app-update.timer
+fi
 
 rm -rf \
     /opt/tater-sat1/linux-satellite/.git \

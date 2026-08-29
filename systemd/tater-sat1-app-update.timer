@@ -1,0 +1,12 @@
+[Unit]
+Description=Daily stable Tater release check
+
+[Timer]
+OnCalendar=daily
+RandomizedDelaySec=6h
+AccuracySec=15min
+Persistent=true
+Unit=tater-sat1-app-update.service
+
+[Install]
+WantedBy=timers.target

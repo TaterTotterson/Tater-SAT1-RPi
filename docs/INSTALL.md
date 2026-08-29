@@ -47,10 +47,23 @@ the required Debian packages are already present.
 - supervised audio and voice services, plus local Tater in standalone mode
 - `tater-sat1-leds.service`: the SAT1 24-pixel ring controller
 - `tater-sat1-provisioning.service`: Wi-Fi fallback hotspot and local portal
+- `tater-sat1-app-update.timer`: daily stable Tater release checks on the
+  standalone flavor
 
 The generated native-satellite token is owner-only and is shared only through
 the local state directory. The satellite connects to Tater through loopback;
 the Tater web interface listens on port 8501 for LAN setup and use.
+
+Automatic app updates are enabled by default. They can be disabled without
+disabling signed SAT1 firmware updates by setting `TATER_APP_AUTO_UPDATE=0` in
+`/etc/default/tater-sat1-app-update`. Run a manual check without installing:
+
+```sh
+sudo /opt/tater-sat1/venv/bin/tater-sat1-app-update --check-only
+```
+
+The latest result is recorded at
+`/var/lib/tater-sat1-standalone/tater-app-updates/status.json`.
 
 On an unconfigured system, join `Tater-SAT1-Setup-XXXXXX` and use the captive
 page. For a satellite-only manual install that already has Wi-Fi, create a

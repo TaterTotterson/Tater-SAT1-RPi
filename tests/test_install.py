@@ -44,6 +44,9 @@ class InstallerTests(unittest.TestCase):
         self.assertIn(': > "${ACTIVE_FILE}"', setup_hotspot)
         self.assertIn("tater-sat1-apply-update", output)
         self.assertIn("tater-sat1-update.path", output)
+        self.assertIn("tater-sat1-app-update.service", output)
+        self.assertIn("tater-sat1-app-update.timer", output)
+        self.assertIn("tater-app-update.env.example", output)
         self.assertIn("update-public.pem", output)
         self.assertNotIn("apt-get update", output)
 
@@ -78,6 +81,8 @@ class InstallerTests(unittest.TestCase):
         self.assertIn("tater-sat1-audio-watchdog", output)
         self.assertNotIn("websockets>=12,<16", output)
         self.assertNotIn("setup_tater.sh edge", output)
+        self.assertNotIn("tater-sat1-app-update.service", output)
+        self.assertNotIn("tater-sat1-app-update.timer", output)
         self.assertNotIn("git clone https://github.com/TaterTotterson/Tater.git", output)
 
 

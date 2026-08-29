@@ -152,11 +152,13 @@ the standalone flavor it also generates the local credential. The satellite
 flavor receives a one-time code during pairing and stores the resulting
 per-device credential. No credential is stored in either distributable image.
 
-Once an OTA-capable image has been flashed, later application releases can be
-installed from the connected device's firmware action in Tater. Wi-Fi,
-configuration, credentials, and state are preserved, and an unhealthy update
-rolls back automatically. Base OS, kernel, boot, and partition changes still
-require flashing a new image. See [Signed appliance updates](OTA.md).
+Once an OTA-capable image has been flashed, the embedded flavor checks daily
+for official stable Tater app releases and installs them with automatic
+rollback. Complete SAT1 application releases can also be installed from the
+connected device's firmware action in Tater. Wi-Fi, configuration,
+credentials, and state are preserved. Base OS, kernel, boot, and partition
+changes still require flashing a new image. See
+[Tater app and signed appliance updates](OTA.md).
 
 ## What still needs hardware validation
 

@@ -10,6 +10,16 @@ import subprocess
 
 RELEASE_REPO = "TaterTotterson/Tater-SAT1-RPi"
 _TAG = re.compile(r"^v[0-9][A-Za-z0-9._+-]{0,126}$")
+RELEASE_HIGHLIGHTS = {
+    "v0.1.4": (
+        "Tater Embedded now checks once daily for a newer official stable Tater release; ordinary commits, "
+        "drafts, and prereleases are ignored.",
+        "Tater app updates are staged in a fresh edge environment, health checked after a brief restart, and "
+        "automatically rolled back if the new release does not start cleanly.",
+        "Signed SAT1 firmware remains authoritative and can replace the app-only release while preserving settings, "
+        "memory, credentials, and other persistent state.",
+    ),
+}
 
 
 @dataclass(frozen=True)
@@ -71,6 +81,9 @@ def render_release_notes(repo: str, tag: str, previous_tag: str | None, commits:
         "## What's Changed",
         "",
     ]
+    highlights = RELEASE_HIGHLIGHTS.get(tag, ())
+    if highlights:
+        lines.extend(f"- {highlight}" for highlight in highlights)
     if commits:
         lines.extend(
             f"- {commit.subject} ([`{commit.sha[:7]}`](https://github.com/{repo}/commit/{commit.sha}))"

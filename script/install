@@ -310,8 +310,13 @@ if [ "${DRY_RUN}" = "1" ] || [ ! -e /etc/default/tater-sat1-setup ]; then
   run install -m 0644 "${PROJECT_DIR}/config/setup-hotspot.env.example" "/etc/default/tater-sat1-setup"
 fi
 if [ "${FLAVOR}" = "standalone" ]; then
+  run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-app-update.service" "${SYSTEMD_DIR}/tater-sat1-app-update.service"
+  run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-app-update.timer" "${SYSTEMD_DIR}/tater-sat1-app-update.timer"
   run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-tater.service" "${SYSTEMD_DIR}/tater-sat1-tater.service"
   run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-voice.service" "${SYSTEMD_DIR}/tater-sat1-voice.service"
+  if [ "${DRY_RUN}" = "1" ] || [ ! -e /etc/default/tater-sat1-app-update ]; then
+    run install -m 0644 "${PROJECT_DIR}/config/tater-app-update.env.example" "/etc/default/tater-sat1-app-update"
+  fi
 else
   run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-satellite.service" "${SYSTEMD_DIR}/tater-sat1-satellite.service"
   run install -m 0755 "${PROJECT_DIR}/script/pair" "/usr/local/bin/tater-sat1-pair"
@@ -330,7 +335,7 @@ if [ "${ENABLE_SERVICES}" = "1" ]; then
   run systemctl enable tater-sat1-update-health.service
   run systemctl enable --now tater-sat1-audio-watchdog.timer
   if [ "${FLAVOR}" = "standalone" ]; then
-    run systemctl enable --now tater-sat1-firstboot.service tater-sat1-provisioning.service tater-sat1-audio.service tater-sat1-leds.service tater-sat1-tater.service tater-sat1-voice.service tater-sat1-update.path
+    run systemctl enable --now tater-sat1-firstboot.service tater-sat1-provisioning.service tater-sat1-audio.service tater-sat1-leds.service tater-sat1-tater.service tater-sat1-voice.service tater-sat1-update.path tater-sat1-app-update.timer
   else
     run systemctl enable --now tater-sat1-firstboot.service tater-sat1-provisioning.service tater-sat1-audio.service tater-sat1-leds.service tater-sat1-satellite.service tater-sat1-update.path
   fi

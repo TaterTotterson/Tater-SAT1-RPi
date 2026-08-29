@@ -44,6 +44,8 @@ COMMON_FILES = (
 )
 FLAVOR_FILES = {
     "standalone": (
+        "etc/systemd/system/tater-sat1-app-update.service",
+        "etc/systemd/system/tater-sat1-app-update.timer",
         "etc/systemd/system/tater-sat1-tater.service",
         "etc/systemd/system/tater-sat1-voice.service",
     ),
@@ -99,6 +101,14 @@ class Layout:
     @property
     def lock(self) -> Path:
         return self.update_dir / "update.lock"
+
+    @property
+    def tater_app_release_dir(self) -> Path:
+        return self.path("/opt/tater-app-releases")
+
+    @property
+    def tater_app_update_dir(self) -> Path:
+        return self.state_dir / "tater-app-updates"
 
 
 def sha256_file(path: Path) -> str:
@@ -387,7 +397,10 @@ def apply_pending(layout: Layout) -> dict[str, Any]:
         raise FileNotFoundError(f"pending SAT1 OTA bundle not found: {layout.pending_bundle}")
     layout.lock.touch(mode=0o600, exist_ok=True)
     with layout.lock.open("r+") as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        # App-only Tater releases share this short switch lock. Waiting here
+        # lets the signed appliance OTA remain authoritative without killing
+        # an app update in the middle of its rollback-safe symlink switch.
+        fcntl.flock(lock, fcntl.LOCK_EX)
         with tempfile.TemporaryDirectory(prefix="verify-", dir=layout.update_dir) as temporary:
             work_dir = Path(temporary)
             manifest, payload_root = verify_bundle(layout.pending_bundle, layout.public_key, flavor, work_dir)
@@ -436,6 +449,8 @@ def apply_pending(layout: Layout) -> dict[str, Any]:
                 _write_json_atomic(layout.health_marker, {**metadata, "phase": "pending_health"})
                 _systemctl("daemon-reload")
                 _systemctl("enable", "tater-sat1-update.path", "tater-sat1-update-health.service")
+                if flavor == "standalone":
+                    _systemctl("enable", "tater-sat1-app-update.timer")
                 os.sync()
             except Exception:
                 restore_backup(layout)

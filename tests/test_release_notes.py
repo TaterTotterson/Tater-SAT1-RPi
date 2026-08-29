@@ -42,6 +42,14 @@ class ReleaseNotesTests(unittest.TestCase):
         self.assertIn("No user-facing changes", notes)
         self.assertIn("https://github.com/owner/repo/compare/v0.1.0...v0.2.0", notes)
 
+    def test_v014_highlights_stable_tater_app_updates(self) -> None:
+        notes = release_notes.render_release_notes("owner/repo", "v0.1.4", "v0.1.3", [])
+
+        self.assertIn("checks once daily", notes)
+        self.assertIn("ordinary commits", notes)
+        self.assertIn("automatically rolled back", notes)
+        self.assertIn("Signed SAT1 firmware remains authoritative", notes)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -150,6 +150,8 @@ class ImageBuilderTests(unittest.TestCase):
         self.assertIn("keys/update-public.pem", builder)
         self.assertIn("prepare_tater_source.py", builder)
         self.assertIn(".tater-sat1-build.json", chroot_stage)
+        self.assertIn("tater-sat1-app-update", chroot_stage)
+        self.assertIn("tater-sat1-app-update.timer", chroot_stage)
 
     def test_builder_writes_a_checksum_for_the_finished_image(self) -> None:
         builder = (ROOT / "scripts" / "build-pi-image.sh").read_text(encoding="utf-8")
