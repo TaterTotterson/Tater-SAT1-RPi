@@ -1,3 +1,18 @@
+<div align="center">
+  <a href="https://taterassistant.com">
+    <img src="images/tater-sat1-rpi-logo.png" alt="Tater SAT1 Raspberry Pi Images" width="720"/>
+  </a>
+</div>
+
+<p align="center">
+  <a href="https://taterassistant.com">
+    <img alt="Visit Tater Assistant" src="https://img.shields.io/badge/Tater%20Assistant-Visit%20Website-F28C28?style=for-the-badge&amp;logo=googlechrome&amp;logoColor=white" />
+  </a>
+  <a href="https://discord.gg/w52namKyXT">
+    <img alt="Join the Tater Assistant Discord" src="https://img.shields.io/badge/Discord-Join%20the%20Community-5865F2?style=for-the-badge&amp;logo=discord&amp;logoColor=white" />
+  </a>
+</p>
+
 # Tater SAT1 Raspberry Pi Images
 
 Ready-to-flash Tater appliances for the FutureProofHomes Satellite1 HAT and a
