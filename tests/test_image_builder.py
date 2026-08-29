@@ -51,6 +51,9 @@ class ImageBuilderTests(unittest.TestCase):
         self.assertIn('PI_FIRST_USER_NAME="${PI_FIRST_USER_NAME:-tater}"', builder)
         self.assertIn('PI_ENABLE_SSH: "0"', workflow)
         self.assertIn("PI_FIRST_USER_PASS: tater", workflow)
+        self.assertIn('previous_tag=""', workflow)
+        self.assertIn('if resolved_tag="$(gh api', workflow)
+        self.assertIn('previous_tag="${resolved_tag}"', workflow)
 
     def test_satellite_plan_omits_tater_and_uses_device_pairing(self) -> None:
         completed = subprocess.run(

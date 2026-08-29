@@ -89,7 +89,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          previous_tag="$(gh api "repos/${GITHUB_REPOSITORY}/releases/latest" --jq .tag_name 2>/dev/null || true)"
+          previous_tag=""
+          if resolved_tag="$(gh api "repos/${GITHUB_REPOSITORY}/releases/latest" --jq '.tag_name // empty' 2>/dev/null)"; then
+            previous_tag="${resolved_tag}"
+          fi
           printf 'tag=%s\n' "${previous_tag}" >> "${GITHUB_OUTPUT}"
 
       - name: Build release notes
