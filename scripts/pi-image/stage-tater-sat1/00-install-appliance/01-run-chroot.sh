@@ -48,7 +48,7 @@ test -x /opt/tater-sat1/venv/bin/tater-sat1-voice
 test -x /opt/tater-sat1/venv/bin/tater-sat1-leds
 test -x /opt/tater-sat1/venv/bin/tater-sat1-xmos-firmware
 test -s /opt/tater-sat1/firmware/xmos/sat1_xmos_1_1_1_factory.bin
-test -x /usr/bin/flashrom
+test -x /usr/sbin/flashrom
 test -x /usr/local/sbin/tater-sat1-audio-watchdog
 test -x /usr/local/sbin/tater-sat1-audio-hardware
 test -s /etc/tater-sat1-standalone/pulse.pa

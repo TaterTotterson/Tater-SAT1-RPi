@@ -155,6 +155,8 @@ class ImageBuilderTests(unittest.TestCase):
             ROOT / "scripts/pi-image/stage-tater-sat1/00-install-appliance/00-packages"
         ).read_text(encoding="utf-8")
         self.assertIn("flashrom\n", packages)
+        self.assertIn("test -x /usr/sbin/flashrom", stage)
+        self.assertNotIn("test -x /usr/bin/flashrom", stage)
 
     def test_image_builds_and_enables_a_signed_ota_bundle(self) -> None:
         stage_root = ROOT / "scripts/pi-image/stage-tater-sat1/00-install-appliance"
