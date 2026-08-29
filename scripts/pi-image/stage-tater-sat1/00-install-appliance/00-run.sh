@@ -49,6 +49,11 @@ fi
 # setuptools-scm needs Git metadata while the editable satellite package is
 # installed. The chroot stage removes it after installation.
 copy_source "${SATELLITE_SOURCE}" "${ROOTFS_DIR}/opt/tater-sat1/linux-satellite" 1
+# Bind-mounted sources retain the GitHub runner's numeric ownership when tarred
+# into the root filesystem. The package build runs as root in the chroot, and
+# modern Git rejects that repository as having dubious ownership. Make the
+# staged source part of the root-owned appliance before setuptools inspects it.
+chown -R 0:0 "${ROOTFS_DIR}/opt/tater-sat1/linux-satellite"
 
 install -d "${ROOTFS_DIR}/tmp/sat1-assets"
 cp -a "${HARDWARE_ASSETS}/." "${ROOTFS_DIR}/tmp/sat1-assets/"

@@ -68,6 +68,20 @@ class ImageBuilderTests(unittest.TestCase):
         self.assertIn("test -x /opt/tater-sat1/venv/bin/tater-sat1-leds", stage)
         self.assertIn("test ! -e /opt/tater/app/tateros_app.py", stage)
 
+    def test_image_normalizes_bundled_satellite_git_ownership(self) -> None:
+        host_stage = (
+            ROOT
+            / "scripts"
+            / "pi-image"
+            / "stage-tater-sat1"
+            / "00-install-appliance"
+            / "00-run.sh"
+        ).read_text(encoding="utf-8")
+        self.assertIn(
+            'chown -R 0:0 "${ROOTFS_DIR}/opt/tater-sat1/linux-satellite"',
+            host_stage,
+        )
+
     def test_image_includes_captive_portal_network_packages(self) -> None:
         packages = (ROOT / "scripts/pi-image/stage-tater-sat1/00-install-appliance/00-packages").read_text(
             encoding="utf-8"
