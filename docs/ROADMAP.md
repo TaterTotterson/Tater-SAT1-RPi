@@ -15,6 +15,7 @@
 - [x] Add the 24-pixel LED ring with the ESP32 firmware's animations
 - [x] Add physical volume buttons and the microphone-mute input
 - [x] Use XMOS DoA data for the listening animation
+- [x] Verify and install Tater Native XMOS `1.1.1` for four-microphone beamforming
 - [ ] Bridge environmental sensor telemetry
 - [ ] Verify playback-reference AEC and wake-word operation during playback
 

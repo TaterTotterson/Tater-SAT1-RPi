@@ -68,9 +68,11 @@ without removing the card.
    version, payload digest, and archive paths before changing the appliance.
 5. The service keeps the previous application payload as a rollback, installs
    the new payload, and reboots.
-6. After boot, a health service checks the expected version and voice services.
-   Standalone also checks the local Tater HTTP service. A failed check restores
-   the previous appliance automatically and reboots again.
+6. After boot, the checksum-pinned XMOS target is verified before audio starts;
+   it is flashed only when the installed version differs. The health service
+   then checks the expected appliance version and voice services. Standalone
+   also checks the local Tater HTTP service. A failed check restores the
+   previous appliance automatically and reboots again.
 
 For the standalone image, Tater saves the active firmware-session handoff in
 the appliance update directory before it stops itself. The already-open
@@ -100,10 +102,11 @@ The update deliberately preserves:
 - NetworkManager profiles and Wi-Fi credentials
 - the hostname and first-boot identity
 
-The OTA does not replace Raspberry Pi OS, the kernel, boot firmware,
-partitions, or FutureProofHomes hardware packages. Changes to those layers
-still require flashing a newly built `.img.xz`. Keeping that boundary narrow
-makes application updates recoverable without maintaining a second OS
+The OTA can carry the production XMOS target because it is part of the SAT1
+appliance integration. It does not replace Raspberry Pi OS, the kernel, Pi boot
+firmware, partitions, or FutureProofHomes host packages. Changes to those
+layers still require flashing a newly built `.img.xz`. Keeping that boundary
+narrow makes application updates recoverable without maintaining a second OS
 partition on small cards.
 
 ## Signing keys

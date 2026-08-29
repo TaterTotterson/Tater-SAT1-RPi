@@ -90,6 +90,7 @@ CONFIG_PATH="${CONFIG_DIR}/config.toml"
 VERSION_PATH="${CONFIG_DIR}/version"
 UPDATE_PUBLIC_KEY_PATH="${CONFIG_DIR}/update-public.pem"
 UPDATE_LIB_DIR="/usr/local/lib/tater-sat1/tater_sat1_standalone"
+XMOS_FIRMWARE_DIR="${APPLIANCE_ROOT}/firmware/xmos"
 SERVICE_USER="${TATER_INSTALL_USER:-tater}"
 FIRMWARE_VERSION="${TATER_SAT1_VERSION:-tater-sat1-${FLAVOR}-development}"
 
@@ -163,6 +164,7 @@ if [ "${INSTALL_APT}" = "1" ]; then
     ca-certificates \
     dnsmasq-base \
     ffmpeg \
+    flashrom \
     git \
     hostapd \
     i2c-tools \
@@ -192,7 +194,7 @@ section "Service account and directories"
 if [ "${DRY_RUN}" = "1" ] || ! id "${SERVICE_USER}" >/dev/null 2>&1; then
   run useradd --system --user-group --home-dir "${STATE_DIR}" --shell /usr/sbin/nologin "${SERVICE_USER}"
 fi
-run install -d -m 0755 "${APPLIANCE_ROOT}" "${CONFIG_DIR}" "${SYSTEMD_DIR}" "${MODULES_LOAD_DIR}" "${NETWORKMANAGER_CONF_DIR}"
+run install -d -m 0755 "${APPLIANCE_ROOT}" "${CONFIG_DIR}" "${SYSTEMD_DIR}" "${MODULES_LOAD_DIR}" "${NETWORKMANAGER_CONF_DIR}" "${XMOS_FIRMWARE_DIR}"
 if [ "${FLAVOR}" = "standalone" ]; then
   run install -d -m 0755 "${TATER_ROOT}"
 fi
@@ -260,6 +262,9 @@ run "${APPLIANCE_VENV_DIR}/bin/python" -m pip install --upgrade pip setuptools w
 # assets adjacent to its Python package.
 run "${APPLIANCE_VENV_DIR}/bin/python" -m pip install --editable "${SATELLITE_APP_DIR}"
 run "${APPLIANCE_VENV_DIR}/bin/python" -m pip install "${PROJECT_DIR}"
+run install -m 0644 \
+  "${PROJECT_DIR}/firmware/xmos/sat1_xmos_1_1_1_factory.bin" \
+  "${XMOS_FIRMWARE_DIR}/sat1_xmos_1_1_1_factory.bin"
 
 section "Configuration and systemd units"
 if [ "${DRY_RUN}" = "1" ] || [ ! -e "${CONFIG_PATH}" ]; then
@@ -282,6 +287,7 @@ else
   fi
 fi
 run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-audio.service" "${SYSTEMD_DIR}/tater-sat1-audio.service"
+run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-xmos.service" "${SYSTEMD_DIR}/tater-sat1-xmos.service"
 run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-audio-watchdog.service" "${SYSTEMD_DIR}/tater-sat1-audio-watchdog.service"
 run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-audio-watchdog.timer" "${SYSTEMD_DIR}/tater-sat1-audio-watchdog.timer"
 run install -m 0644 "${PROJECT_DIR}/config/pulse.pa" "${CONFIG_DIR}/pulse.pa"
@@ -335,9 +341,9 @@ if [ "${ENABLE_SERVICES}" = "1" ]; then
   run systemctl enable tater-sat1-update-health.service
   run systemctl enable --now tater-sat1-audio-watchdog.timer
   if [ "${FLAVOR}" = "standalone" ]; then
-    run systemctl enable --now tater-sat1-firstboot.service tater-sat1-provisioning.service tater-sat1-audio.service tater-sat1-leds.service tater-sat1-tater.service tater-sat1-voice.service tater-sat1-update.path tater-sat1-app-update.timer
+    run systemctl enable --now tater-sat1-firstboot.service tater-sat1-provisioning.service tater-sat1-xmos.service tater-sat1-audio.service tater-sat1-leds.service tater-sat1-tater.service tater-sat1-voice.service tater-sat1-update.path tater-sat1-app-update.timer
   else
-    run systemctl enable --now tater-sat1-firstboot.service tater-sat1-provisioning.service tater-sat1-audio.service tater-sat1-leds.service tater-sat1-satellite.service tater-sat1-update.path
+    run systemctl enable --now tater-sat1-firstboot.service tater-sat1-provisioning.service tater-sat1-xmos.service tater-sat1-audio.service tater-sat1-leds.service tater-sat1-satellite.service tater-sat1-update.path
   fi
 else
   printf '\n%s\n' "Services installed but not enabled (--no-enable)."

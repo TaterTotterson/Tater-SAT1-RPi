@@ -46,6 +46,9 @@ test -x /usr/local/sbin/tater-sat1-update-health
 test -x /opt/tater-sat1/venv/bin/tater-sat1-provisioning
 test -x /opt/tater-sat1/venv/bin/tater-sat1-voice
 test -x /opt/tater-sat1/venv/bin/tater-sat1-leds
+test -x /opt/tater-sat1/venv/bin/tater-sat1-xmos-firmware
+test -s /opt/tater-sat1/firmware/xmos/sat1_xmos_1_1_1_factory.bin
+test -x /usr/bin/flashrom
 test -x /usr/local/sbin/tater-sat1-audio-watchdog
 test -x /usr/local/sbin/tater-sat1-audio-hardware
 test -s /etc/tater-sat1-standalone/pulse.pa
@@ -96,7 +99,7 @@ EOF
 # Every flashed device creates its native-satellite credential on first boot.
 test ! -e /var/lib/tater-sat1-standalone/native-satellite-token
 systemctl enable satellite1-init.service 2>/dev/null || true
-systemctl enable tater-sat1-update.path tater-sat1-update-health.service tater-sat1-audio-watchdog.timer
+systemctl enable tater-sat1-update.path tater-sat1-update-health.service tater-sat1-audio-watchdog.timer tater-sat1-xmos.service
 if [ "${IMAGE_FLAVOR}" = "standalone" ]; then
     grep -q '^board = "satellite1_rpi_standalone"$' /etc/tater-sat1-standalone/config.toml
     systemctl enable \
@@ -118,6 +121,7 @@ else
         tater-sat1-satellite.service
 fi
 test -L /etc/systemd/system/multi-user.target.wants/tater-sat1-provisioning.service
+test -L /etc/systemd/system/multi-user.target.wants/tater-sat1-xmos.service
 test -L /etc/systemd/system/multi-user.target.wants/tater-sat1-leds.service
 test -L /etc/systemd/system/multi-user.target.wants/tater-sat1-update.path
 test -L /etc/systemd/system/multi-user.target.wants/tater-sat1-update-health.service

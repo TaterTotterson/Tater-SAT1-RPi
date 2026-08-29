@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import hashlib
 import os
 from pathlib import Path
 import re
 import subprocess
+import tomllib
 import unittest
 
 
@@ -26,6 +28,11 @@ class ImageBuilderTests(unittest.TestCase):
         self.assertIn("image_flavor=standalone", completed.stdout)
         self.assertIn("tater_revision=latest:main", completed.stdout)
         self.assertIn("tater_update_policy=latest_at_build", completed.stdout)
+        self.assertIn("xmos_firmware=v1.1.1", completed.stdout)
+        self.assertIn(
+            "xmos_sha256=8ab57bd9da5f114746fcbc3d25ea57b32ea3938c61ed4b545d5d93a3d410c0e5",
+            completed.stdout,
+        )
         self.assertIn("first_boot_identity=unique_local_token", completed.stdout)
         self.assertIn("compression=xz", completed.stdout)
         self.assertIn("ota_format=tater_sat1_signed_bundle_v1", completed.stdout)
@@ -74,6 +81,12 @@ class ImageBuilderTests(unittest.TestCase):
         checksums = re.findall(r"^SAT1_[A-Z]+_SHA256=([0-9a-f]{64})$", lock_text, re.MULTILINE)
         self.assertEqual(len(checksums), 3)
         self.assertIn("SAT1_RELEASE_TAG=v0.1.4", lock_text)
+
+        with (ROOT / "upstreams.toml").open("rb") as handle:
+            xmos = tomllib.load(handle)["tater_native_xmos"]
+        firmware = ROOT / "firmware/xmos/sat1_xmos_1_1_1_factory.bin"
+        self.assertEqual(xmos["version"], "v1.1.1")
+        self.assertEqual(hashlib.sha256(firmware.read_bytes()).hexdigest(), xmos["sha256"])
 
     def test_image_defers_device_identity_until_first_boot(self) -> None:
         stage = (
@@ -135,6 +148,13 @@ class ImageBuilderTests(unittest.TestCase):
         self.assertIn('audio_output_device = "pulse/satellite1_output"', stage)
         self.assertIn("import websockets", stage)
         self.assertIn("tater-sat1-audio-hardware", stage)
+        self.assertIn("tater-sat1-xmos-firmware", stage)
+        self.assertIn("sat1_xmos_1_1_1_factory.bin", stage)
+        self.assertIn("tater-sat1-xmos.service", stage)
+        packages = (
+            ROOT / "scripts/pi-image/stage-tater-sat1/00-install-appliance/00-packages"
+        ).read_text(encoding="utf-8")
+        self.assertIn("flashrom\n", packages)
 
     def test_image_builds_and_enables_a_signed_ota_bundle(self) -> None:
         stage_root = ROOT / "scripts/pi-image/stage-tater-sat1/00-install-appliance"

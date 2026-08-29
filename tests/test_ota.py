@@ -20,6 +20,7 @@ from tater_sat1_standalone.ota import validate_update_integrity, validate_update
 from tater_sat1_standalone.update_health import run_health_check  # noqa: E402
 from tater_sat1_standalone.update_installer import (  # noqa: E402
     Layout,
+    XMOS_FIRMWARE_RELATIVE,
     apply_pending,
     managed_directories,
     managed_files,
@@ -40,6 +41,9 @@ def populate_rootfs(root: Path, flavor: str, version: str, marker: str) -> None:
     launcher.write_text("#!/bin/sh\n", encoding="utf-8")
     launcher.chmod(0o755)
     (root / "opt/tater-sat1/release-marker").write_text(marker + "\n", encoding="utf-8")
+    xmos = root / "opt/tater-sat1/firmware/xmos/sat1_xmos_1_1_1_factory.bin"
+    xmos.parent.mkdir(parents=True, exist_ok=True)
+    xmos.write_bytes(b"test XMOS factory image")
     if flavor == "standalone":
         app = root / "opt/tater/app/tateros_app.py"
         app.parent.mkdir(parents=True, exist_ok=True)
@@ -94,8 +98,19 @@ class OtaTests(unittest.TestCase):
 
     def test_led_controller_is_part_of_both_signed_ota_flavors(self) -> None:
         led_unit = "etc/systemd/system/tater-sat1-leds.service"
+        xmos_unit = "etc/systemd/system/tater-sat1-xmos.service"
         self.assertIn(led_unit, managed_files("standalone"))
         self.assertIn(led_unit, managed_files("satellite"))
+        self.assertIn(xmos_unit, managed_files("standalone"))
+        self.assertIn(xmos_unit, managed_files("satellite"))
+
+    def test_audio_unit_keeps_xmos_setup_compatible_with_v015_ota(self) -> None:
+        audio_unit = (ROOT / "systemd/tater-sat1-audio.service").read_text(encoding="utf-8")
+
+        self.assertIn("ExecStartPre=+/opt/tater-sat1/venv/bin/tater-sat1-xmos-firmware", audio_unit)
+        self.assertIn("--once-marker /run/tater-sat1-xmos-verified.json", audio_unit)
+        self.assertNotIn("Requires=tater-sat1-xmos.service", audio_unit)
+        self.assertIn("TimeoutStartSec=15min", audio_unit)
 
     def test_signed_bundle_verifies_for_only_its_flavor(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -105,6 +120,9 @@ class OtaTests(unittest.TestCase):
             manifest, payload = verify_bundle(bundle, self.public_key, "standalone", work)
             self.assertEqual(manifest["version"], "tater-sat1-test-v2")
             self.assertTrue((payload / "opt/tater/app/tateros_app.py").is_file())
+            self.assertTrue(
+                (payload / "opt/tater-sat1/firmware/xmos/sat1_xmos_1_1_1_factory.bin").is_file()
+            )
 
             with self.assertRaisesRegex(ValueError, "does not match installed"):
                 verify_bundle(bundle, self.public_key, "satellite", root / "wrong-flavor")
@@ -126,6 +144,18 @@ class OtaTests(unittest.TestCase):
                     archive.add(extracted / name, arcname=name)
             with self.assertRaisesRegex(ValueError, "signature verification failed"):
                 verify_bundle(changed, self.public_key, "satellite", root / "changed-verify")
+
+    def test_signed_bundle_requires_the_xmos_factory_image(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            candidate = root / "candidate"
+            populate_rootfs(candidate, "satellite", "tater-sat1-test-v2", "new")
+            (candidate / XMOS_FIRMWARE_RELATIVE).unlink()
+            bundle = root / "missing-xmos.sat1"
+            build_bundle(candidate, "satellite", "tater-sat1-test-v2", self.private_key, bundle)
+
+            with self.assertRaisesRegex(ValueError, "missing XMOS firmware"):
+                verify_bundle(bundle, self.public_key, "satellite", root / "verify")
 
     def _installed_layout(self, root: Path, flavor: str) -> Layout:
         populate_rootfs(root, flavor, "tater-sat1-test-v1", "old")

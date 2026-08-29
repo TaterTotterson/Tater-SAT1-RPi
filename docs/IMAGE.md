@@ -16,6 +16,10 @@ Both flavors include:
 - Raspberry Pi OS Lite 64-bit Bookworm
 - FutureProofHomes Satellite1 v0.1.4 custom FUSB302 kernel, overlays, ALSA
   configuration, SDK, and DAC initialization service
+- Tater Native XMOS `1.1.1`, checksum verified and installed only when the
+  attached HAT reports a different or unavailable firmware version
+- four-microphone DoA and fractional-delay beamforming with microphone
+  calibration/fallback, AEC, noise suppression, and AGC on the XMOS
 - Tater Linux Satellite with local wake-word detection
 - a private PulseAudio service for capture and playback, with normalized SAT1
   microphone gain and automatic stalled-stream recovery
@@ -136,7 +140,9 @@ the default with your own password or public key.
 4. Flash and verify the card.
 5. Attach the Satellite1 HAT to the powered-off Pi Zero 2 W and insert the
    card.
-6. Apply power and allow several minutes for the first boot.
+6. Apply power and allow several minutes for the first boot. A stock or older
+   XMOS can add several minutes while its verified `1.1.1` image is installed;
+   an already matching XMOS is not rewritten.
 7. Join `Tater-SAT1-Setup-XXXXXX` and complete the captive setup page. If it
    does not open automatically, browse to `http://192.168.4.1`.
 8. For standalone, open the unique `tater-sat1-xxxxxx.local:8501` hostname or
@@ -163,7 +169,6 @@ changes still require flashing a new image. See
 ## What still needs hardware validation
 
 Initial physical SAT1 bring-up has confirmed boot, Wi-Fi provisioning, XMOS
-audio, wake-word playback, and the 24-pixel ring. Continue validating Pi Zero 2
-W memory pressure, wake-word behavior during playback, clean restarts, DoA
-orientation, control debounce, and safe speaker/LED levels before treating the
-image as a release build.
+audio, wake-word playback, DoA input, and the 24-pixel ring. Continue validating
+Pi Zero 2 W memory pressure, wake-word behavior during playback, clean restarts,
+beamforming in difficult rooms, control debounce, and safe speaker/LED levels.

@@ -19,6 +19,14 @@ url = "https://github.com/TaterTotterson/Tater-ThirdReality-Voice-Firmware.git"
 reference_revision = "6c74e7bf0b14c5c788b20f4b6a26d847b06b3b8e"
 role = "Embedded Linux packaging, hardware bridge, provisioning, and update reference"
 
+[tater_native_xmos]
+url = "https://github.com/TaterTotterson/Tater-Native-Firmware.git"
+reference = "native-0.3.15"
+reference_revision = "b59aef124b29e97e3743105b5b6e1e3f863053d3"
+version = "v1.1.1"
+sha256 = "8ab57bd9da5f114746fcbc3d25ea57b32ea3938c61ed4b545d5d93a3d410c0e5"
+role = "Four-microphone XMOS DoA, beamforming, calibration, AEC, noise suppression, and AGC"
+
 [satellite1_rpi]
 url = "https://github.com/FutureProofHomes/Satellite1-RPi.git"
 reference_revision = "06385423b72eb189535c7708390ab1b0f5351f6d"

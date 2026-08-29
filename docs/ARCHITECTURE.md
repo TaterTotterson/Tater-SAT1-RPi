@@ -87,16 +87,26 @@ board.
 
 ## Process ownership
 
-`systemd` owns the Tater, audio, LED, and satellite processes. The LED service
-runs as root because its production XMOS backend needs direct access to the
-Pi SPI device. The standalone voice service requires local Tater and audio.
+`systemd` owns the Tater, XMOS verification, audio, LED, and satellite
+processes. The XMOS and LED services run as root because they need direct
+access to the Pi SPI device. The XMOS check finishes before audio starts, and
+a per-boot marker prevents an audio restart from reopening SPI after the LED
+service owns it. The standalone voice service requires local Tater and audio.
 The fleet voice service requires audio and network availability, then
 reconnects to the main Tater automatically.
 
 ## Hardware adapter
 
 The FutureProofHomes Satellite1 Python SDK supplies XMOS, DAC, and USB-C PD
-control. `tater-sat1-leds.service` listens to Tater Linux Satellite's local
+control. Before audio starts, `tater-sat1-xmos.service` reads the installed
+version and compares it with the checksum-pinned Tater Native XMOS `1.1.1`
+factory image. A matching device is left untouched. A missing or different
+version is written with flashrom's verification pass, released from reset,
+and accepted only after XMOS reports `v1.1.1` over SPI. This gives both image
+flavors the same four-microphone DoA, beamforming, calibration/fallback, AEC,
+noise suppression, and AGC pipeline as the Tater Native ESP32 firmware.
+
+`tater-sat1-leds.service` listens to Tater Linux Satellite's local
 peripheral WebSocket API and reproduces the 24-pixel effects and state priority
 from `Satellite1-ESPHome/sat1/led_ring.yaml`. The production backend sends GRB
 frames to the XMOS LED service over SPI 0.0. A configurable Raspberry Pi

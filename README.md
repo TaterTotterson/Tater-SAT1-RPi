@@ -56,6 +56,10 @@ This repository is an early runnable appliance scaffold. It currently provides:
 - signed, flavor-specific appliance OTA through Tater with automatic rollback
 - daily, stable-release-only Tater app updates on the embedded image, with a
   staged environment, local health check, and automatic rollback
+- the verified Tater Native XMOS `1.1.1` image on both flavors, with an
+  automatic version check before audio and no rewrite when it already matches
+- four-microphone talker tracking, DoA, fractional-delay beamforming,
+  microphone calibration/fallback, AEC, noise suppression, and AGC on XMOS
 - the SAT1 24-pixel ring, driven through its XMOS controller, with the voice,
   timer, volume, mute, and connection animations used by the ESP32 firmware
 - XMOS direction-of-arrival input for the warm-tipped listening beam and saved

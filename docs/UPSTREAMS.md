@@ -36,6 +36,15 @@ hardware bridge, captive provisioning, signed updates, and recovery. The SAT1
 base OS remains Raspberry Pi OS because the FutureProofHomes kernel and device
 tree support are already there.
 
+## Tater Native XMOS
+
+Both RPi image flavors bundle the production XMOS `1.1.1` factory image from
+the published `Tater-Native-Firmware` `native-0.3.15` tag. Its source revision,
+version, and binary SHA-256 are pinned in `upstreams.toml`. The boot verifier
+uses the FutureProofHomes host utility to read, write, and verify the external
+XMOS flash, while the audio processing itself remains the same four-microphone
+DoA and beamforming implementation used by Tater Native on ESP32.
+
 ## Tater
 
 The full app remains upstream Tater. Standalone builds resolve the newest

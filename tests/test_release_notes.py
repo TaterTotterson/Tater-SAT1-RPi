@@ -58,6 +58,15 @@ class ReleaseNotesTests(unittest.TestCase):
         self.assertIn("frozen setup LEDs", notes)
         self.assertIn("voice service restarts automatically", notes)
 
+    def test_v016_highlights_verified_four_microphone_xmos_support(self) -> None:
+        notes = release_notes.render_release_notes("owner/repo", "v0.1.6", "v0.1.5", [])
+
+        self.assertIn("XMOS `v1.1.1`", notes)
+        self.assertIn("four-microphone beamforming", notes)
+        self.assertIn("already-current device untouched", notes)
+        self.assertIn("flash verification", notes)
+        self.assertIn("signed appliance OTA", notes)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -116,6 +116,8 @@ TATER_REFERENCE="$(manifest_value tater reference)"
 TATER_UPDATE_POLICY="$(manifest_value tater update_policy)"
 SATELLITE_URL="$(manifest_value linux_satellite url)"
 SATELLITE_REVISION="$(manifest_value linux_satellite reference_revision)"
+XMOS_VERSION="$(manifest_value tater_native_xmos version)"
+XMOS_SHA256="$(manifest_value tater_native_xmos sha256)"
 TATER_SOURCE_DIR="${TATER_SOURCE_DIR:-}"
 SATELLITE_SOURCE_DIR="${SATELLITE_SOURCE_DIR:-}"
 TATER_REVISION="${TATER_REVISION_OVERRIDE:-}"
@@ -138,6 +140,8 @@ sat1_release=${SAT1_RELEASE_TAG}
 tater_revision=${tater_plan}
 tater_update_policy=${TATER_UPDATE_POLICY}
 linux_satellite_revision=${SATELLITE_REVISION}
+xmos_firmware=${XMOS_VERSION}
+xmos_sha256=${XMOS_SHA256}
 compression=xz
 release_version=${PI_RELEASE_VERSION}
 firmware_version=${TATER_SAT1_FIRMWARE_VERSION}
@@ -461,6 +465,8 @@ tater_reference=${TATER_REFERENCE}
 tater_revision=${TATER_REVISION:-not_bundled}
 tater_update_policy=${TATER_UPDATE_POLICY}
 linux_satellite_revision=${SATELLITE_REVISION}
+xmos_firmware=${XMOS_VERSION}
+xmos_sha256=${XMOS_SHA256}
 sat1_image_revision=$(git -C "${REPO_ROOT}" rev-parse HEAD)
 EOF
 

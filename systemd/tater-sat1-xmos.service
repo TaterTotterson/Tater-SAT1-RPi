@@ -1,0 +1,16 @@
+[Unit]
+Description=Verify the Satellite1 four-microphone XMOS firmware
+Wants=satellite1-init.service
+After=local-fs.target satellite1-init.service
+Before=tater-sat1-audio.service
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/opt/tater-sat1/venv/bin/tater-sat1-xmos-firmware --once-marker /run/tater-sat1-xmos-verified.json
+TimeoutStartSec=15min
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

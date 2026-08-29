@@ -4,6 +4,7 @@ ca-certificates
 curl
 dnsmasq-base
 ffmpeg
+flashrom
 git
 hostapd
 i2c-tools

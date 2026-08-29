@@ -11,6 +11,15 @@ import subprocess
 RELEASE_REPO = "TaterTotterson/Tater-SAT1-RPi"
 _TAG = re.compile(r"^v[0-9][A-Za-z0-9._+-]{0,126}$")
 RELEASE_HIGHLIGHTS = {
+    "v0.1.6": (
+        "Both image flavors now bundle the checksum-pinned Tater Native XMOS `v1.1.1` firmware with the same "
+        "four-microphone beamforming, talker direction, AEC, noise suppression, and gain control used by the "
+        "SAT1 ESP32 firmware.",
+        "Boot checks the attached XMOS before voice audio starts, leaves an already-current device untouched, "
+        "and writes an older or unavailable version with flash verification before accepting it.",
+        "The XMOS payload and verifier are included in signed appliance OTA; Wi-Fi, setup, Tater, and the rest "
+        "of the appliance can continue starting while only voice audio waits for the hardware check.",
+    ),
     "v0.1.5": (
         "Both image flavors now let you choose the satellite name and room directly from the Wi-Fi setup page.",
         "Save and connect now closes setup mode and hands Wi-Fi back to the normal network service without a full "

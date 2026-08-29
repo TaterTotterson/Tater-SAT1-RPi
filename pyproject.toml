@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tater-sat1-standalone"
-version = "0.1.0.dev0"
+version = "0.1.6"
 description = "Build embedded Tater and satellite-only voice appliances for Satellite1 Raspberry Pi hardware"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -25,6 +25,7 @@ tater-sat1-provisioning = "tater_sat1_standalone.setup_portal:main"
 tater-sat1-voice = "tater_sat1_standalone.voice:main"
 tater-sat1-leds = "tater_sat1_standalone.leds:main"
 tater-sat1-app-update = "tater_sat1_standalone.tater_app_update:main"
+tater-sat1-xmos-firmware = "tater_sat1_standalone.xmos_firmware:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
