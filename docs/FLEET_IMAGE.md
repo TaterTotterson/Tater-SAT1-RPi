@@ -8,16 +8,16 @@ Tater application, Tater virtual environment, or Redis.
 ## Build and flash
 
 ```sh
-PI_FIRST_USER_PASS='choose-a-password' \
 PI_WIFI_SSID='your-wifi' \
 PI_WIFI_PASSWORD='your-wifi-password' \
 ./scripts/build-pi-image.sh --flavor satellite
 ```
 
 Flash `image_*tater-sat1-satellite.img.xz` to a 16 GB or larger microSD card
-with Raspberry Pi Imager. The lab build defaults to the SSH login
-`tater` / `tater`; set a real password or SSH public key before distributing
-images.
+with Raspberry Pi Imager. SSH is disabled by default and the image has no
+network-accessible login. If remote shell access is needed, enable SSH in
+Raspberry Pi Imager, keep the username `tater`, and replace the local recovery
+password with a unique password or public key.
 
 ## Unique identity
 

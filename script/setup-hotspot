@@ -13,6 +13,7 @@ HOSTAPD_CONFIG="${RUNTIME_DIR}/hostapd.conf"
 HOSTAPD_PID="${RUNTIME_DIR}/hostapd.pid"
 DNSMASQ_PID="${RUNTIME_DIR}/dnsmasq.pid"
 SSID_FILE="${RUNTIME_DIR}/ssid"
+ACTIVE_FILE="${RUNTIME_DIR}/active"
 
 pid_is_running() {
   pidfile="$1"
@@ -82,6 +83,9 @@ stop_services() {
 start_services() {
   mkdir -p "${RUNTIME_DIR}"
   chmod 700 "${RUNTIME_DIR}"
+  trap 'stop_services' EXIT
+  trap 'exit 0' INT TERM
+  : > "${ACTIVE_FILE}"
   stop_pid "${DNSMASQ_PID}"
   stop_pid "${HOSTAPD_PID}"
 
@@ -113,8 +117,6 @@ start_services() {
     --no-hosts \
     >/tmp/tater-sat1-dnsmasq.log 2>&1 &
 
-  trap 'stop_services' EXIT
-  trap 'exit 0' INT TERM
   echo "Tater setup hotspot ready: ${ssid} at http://${ADDRESS}/"
   "${PORTAL}" --config "${CONFIG}" --bind "${ADDRESS}" --port 80
 }

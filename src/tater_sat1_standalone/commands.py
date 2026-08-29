@@ -34,6 +34,7 @@ def build_tater_plan(config: StandaloneConfig, token: str) -> RuntimePlan:
         "TATER_RUNTIME_BACKGROUND_WORKERS": "1",
         "TATER_RUNTIME_DASHBOARD_WORKERS": "1",
         "TATER_RUNTIME_DIR": str(runtime.tater_runtime_dir),
+        "TATER_SAT1_SELF_OTA_STATE_DIR": str(runtime.state_dir / "updates"),
         "TATER_RUNTIME_SPEECH_WORKERS": "1",
         "TATER_RUNTIME_STT_WORKERS": "1",
         "TATER_RUNTIME_TTS_WORKERS": "1",

@@ -35,6 +35,10 @@ class RuntimeTests(unittest.TestCase):
             self.assertEqual(tater.environment["TATER_NATIVE_SATELLITE_TOKEN"], token)
             self.assertEqual(tater.environment["TATER_SETUP_PROFILE"], "edge")
             self.assertEqual(tater.environment["TATER_REMOTE_ONLY"], "1")
+            self.assertEqual(
+                tater.environment["TATER_SAT1_SELF_OTA_STATE_DIR"],
+                str(config.runtime.state_dir / "updates"),
+            )
             self.assertEqual(tater.environment["TATER_SETUP_REQUIRE_LOCAL_LLM"], "0")
             self.assertEqual(tater.environment["MALLOC_ARENA_MAX"], "2")
             self.assertEqual(tater.environment["VOICE_WEBRTC_VAD_AGGRESSIVENESS"], "3")

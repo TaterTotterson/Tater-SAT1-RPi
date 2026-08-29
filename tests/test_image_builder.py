@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -28,6 +29,28 @@ class ImageBuilderTests(unittest.TestCase):
         self.assertIn("first_boot_identity=unique_local_token", completed.stdout)
         self.assertIn("compression=xz", completed.stdout)
         self.assertIn("ota_format=tater_sat1_signed_bundle_v1", completed.stdout)
+        self.assertIn("ssh_enabled=0", completed.stdout)
+        self.assertIn("ssh_admin_user=tater", completed.stdout)
+
+    def test_ssh_is_opt_in_and_requires_credentials(self) -> None:
+        completed = subprocess.run(
+            [str(ROOT / "scripts" / "build-pi-image.sh"), "--plan"],
+            cwd=ROOT,
+            env={"PATH": os.environ["PATH"], "PI_ENABLE_SSH": "1"},
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        self.assertEqual(completed.returncode, 2)
+        self.assertIn("requires an explicit PI_FIRST_USER_PASS or PI_FIRST_USER_PUBKEY", completed.stderr)
+
+        builder = (ROOT / "scripts" / "build-pi-image.sh").read_text(encoding="utf-8")
+        workflow = (ROOT / ".github/workflows/image.yml").read_text(encoding="utf-8")
+        self.assertIn('PI_ENABLE_SSH="${PI_ENABLE_SSH:-0}"', builder)
+        self.assertIn('PI_FIRST_USER_PASS="${PI_FIRST_USER_PASS:-tater}"', builder)
+        self.assertIn('PI_FIRST_USER_NAME="${PI_FIRST_USER_NAME:-tater}"', builder)
+        self.assertIn('PI_ENABLE_SSH: "0"', workflow)
+        self.assertIn("PI_FIRST_USER_PASS: tater", workflow)
 
     def test_satellite_plan_omits_tater_and_uses_device_pairing(self) -> None:
         completed = subprocess.run(

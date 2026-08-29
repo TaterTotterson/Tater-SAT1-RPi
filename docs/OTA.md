@@ -21,6 +21,15 @@ without removing the card.
    Standalone also checks the local Tater HTTP service. A failed check restores
    the previous appliance automatically and reboots again.
 
+For the standalone image, Tater saves the active firmware-session handoff in
+the appliance update directory before it stops itself. The already-open
+Firmware page treats the temporary connection loss as a restart, reconnects to
+Tater after boot, and reads the durable health result. It reports success only
+after the new version passes health checks, or reports the automatic rollback
+if those checks fail. This recovery mode is enabled only for the loopback SAT1
+inside the standalone appliance; downstream SAT1, ThirdReality, ESP32, and
+other satellite update paths keep their normal behavior.
+
 The standalone image receives OTA from the Tater server running on the same Pi
 over loopback. The satellite image receives it from the main Tater server it is
 paired with. In Tater, use the connected satellite's firmware update action in

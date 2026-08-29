@@ -25,10 +25,12 @@ BLACK: RGB = (0, 0, 0)
 RED: RGB = (255, 0, 0)
 WARM_WHITE: RGB = (255, 227, 181)
 LIGHT_OBJECT_ID = "led_ring"
+DEFAULT_SETUP_ACTIVE_PATH = Path("/run/tater-sat1-setup/active")
 
 
 class LedPhase(str, Enum):
     INITIALIZING = "initializing"
+    PROVISIONING = "provisioning"
     DISCONNECTED = "disconnected"
     IDLE = "idle"
     WAITING = "waiting"
@@ -126,6 +128,7 @@ class LedState:
         self._ever_lva_connected = False
         self._lva_connected = False
         self._ha_connected = False
+        self._provisioning = False
         self._pipeline_phase = "idle"
         self._last_event = ""
         self._mic_muted = False
@@ -155,6 +158,10 @@ class LedState:
         self._thinking_animation = "sat1_thinking"
         self._tool_call_animation = "ping_pong"
         self._replying_animation = "sat1_replying"
+
+    def set_provisioning(self, active: bool) -> None:
+        with self._lock:
+            self._provisioning = bool(active)
 
     def set_lva_connected(self, connected: bool) -> None:
         with self._lock:
@@ -311,7 +318,9 @@ class LedState:
     def snapshot(self, *, now: float | None = None) -> LedSnapshot:
         timestamp = time.monotonic() if now is None else now
         with self._lock:
-            if not self._lva_connected:
+            if self._provisioning:
+                phase = LedPhase.PROVISIONING
+            elif not self._lva_connected:
                 phase = LedPhase.DISCONNECTED if self._ever_lva_connected else LedPhase.INITIALIZING
             elif not self._ha_connected:
                 phase = LedPhase.DISCONNECTED
@@ -412,6 +421,10 @@ class Sat1LedRenderer:
         phase = snapshot.phase
         if phase == LedPhase.INITIALIZING:
             return LedFrame(tuple([scale_color(WARM_WHITE, 0.33)] * self.pixel_count), 0.1)
+        if phase == LedPhase.PROVISIONING:
+            pixels = self._native_twinkle(self._animation_tick, WARM_WHITE)
+            self._animation_tick += 1
+            return LedFrame(pixels, 0.08)
         if phase == LedPhase.DISCONNECTED:
             return LedFrame(self._twinkle_frame(scale_color(RED, 0.66)), 0.05)
         if phase == LedPhase.IDLE:
@@ -1259,11 +1272,29 @@ async def run_peripheral_client(
         await asyncio.sleep(2.0)
 
 
+async def run_setup_state_monitor(
+    state: LedState,
+    *,
+    active_path: Path = DEFAULT_SETUP_ACTIVE_PATH,
+    poll_interval: float = 0.2,
+) -> None:
+    """Keep the LED provisioning phase aligned with the captive hotspot."""
+    previous: bool | None = None
+    while True:
+        active = active_path.is_file()
+        if active != previous:
+            state.set_provisioning(active)
+            LOGGER.info("SAT1 setup hotspot LED state: %s", "active" if active else "inactive")
+            previous = active
+        await asyncio.sleep(poll_interval)
+
+
 async def run(
     config: LedConfig,
     *,
     pulse_server: str = "unix:/run/tater-sat1-audio/pulse/native",
     pulse_home: Path = Path("/var/lib/tater-sat1-standalone"),
+    setup_active_path: Path = DEFAULT_SETUP_ACTIVE_PATH,
 ) -> None:
     if not config.enabled:
         LOGGER.info("SAT1 LED controller is disabled in configuration")
@@ -1271,6 +1302,7 @@ async def run(
         return
 
     state = LedState(config)
+    state.set_provisioning(setup_active_path.is_file())
     driver: PixelDriver
     xmos_driver: XmosPixelDriver | None = None
     if config.backend == "xmos":
@@ -1280,6 +1312,9 @@ async def run(
         driver = Ws281xPixelDriver(config)
     worker = AnimationWorker(state, Sat1LedRenderer(config.pixel_count), driver)
     worker.start()
+    setup_state_task = asyncio.create_task(
+        run_setup_state_monitor(state, active_path=setup_active_path)
+    )
     playback_task = asyncio.create_task(
         run_playback_level_monitor(
             state,
@@ -1291,8 +1326,9 @@ async def run(
     try:
         await run_peripheral_client(config, state, xmos_driver)
     finally:
+        setup_state_task.cancel()
         playback_task.cancel()
-        await asyncio.gather(playback_task, return_exceptions=True)
+        await asyncio.gather(setup_state_task, playback_task, return_exceptions=True)
         worker.stop()
 
 

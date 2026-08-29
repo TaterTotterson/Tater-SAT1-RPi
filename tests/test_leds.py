@@ -1,10 +1,13 @@
 from __future__ import annotations
 
-import sys
+import asyncio
 import struct
+import sys
+import tempfile
 import types
 import unittest
 from dataclasses import replace
+from pathlib import Path
 from unittest.mock import patch
 
 from tater_sat1_standalone.config import LedConfig
@@ -17,6 +20,7 @@ from tater_sat1_standalone.leds import (
     Sat1LedRenderer,
     XmosPixelDriver,
     pcm_s16le_level,
+    run_setup_state_monitor,
 )
 
 
@@ -51,6 +55,15 @@ class LedStateTests(unittest.TestCase):
         self.assertEqual(self.state.snapshot(now=1).phase, LedPhase.IDLE)
         self.state.apply_event("disconnected")
         self.assertEqual(self.state.snapshot(now=1).phase, LedPhase.DISCONNECTED)
+
+    def test_provisioning_has_priority_until_the_hotspot_closes(self) -> None:
+        self.connect()
+        self.state.apply_event("thinking")
+        self.state.set_provisioning(True)
+        self.assertEqual(self.state.snapshot(now=1).phase, LedPhase.PROVISIONING)
+
+        self.state.set_provisioning(False)
+        self.assertEqual(self.state.snapshot(now=1).phase, LedPhase.THINKING)
 
     def test_pipeline_events_select_the_esp32_voice_phases(self) -> None:
         self.connect()
@@ -190,6 +203,16 @@ class LedRendererTests(unittest.TestCase):
     @staticmethod
     def lit(frame: tuple[tuple[int, int, int], ...]) -> set[int]:
         return {index for index, color in enumerate(frame) if color != BLACK}
+
+    def test_provisioning_matches_the_esp32_warm_white_twinkle(self) -> None:
+        first = self.renderer.render(snapshot(LedPhase.PROVISIONING))
+        second = self.renderer.render(snapshot(LedPhase.PROVISIONING))
+
+        self.assertEqual(first.interval, 0.08)
+        self.assertEqual(first.pixels[0], (242, 215, 171))
+        self.assertEqual(first.pixels[1], (10, 9, 7))
+        self.assertEqual(second.pixels[0], (10, 9, 7))
+        self.assertEqual(second.pixels[4], (242, 215, 171))
 
     def test_waiting_uses_the_esp32_opposing_clockwise_comets(self) -> None:
         first = self.renderer.render(snapshot(LedPhase.WAITING))
@@ -442,6 +465,30 @@ class PlaybackLevelTests(unittest.TestCase):
         self.assertEqual(pcm_s16le_level(silence), 0.0)
         self.assertAlmostEqual(pcm_s16le_level(signal), 0.25, places=3)
         self.assertAlmostEqual(pcm_s16le_level(spike), 0.5, places=3)
+
+
+class SetupStateMonitorTests(unittest.IsolatedAsyncioTestCase):
+    async def test_runtime_marker_controls_provisioning_phase(self) -> None:
+        state = LedState(LedConfig())
+        with tempfile.TemporaryDirectory() as temp_dir:
+            active_path = Path(temp_dir) / "active"
+            task = asyncio.create_task(
+                run_setup_state_monitor(state, active_path=active_path, poll_interval=0.005)
+            )
+            try:
+                await asyncio.sleep(0.02)
+                self.assertEqual(state.snapshot(now=1).phase, LedPhase.INITIALIZING)
+
+                active_path.touch()
+                await asyncio.sleep(0.02)
+                self.assertEqual(state.snapshot(now=1).phase, LedPhase.PROVISIONING)
+
+                active_path.unlink()
+                await asyncio.sleep(0.02)
+                self.assertEqual(state.snapshot(now=1).phase, LedPhase.INITIALIZING)
+            finally:
+                task.cancel()
+                await asyncio.gather(task, return_exceptions=True)
 
 
 class Sat1ButtonTrackerTests(unittest.TestCase):

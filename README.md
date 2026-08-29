@@ -50,6 +50,8 @@ This repository is an early runnable appliance scaffold. It currently provides:
 - unique hostnames and device IDs derived on first boot
 - one-time pairing with durable per-device native-satellite credentials
 - a shared first-boot Wi-Fi hotspot and captive setup portal
+- Tater's optional second-STT wake verification, including Observe, Enabled,
+  and fail-open behavior matching the ESP firmware
 - signed, flavor-specific appliance OTA through Tater with automatic rollback
 - the SAT1 24-pixel ring, driven through its XMOS controller, with the voice,
   timer, volume, mute, and connection animations used by the ESP32 firmware
@@ -99,19 +101,22 @@ when the image build begins.
 Build the standalone image with:
 
 ```sh
-PI_FIRST_USER_PASS='choose-a-password' ./scripts/build-pi-image.sh
+./scripts/build-pi-image.sh
 ```
 
 Build the fleet satellite image with:
 
 ```sh
-PI_FIRST_USER_PASS='choose-a-password' \
-  ./scripts/build-pi-image.sh --flavor satellite
+./scripts/build-pi-image.sh --flavor satellite
 ```
 
 Flash the resulting `.img.xz` using Raspberry Pi Imager's **Use Custom**
-option. On first boot, join the unique `Tater-SAT1-Setup-XXXXXX` hotspot and
-follow the captive page; SSH is not required for normal setup. See
+option. SSH is disabled in the image by default. If remote shell access is
+needed, explicitly enable it in Raspberry Pi Imager and supply a unique
+password or public key, keeping the appliance username `tater`. On first boot,
+join the unique
+`Tater-SAT1-Setup-XXXXXX` hotspot and follow the captive page; SSH is not
+required for normal setup. See
 [Wi-Fi hotspot setup](docs/PROVISIONING.md) and
 [Image building and flashing](docs/IMAGE.md).
 

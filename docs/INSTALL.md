@@ -89,12 +89,14 @@ sudo journalctl -u tater-sat1-tater.service -u tater-sat1-voice.service -f
 The LED controller follows the production ESP32 SAT1 firmware: slow waiting
 spin, fast listening spin, opposing thinking pulse, reverse replying spin,
 volume arc, timer arc/ring, microphone and speaker mute markers, error pulse,
-and disconnected red twinkle. It receives the same voice events from the
-Linux Satellite peripheral API in either image flavor. When Tater selects the
-directional listening animation, live XMOS direction-of-arrival data points
-the warm-white-tipped beam toward the speaker. The reply animation preserves
-the dominant listening direction and expands with the real PulseAudio speaker
-signal, matching the ESP firmware rather than using an artificial pulse.
+disconnected red twinkle, and warm-white provisioning twinkle. It receives the
+same voice events from the Linux Satellite peripheral API in either image
+flavor. The provisioning animation remains active for exactly as long as the
+setup hotspot. When Tater selects the directional listening animation, live
+XMOS direction-of-arrival data points the warm-white-tipped beam toward the
+speaker. The reply animation preserves the dominant listening direction and
+expands with the real PulseAudio speaker signal, matching the ESP firmware
+rather than using an artificial pulse.
 
 The default `xmos` backend sends 24-pixel GRB frames through the SAT1 SPI
 control service, which owns the production ring. An optional `gpio` backend is

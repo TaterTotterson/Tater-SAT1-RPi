@@ -144,6 +144,8 @@ class OtaTests(unittest.TestCase):
             original_config = layout.config.read_text(encoding="utf-8")
             bundle = self._bundle(Path(temporary) / "release", "standalone")
             layout.update_dir.mkdir(parents=True, exist_ok=True)
+            handoff = layout.update_dir / "tater-self-ota-session.json"
+            handoff.write_text('{"session_id":"fw_test"}\n', encoding="utf-8")
             shutil.copy2(bundle, layout.pending_bundle)
             environment = {
                 "TATER_SAT1_UPDATE_NO_SYSTEMD": "1",
@@ -160,6 +162,7 @@ class OtaTests(unittest.TestCase):
             self.assertEqual(layout.version.read_text(encoding="utf-8").strip(), "tater-sat1-test-v2")
             self.assertEqual(layout.config.read_text(encoding="utf-8"), original_config)
             self.assertEqual((layout.state_dir / "native-satellite-token").read_text(encoding="utf-8"), "keep-me\n")
+            self.assertEqual(handoff.read_text(encoding="utf-8"), '{"session_id":"fw_test"}\n')
             self.assertEqual((root / "opt/tater-sat1/release-marker").read_text(encoding="utf-8"), "new\n")
             self.assertFalse(layout.rollback_dir.exists())
 

@@ -16,11 +16,15 @@ PI_IMAGE_FLAVOR="${PI_IMAGE_FLAVOR:-standalone}"
 PI_IMAGE_NAME="${PI_IMAGE_NAME:-}"
 PI_IMAGE_RELEASE="bookworm"
 PI_IMAGE_ROOT_MARGIN_MB="${PI_IMAGE_ROOT_MARGIN_MB:-2048}"
+PI_FIRST_USER_PASS_WAS_SET=0
+if [ "${PI_FIRST_USER_PASS+x}" = "x" ]; then
+    PI_FIRST_USER_PASS_WAS_SET=1
+fi
 PI_FIRST_USER_NAME="${PI_FIRST_USER_NAME:-tater}"
-PI_FIRST_USER_PASS="${PI_FIRST_USER_PASS-tater}"
+PI_FIRST_USER_PASS="${PI_FIRST_USER_PASS:-tater}"
 PI_FIRST_USER_PUBKEY="${PI_FIRST_USER_PUBKEY:-}"
-PI_PUBKEY_ONLY_SSH="${PI_PUBKEY_ONLY_SSH:-0}"
-PI_ENABLE_SSH="${PI_ENABLE_SSH:-1}"
+PI_PUBKEY_ONLY_SSH="${PI_PUBKEY_ONLY_SSH:-1}"
+PI_ENABLE_SSH="${PI_ENABLE_SSH:-0}"
 PI_WIFI_SSID="${PI_WIFI_SSID:-}"
 PI_WIFI_PASSWORD="${PI_WIFI_PASSWORD:-}"
 PI_WIFI_COUNTRY="${PI_WIFI_COUNTRY:-US}"
@@ -69,6 +73,18 @@ case "${PI_IMAGE_FLAVOR}" in
     standalone|satellite) ;;
     *) printf 'Unknown image flavor: %s\n' "${PI_IMAGE_FLAVOR}" >&2; exit 2 ;;
 esac
+case "${PI_ENABLE_SSH}" in
+    0|1) ;;
+    *) printf 'PI_ENABLE_SSH must be 0 or 1\n' >&2; exit 2 ;;
+esac
+case "${PI_PUBKEY_ONLY_SSH}" in
+    0|1) ;;
+    *) printf 'PI_PUBKEY_ONLY_SSH must be 0 or 1\n' >&2; exit 2 ;;
+esac
+if [ "${PI_ENABLE_SSH}" = "1" ] && [ "${PI_FIRST_USER_PASS_WAS_SET}" != "1" ] && [ -z "${PI_FIRST_USER_PUBKEY}" ]; then
+    printf '%s\n' 'PI_ENABLE_SSH=1 requires an explicit PI_FIRST_USER_PASS or PI_FIRST_USER_PUBKEY.' >&2
+    exit 2
+fi
 if [[ ! "${PI_RELEASE_VERSION}" =~ ^[A-Za-z0-9][A-Za-z0-9._+-]{0,127}$ ]]; then
     printf 'Invalid image release version: %s\n' "${PI_RELEASE_VERSION}" >&2
     exit 2
@@ -127,6 +143,8 @@ release_version=${PI_RELEASE_VERSION}
 firmware_version=${TATER_SAT1_FIRMWARE_VERSION}
 ota_format=tater_sat1_signed_bundle_v1
 first_boot_identity=${identity_plan}
+ssh_enabled=${PI_ENABLE_SSH}
+ssh_admin_user=${PI_FIRST_USER_NAME}
 output=${PI_GEN_DIR}/deploy
 EOF
 }
@@ -357,14 +375,11 @@ write_config_value FIRST_USER_NAME "${PI_FIRST_USER_NAME}"
 write_config_value LOCALE_DEFAULT "${PI_LOCALE}"
 write_config_value KEYBOARD_KEYMAP "${PI_KEYBOARD}"
 write_config_value TIMEZONE_DEFAULT "${PI_TIMEZONE}"
-if [ -n "${PI_FIRST_USER_PASS}" ]; then
-    write_config_value FIRST_USER_PASS "${PI_FIRST_USER_PASS}"
-    write_config_value DISABLE_FIRST_BOOT_USER_RENAME "1"
-fi
+write_config_value FIRST_USER_PASS "${PI_FIRST_USER_PASS}"
+write_config_value DISABLE_FIRST_BOOT_USER_RENAME "1"
 if [ -n "${PI_FIRST_USER_PUBKEY}" ]; then
     write_config_value PUBKEY_SSH_FIRST_USER "$(load_pubkey "${PI_FIRST_USER_PUBKEY}")"
     write_config_value PUBKEY_ONLY_SSH "${PI_PUBKEY_ONLY_SSH}"
-    write_config_value DISABLE_FIRST_BOOT_USER_RENAME "1"
 fi
 if [ -n "${PI_WIFI_SSID}" ]; then
     write_config_value WPA_ESSID "${PI_WIFI_SSID}"
@@ -400,7 +415,11 @@ else
     printf '%s\n' "Building fleet satellite without a bundled Tater server"
 fi
 printf 'Building with Linux Satellite source: %s\n' "${SATELLITE_SOURCE_DIR}"
-printf 'Initial SSH login: %s (change the image password for non-lab use)\n' "${PI_FIRST_USER_NAME}"
+if [ "${PI_ENABLE_SSH}" = "1" ]; then
+    printf 'SSH enabled for administrator: %s\n' "${PI_FIRST_USER_NAME}"
+else
+    printf '%s\n' 'SSH disabled (enable it explicitly in Raspberry Pi Imager or at build time)'
+fi
 
 (
     cd "${PI_GEN_DIR}"

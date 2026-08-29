@@ -10,6 +10,10 @@ Tater-SAT1-Setup-XXXXXX
 The suffix is derived from the Wi-Fi interface address so several unconfigured
 SAT1 devices can be distinguished in the same room.
 
+While this setup network is active, the SAT1 ring shows the ESP firmware's
+warm-white provisioning twinkle. The animation clears automatically when the
+hotspot closes and the normal connection and voice animations take over.
+
 1. Join the `Tater-SAT1-Setup-XXXXXX` network from a phone or computer.
 2. The captive setup page should open automatically. If it does not, browse to
    `http://192.168.4.1`.

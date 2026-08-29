@@ -74,10 +74,18 @@ TATER_SOURCE_DIR=../Tater ./scripts/build-pi-image.sh --prepare-only
 Build a lab image with Wi-Fi already configured:
 
 ```sh
-PI_FIRST_USER_PASS='choose-a-password' \
 PI_WIFI_SSID='your-wifi' \
 PI_WIFI_PASSWORD='your-wifi-password' \
 PI_WIFI_COUNTRY='US' \
+./scripts/build-pi-image.sh
+```
+
+SSH is off by default. For a development image that deliberately enables it
+at build time, provide a unique password or public key:
+
+```sh
+PI_ENABLE_SSH=1 \
+PI_FIRST_USER_PASS='choose-a-unique-password' \
 ./scripts/build-pi-image.sh
 ```
 
@@ -112,15 +120,19 @@ standalone or satellite board identity, and offers the newer signed bundle in
 the Firmware tab. No release is created from an ordinary branch push.
 
 If Wi-Fi is not embedded, use Raspberry Pi Imager's customization screen when
-flashing. Local builds default to the temporary lab login `tater` / `tater`;
-set `PI_FIRST_USER_PASS` or an SSH public key before sharing an image.
+flashing. Tagged and local builds ship with SSH disabled. The familiar
+`tater` / `tater` account remains available for direct local recovery, but is
+not exposed to the network while SSH is off. To opt in to remote access,
+enable SSH during Imager customization, keep the username `tater`, and replace
+the default with your own password or public key.
 
 ## Flash and boot
 
 1. Open Raspberry Pi Imager.
 2. Choose **Use Custom** and select `image_*.img.xz`.
-3. Select a 16 GB or larger microSD card and apply Wi-Fi/login customization
-   if needed.
+3. Select a 16 GB or larger microSD card. Apply Wi-Fi customization if needed;
+   leave SSH off unless remote access is wanted, then enable it and provide
+   unique credentials for the `tater` user.
 4. Flash and verify the card.
 5. Attach the Satellite1 HAT to the powered-off Pi Zero 2 W and insert the
    card.

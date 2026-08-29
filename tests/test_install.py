@@ -20,7 +20,7 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(completed.returncode, 0, completed.stderr)
         output = completed.stdout
         self.assertIn("git clone --branch main --single-branch https://github.com/TaterTotterson/Tater.git", output)
-        self.assertIn("afcf78c8803414281732d2fe7ad9fe01e097ad0c", output)
+        self.assertIn("4069417f495d9b5cf4dc9d0a38ce2fbb42d575ae", output)
         self.assertIn("TATER_SETUP_REQUIRE_LOCAL_LLM=0", output)
         self.assertIn("setup_tater.sh edge", output)
         self.assertIn("pip install --editable /opt/tater-sat1/linux-satellite", output)
@@ -39,6 +39,9 @@ class InstallerTests(unittest.TestCase):
         self.assertIn("tater-sat1-audio-watchdog", output)
         self.assertIn("websockets>=12,<16", output)
         self.assertIn("tater-sat1-setup-hotspot", output)
+        setup_hotspot = (ROOT / "script" / "setup-hotspot").read_text()
+        self.assertIn('ACTIVE_FILE="${RUNTIME_DIR}/active"', setup_hotspot)
+        self.assertIn(': > "${ACTIVE_FILE}"', setup_hotspot)
         self.assertIn("tater-sat1-apply-update", output)
         self.assertIn("tater-sat1-update.path", output)
         self.assertIn("update-public.pem", output)

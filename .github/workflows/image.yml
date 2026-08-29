@@ -32,6 +32,7 @@ jobs:
           PI_RELEASE_VERSION: ${{ github.ref_name }}
           PI_FIRST_USER_NAME: tater
           PI_FIRST_USER_PASS: tater
+          PI_ENABLE_SSH: "0"
           TATER_SAT1_OTA_PRIVATE_KEY_PEM: ${{ secrets.TATER_SAT1_OTA_PRIVATE_KEY_PEM }}
         run: ./scripts/build-pi-image.sh --flavor "${PI_IMAGE_FLAVOR}"
 
