@@ -96,6 +96,10 @@ def main() -> int:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--release-repo", default=RELEASE_REPO)
     parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument(
+        "--previous-tag",
+        help="previous published release tag; pass an empty value when no release exists",
+    )
     args = parser.parse_args()
 
     tag = args.tag.strip()
@@ -106,7 +110,12 @@ def main() -> int:
         raise SystemExit("--release-repo must use OWNER/REPO format")
 
     repo_root = args.repo_root.resolve()
-    previous_tag = previous_release_tag(repo_root, tag)
+    if args.previous_tag is None:
+        previous_tag = previous_release_tag(repo_root, tag)
+    else:
+        previous_tag = args.previous_tag.strip() or None
+        if previous_tag and not _TAG.fullmatch(previous_tag):
+            raise SystemExit(f"invalid previous release tag: {previous_tag}")
     commits = release_commits(repo_root, tag, previous_tag)
     notes = render_release_notes(repo, tag, previous_tag, commits)
     args.output.parent.mkdir(parents=True, exist_ok=True)

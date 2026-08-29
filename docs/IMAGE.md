@@ -99,9 +99,9 @@ flashable images, signed OTA bundles, checksums, build metadata, `latest.json`,
 and the Tater firmware manifest in one release.
 
 The release body also receives an automatic **What's Changed** section built
-from the commits since the previous `v*` tag. The first release includes the
-complete repository history; later releases link directly to the comparison
-with the previous version.
+from the commits since the previous published release. Failed or cancelled
+tags are skipped, so the first successful release includes the complete
+repository history; later releases link directly to the previous version.
 
 The repository secret `TATER_SAT1_OTA_PRIVATE_KEY_PEM` must contain the private
 key matching `keys/update-public.pem`. Do not rotate this key after images are

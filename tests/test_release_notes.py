@@ -18,6 +18,11 @@ class ReleaseNotesTests(unittest.TestCase):
     def test_default_release_repository_uses_the_rpi_name(self) -> None:
         self.assertEqual(release_notes.RELEASE_REPO, "TaterTotterson/Tater-SAT1-RPi")
 
+    def test_workflow_compares_with_the_previous_published_release(self) -> None:
+        workflow = (ROOT / ".github/workflows/image.yml").read_text(encoding="utf-8")
+        self.assertIn('repos/${GITHUB_REPOSITORY}/releases/latest', workflow)
+        self.assertIn('--previous-tag "${{ steps.previous_release.outputs.tag }}"', workflow)
+
     def test_first_release_lists_every_change_and_history(self) -> None:
         commits = [
             release_notes.Commit("a" * 40, "Add standalone image"),

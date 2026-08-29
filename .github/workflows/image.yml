@@ -83,10 +83,19 @@ jobs:
             --release-tag "${GITHUB_REF_NAME}" \
             --release-dir out/release
 
+      - name: Find previous published release
+        id: previous_release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          previous_tag="$(gh api "repos/${GITHUB_REPOSITORY}/releases/latest" --jq .tag_name 2>/dev/null || true)"
+          printf 'tag=%s\n' "${previous_tag}" >> "${GITHUB_OUTPUT}"
+
       - name: Build release notes
         run: |
           python3 script/build_release_notes.py \
             --tag "${GITHUB_REF_NAME}" \
+            --previous-tag "${{ steps.previous_release.outputs.tag }}" \
             --output out/release/RELEASE_NOTES.md
 
       - name: Publish tagged release
