@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+
+export PULSE_SERVER="${PULSE_SERVER:-unix:/run/tater-sat1-audio/pulse/native}"
+export PULSE_CLIENTCONFIG="${PULSE_CLIENTCONFIG:-/etc/tater-sat1-standalone/pulse-client.conf}"
+
+attempt=0
+while [ "${attempt}" -lt 100 ]; do
+  if pactl list short sources 2>/dev/null | grep -q '^.*satellite1_input' && \
+     pactl list short sinks 2>/dev/null | grep -q '^.*satellite1_output'; then
+    exit 0
+  fi
+  attempt=$((attempt + 1))
+  sleep 0.1
+done
+
+printf '%s\n' "SAT1 PulseAudio source and sink did not become ready" >&2
+exit 1
+

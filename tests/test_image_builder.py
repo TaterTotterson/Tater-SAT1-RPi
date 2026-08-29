@@ -23,6 +23,8 @@ class ImageBuilderTests(unittest.TestCase):
         self.assertIn("pi_gen_revision=67262a4ad0959aab2a9d84a6392b1967999e8f50", completed.stdout)
         self.assertIn("sat1_release=v0.1.4", completed.stdout)
         self.assertIn("image_flavor=standalone", completed.stdout)
+        self.assertIn("tater_revision=latest:main", completed.stdout)
+        self.assertIn("tater_update_policy=latest_at_build", completed.stdout)
         self.assertIn("first_boot_identity=unique_local_token", completed.stdout)
         self.assertIn("compression=xz", completed.stdout)
         self.assertIn("ota_format=tater_sat1_signed_bundle_v1", completed.stdout)
@@ -61,6 +63,8 @@ class ImageBuilderTests(unittest.TestCase):
         self.assertIn("tater-sat1-firstboot.service", stage)
         self.assertIn("tater-sat1-provisioning.service", stage)
         self.assertIn("tater-sat1-leds.service", stage)
+        self.assertIn("tater-sat1-audio-watchdog.timer", stage)
+        self.assertIn('backend = "xmos"', stage)
         self.assertIn("test -x /opt/tater-sat1/venv/bin/tater-sat1-leds", stage)
         self.assertIn("test ! -e /opt/tater/app/tateros_app.py", stage)
 
@@ -72,6 +76,25 @@ class ImageBuilderTests(unittest.TestCase):
         self.assertIn("dnsmasq-base\n", packages)
         self.assertIn("network-manager\n", packages)
         self.assertIn("openssl\n", packages)
+
+    def test_image_enables_sat1_hardware_runtime_requirements(self) -> None:
+        stage = (
+            ROOT
+            / "scripts"
+            / "pi-image"
+            / "stage-tater-sat1"
+            / "00-install-appliance"
+            / "01-run-chroot.sh"
+        ).read_text(encoding="utf-8")
+        self.assertIn("dtoverlay=pwm,pin=12,func=4", stage)
+        self.assertIn("startup_muted = true", stage)
+        self.assertIn("startup_muted = false", stage)
+        self.assertIn("tater-sat1-i2c.conf", stage)
+        self.assertIn("90-tater-sat1-wifi-powersave.conf", stage)
+        self.assertIn('audio_input_device = "satellite1_input"', stage)
+        self.assertIn('audio_output_device = "pulse/satellite1_output"', stage)
+        self.assertIn("import websockets", stage)
+        self.assertIn("tater-sat1-audio-hardware", stage)
 
     def test_image_builds_and_enables_a_signed_ota_bundle(self) -> None:
         stage_root = ROOT / "scripts/pi-image/stage-tater-sat1/00-install-appliance"
@@ -85,12 +108,16 @@ class ImageBuilderTests(unittest.TestCase):
         self.assertIn("trap cleanup EXIT", bundle_stage)
         self.assertIn("TATER_SAT1_OTA_PRIVATE_KEY_PEM", builder)
         self.assertIn("keys/update-public.pem", builder)
+        self.assertIn("prepare_tater_source.py", builder)
+        self.assertIn(".tater-sat1-build.json", chroot_stage)
 
     def test_builder_writes_a_checksum_for_the_finished_image(self) -> None:
         builder = (ROOT / "scripts" / "build-pi-image.sh").read_text(encoding="utf-8")
         self.assertIn('SHA256SUMS.txt', builder)
         self.assertIn('pi-gen completed without producing an image', builder)
         self.assertIn('without producing a signed OTA bundle', builder)
+        self.assertIn('tater_update_policy=${TATER_UPDATE_POLICY}', builder)
+        self.assertIn('tater_revision=${TATER_REVISION:-not_bundled}', builder)
 
 
 if __name__ == "__main__":

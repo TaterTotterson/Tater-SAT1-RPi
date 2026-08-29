@@ -7,6 +7,19 @@ FIRMWARE_VERSION="$(cat /tmp/tater-sat1-firmware-version)"
 
 apt-get install -y /tmp/sat1-assets/*.deb
 
+# The v0.1.4 SDK package ships with the internal speaker disabled. This image
+# is an appliance, so initialise the built-in TAS2780 speaker by default.
+sed -i \
+    -e 's/^enabled = false$/enabled = true/' \
+    -e 's/^startup_muted = true$/startup_muted = false/' \
+    /etc/satellite1.conf
+
+# Keep PWM0 on BCM GPIO 12 available for the optional direct-GPIO LED backend.
+# Production SAT1 images use the XMOS/SPI backend selected in config.toml.
+if ! grep -qxF 'dtoverlay=pwm,pin=12,func=4' /boot/firmware/config.txt; then
+    printf '\n%s\n' 'dtoverlay=pwm,pin=12,func=4' >> /boot/firmware/config.txt
+fi
+
 TATER_SAT1_VERSION="${FIRMWARE_VERSION}" /opt/tater-sat1-standalone-src/script/install \
     --flavor "${IMAGE_FLAVOR}" \
     --bundled-sources \
@@ -33,6 +46,21 @@ test -x /usr/local/sbin/tater-sat1-update-health
 test -x /opt/tater-sat1/venv/bin/tater-sat1-provisioning
 test -x /opt/tater-sat1/venv/bin/tater-sat1-voice
 test -x /opt/tater-sat1/venv/bin/tater-sat1-leds
+test -x /usr/local/sbin/tater-sat1-audio-watchdog
+test -x /usr/local/sbin/tater-sat1-audio-hardware
+test -s /etc/tater-sat1-standalone/pulse.pa
+grep -qxF 'i2c-dev' /etc/modules-load.d/tater-sat1-i2c.conf
+grep -qxF 'wifi.powersave = 2' /etc/NetworkManager/conf.d/90-tater-sat1-wifi-powersave.conf
+grep -qxF 'dtoverlay=pwm,pin=12,func=4' /boot/firmware/config.txt
+grep -q '^enabled = true$' /etc/satellite1.conf
+grep -q '^startup_muted = false$' /etc/satellite1.conf
+grep -q '^audio_input_device = "satellite1_input"$' /etc/tater-sat1-standalone/config.toml
+grep -q '^audio_output_device = "pulse/satellite1_output"$' /etc/tater-sat1-standalone/config.toml
+grep -q '^backend = "xmos"$' /etc/tater-sat1-standalone/config.toml
+if [ "${IMAGE_FLAVOR}" = "standalone" ]; then
+    /opt/tater/venv/bin/python -c 'import websockets'
+    test -s /opt/tater/app/.tater-sat1-build.json
+fi
 test -s /etc/tater-sat1-standalone/update-public.pem
 test "$(cat /etc/tater-sat1-standalone/version)" = "${FIRMWARE_VERSION}"
 test ! -L /etc/systemd/system/multi-user.target.wants/hostapd.service
@@ -66,7 +94,7 @@ EOF
 # Every flashed device creates its native-satellite credential on first boot.
 test ! -e /var/lib/tater-sat1-standalone/native-satellite-token
 systemctl enable satellite1-init.service 2>/dev/null || true
-systemctl enable tater-sat1-update.path tater-sat1-update-health.service
+systemctl enable tater-sat1-update.path tater-sat1-update-health.service tater-sat1-audio-watchdog.timer
 if [ "${IMAGE_FLAVOR}" = "standalone" ]; then
     grep -q '^board = "satellite1_rpi_standalone"$' /etc/tater-sat1-standalone/config.toml
     systemctl enable \
@@ -90,6 +118,7 @@ test -L /etc/systemd/system/multi-user.target.wants/tater-sat1-provisioning.serv
 test -L /etc/systemd/system/multi-user.target.wants/tater-sat1-leds.service
 test -L /etc/systemd/system/multi-user.target.wants/tater-sat1-update.path
 test -L /etc/systemd/system/multi-user.target.wants/tater-sat1-update-health.service
+test -L /etc/systemd/system/timers.target.wants/tater-sat1-audio-watchdog.timer
 
 rm -rf \
     /opt/tater-sat1/linux-satellite/.git \

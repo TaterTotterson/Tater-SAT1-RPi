@@ -1,11 +1,12 @@
 [Unit]
 Description=Satellite1 24-pixel Tater LED animations
-After=local-fs.target
+Wants=tater-sat1-audio.service
+After=local-fs.target tater-sat1-audio.service
 Before=tater-sat1-voice.service tater-sat1-satellite.service
 
 [Service]
 Type=simple
-# rpi-ws281x uses the Raspberry Pi PWM/DMA peripheral and requires root.
+# The production backend talks to the SAT1 XMOS controller through /dev/spidev0.0.
 User=root
 Group=root
 Environment=PYTHONUNBUFFERED=1

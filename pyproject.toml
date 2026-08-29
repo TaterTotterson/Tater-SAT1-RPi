@@ -11,6 +11,7 @@ requires-python = ">=3.11"
 license = {text = "AGPL-3.0-only"}
 authors = [{name = "TaterTotterson"}]
 dependencies = [
+  "spidev>=3.6,<4; sys_platform == 'linux'",
   "websockets>=12,<16",
   "rpi-ws281x>=5.0.0; sys_platform == 'linux' and platform_machine == 'aarch64'",
 ]

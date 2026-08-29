@@ -1,0 +1,21 @@
+#!/bin/sh
+set -eu
+
+# The SAT1 speaker amplifier keeps its own digital attenuation register. The
+# ESP32 firmware normally initializes it, but a Raspberry Pi host must do so
+# itself or the speaker remains roughly 15 dB below its intended maximum.
+bus="${TATER_SAT1_I2C_BUS:-1}"
+tas_address="${TATER_SAT1_TAS2780_ADDRESS:-0x3f}"
+
+i2cset -y "${bus}" "${tas_address}" 0x00 0x00 b 2>/dev/null || true
+chip_id="$(i2cget -y "${bus}" "${tas_address}" 0x05 b 2>/dev/null || true)"
+if [ "${chip_id}" != "0x41" ]; then
+  printf '%s\n' "SAT1 TAS2780 amplifier not detected on I2C ${bus} at ${tas_address}" >&2
+  exit 1
+fi
+
+# Page 0, full digital level, active mode. PulseAudio/MPV remains the single
+# user-facing volume control, avoiding two stacked and confusing volume maps.
+i2cset -y "${bus}" "${tas_address}" 0x00 0x00 b
+i2cset -y "${bus}" "${tas_address}" 0x1a 0x00 b
+i2cset -y "${bus}" "${tas_address}" 0x02 0x80 b

@@ -13,11 +13,15 @@ url = ""
 extra_args = []
 
 [leds]
-# The Raspberry Pi HAT reference routes the ring through PWM GPIO 12. The
-# animation layout follows the production SAT1 ESP32 firmware's 24-pixel GRB
-# ring. These values can be changed without rebuilding the image.
+# The production 24-pixel ring is owned by the SAT1 XMOS controller and is
+# reached over the Pi's SPI link. GPIO output remains available as a manual
+# fallback for experimental HAT revisions.
 enabled = true
+backend = "xmos"
 pixel_count = 24
+spi_bus = 0
+spi_device = 0
+spi_speed_hz = 1000000
 gpio_pin = 12
 frequency_hz = 800000
 dma_channel = 10
@@ -29,6 +33,8 @@ green = 0.733
 blue = 0.949
 peripheral_host = "127.0.0.1"
 peripheral_port = 6055
+# The sink monitor supplies real reply-audio level for the reactive voice ring.
+playback_monitor = "satellite1_output.monitor"
 
 [satellite]
 name = "auto"
@@ -36,10 +42,9 @@ device_id = "auto"
 board = "satellite1_rpi_standalone"
 room = ""
 
-# Replace these after running linux-voice-assistant with --list-input-devices
-# and --list-output-devices on the SAT1 Raspberry Pi image.
-audio_input_device = "default"
-audio_output_device = "default"
+# Stable names created by the appliance's private PulseAudio graph.
+audio_input_device = "satellite1_input"
+audio_output_device = "pulse/satellite1_output"
 # Private PulseAudio socket managed by tater-sat1-audio.service.
 pulse_server = "unix:/run/tater-sat1-audio/pulse/native"
 # The bundled Linux Satellite source includes okay_nabu. Point this at a

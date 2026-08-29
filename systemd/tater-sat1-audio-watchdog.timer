@@ -1,0 +1,11 @@
+[Unit]
+Description=Check the Satellite1 microphone stream
+
+[Timer]
+OnBootSec=90s
+OnUnitActiveSec=30s
+AccuracySec=5s
+Unit=tater-sat1-audio-watchdog.service
+
+[Install]
+WantedBy=timers.target

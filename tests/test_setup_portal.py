@@ -84,6 +84,8 @@ class SetupPortalPersistenceTests(unittest.TestCase):
         self.assertEqual(commands[0], ("nmcli", "connection", "delete", NETWORK_CONNECTION_NAME))
         self.assertIn('Lab "WiFi"', commands[1])
         self.assertIn(r"eight\chars", commands[-1])
+        self.assertIn("802-11-wireless.powersave", commands[2])
+        self.assertEqual(commands[2][commands[2].index("802-11-wireless.powersave") + 1], "2")
         self.assertNotIn("sh", commands[0])
 
     def test_save_writes_wifi_profile_and_private_pairing_state(self) -> None:

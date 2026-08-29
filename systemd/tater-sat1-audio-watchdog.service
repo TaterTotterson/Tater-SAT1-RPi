@@ -1,0 +1,7 @@
+[Unit]
+Description=Recover a stalled Satellite1 microphone stream
+After=tater-sat1-audio.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/tater-sat1-audio-watchdog

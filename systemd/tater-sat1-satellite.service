@@ -10,6 +10,7 @@ User=tater
 Group=tater
 SupplementaryGroups=audio gpio i2c spi
 Environment=PYTHONUNBUFFERED=1
+Environment=PULSE_CLIENTCONFIG=/etc/tater-sat1-standalone/pulse-client.conf
 ExecStart=/opt/tater-sat1/venv/bin/tater-sat1-standalone --config /etc/tater-sat1-standalone/config.toml run satellite
 Restart=always
 RestartSec=2

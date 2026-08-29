@@ -19,7 +19,7 @@ Inspect every planned command first:
 ./script/install --dry-run
 ```
 
-Install the pinned Tater and Linux Satellite revisions:
+Install the newest Tater `main` plus the tested Linux Satellite revision:
 
 ```sh
 sudo ./script/install
@@ -90,10 +90,16 @@ The LED controller follows the production ESP32 SAT1 firmware: slow waiting
 spin, fast listening spin, opposing thinking pulse, reverse replying spin,
 volume arc, timer arc/ring, microphone and speaker mute markers, error pulse,
 and disconnected red twinkle. It receives the same voice events from the
-Linux Satellite peripheral API in either image flavor.
+Linux Satellite peripheral API in either image flavor. When Tater selects the
+directional listening animation, live XMOS direction-of-arrival data points
+the warm-white-tipped beam toward the speaker. The reply animation preserves
+the dominant listening direction and expands with the real PulseAudio speaker
+signal, matching the ESP firmware rather than using an artificial pulse.
 
-The defaults are a 24-pixel GRB WS2812 ring on BCM GPIO 12. If a hardware
-revision routes the ring differently, edit `[leds]` in
+The default `xmos` backend sends 24-pixel GRB frames through the SAT1 SPI
+control service, which owns the production ring. An optional `gpio` backend is
+available for experimental HAT revisions that expose the ring directly on BCM
+GPIO 12. To select a different backend or pin, edit `[leds]` in
 `/etc/tater-sat1-standalone/config.toml`, then restart and inspect the service:
 
 ```sh
@@ -118,5 +124,6 @@ process. Generic OpenAI-compatible STT is planned but is not implemented yet.
 ## Current hardware boundary
 
 This milestone carries microphone capture, local wake detection, playback, the
-native Tater conversation loop, and the 24-pixel LED ring. Physical buttons and
-sensor/DoA telemetry are not yet installed by this repository.
+native Tater conversation loop, the 24-pixel LED ring, XMOS microphone
+direction, and the SAT1 volume and microphone-mute controls. Environmental
+sensor telemetry is not yet installed by this repository.

@@ -27,12 +27,20 @@ COMMON_DIRECTORIES = ("opt/tater-sat1",)
 FLAVOR_DIRECTORIES = {"standalone": ("opt/tater",), "satellite": ()}
 COMMON_FILES = (
     "etc/systemd/system/tater-sat1-audio.service",
+    "etc/systemd/system/tater-sat1-audio-watchdog.service",
+    "etc/systemd/system/tater-sat1-audio-watchdog.timer",
     "etc/systemd/system/tater-sat1-leds.service",
     "etc/systemd/system/tater-sat1-firstboot.service",
     "etc/systemd/system/tater-sat1-provisioning.service",
     "etc/tater-sat1-standalone/version",
+    "etc/tater-sat1-standalone/pulse.pa",
+    "etc/tater-sat1-standalone/pulse-client.conf",
+    "etc/modules-load.d/tater-sat1-i2c.conf",
+    "etc/NetworkManager/conf.d/90-tater-sat1-wifi-powersave.conf",
     "usr/local/sbin/tater-sat1-firstboot",
     "usr/local/sbin/tater-sat1-setup-hotspot",
+    "usr/local/sbin/tater-sat1-wait-audio",
+    "usr/local/sbin/tater-sat1-audio-watchdog",
 )
 FLAVOR_FILES = {
     "standalone": (

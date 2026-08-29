@@ -5,16 +5,17 @@
 - [x] Separate Tater and satellite systemd services
 - [x] Shared private local satellite credential
 - [x] Configuration, execution plans, and host diagnostics
-- [x] Reproducible remote-only dependency manifest and pinned installer
+- [x] Reproducible dependency manifest with latest-at-build Tater policy
 - [x] Tater import and live health test without local-model packages installed
 
 ## Phase 2: Satellite1 hardware
 
-- [ ] Validate capture and playback ALSA device names on a Pi Zero 2 W
-- [ ] Initialize PCM5122/TAS2780 and XMOS through the Satellite1 SDK
+- [x] Validate capture and playback device routing on a Pi Zero 2 W
+- [x] Initialize the TAS2780 amplifier and XMOS services for the Pi runtime
 - [x] Add the 24-pixel LED ring with the ESP32 firmware's animations
-- [ ] Add physical buttons
-- [ ] Bridge volume, microphone mute, sensors, and DoA telemetry
+- [x] Add physical volume buttons and the microphone-mute input
+- [x] Use XMOS DoA data for the listening animation
+- [ ] Bridge environmental sensor telemetry
 - [ ] Verify playback-reference AEC and wake-word operation during playback
 
 ## Phase 3: self-contained image

@@ -19,23 +19,30 @@ configured remote APIs.
 This repository is an early runnable appliance scaffold. It currently provides:
 
 - separate `systemd` services for Tater, SAT1 audio, and the voice runtime
+- microphone level normalization and automatic recovery if the experimental
+  SAT1 I2S capture stream stalls
 - automatic creation of a shared private native-satellite token
 - a loopback-only satellite connection to the local Tater server
 - configuration and deterministic launch plans
 - host diagnostics and unit tests
 - Tater's tested remote-only `edge` dependency and runtime profile
-- a pinned Raspberry Pi installer with a non-mutating dry-run mode
+- an installer that takes the newest Tater `main` at build time while pinning
+  the tested Linux Satellite and hardware revisions
 - a Tater Tube-style `pi-gen` pipeline that exports a flashable `.img.xz`
 - a fleet satellite flavor that contains no Tater application or Redis service
 - unique hostnames and device IDs derived on first boot
 - one-time pairing with durable per-device native-satellite credentials
 - a shared first-boot Wi-Fi hotspot and captive setup portal
 - signed, flavor-specific appliance OTA through Tater with automatic rollback
-- the SAT1 24-pixel GRB ring with the voice, timer, volume, mute, and connection
-  animations used by the ESP32 firmware
+- the SAT1 24-pixel ring, driven through its XMOS controller, with the voice,
+  timer, volume, mute, and connection animations used by the ESP32 firmware
+- XMOS direction-of-arrival input for the warm-tipped listening beam and saved
+  reply direction
+- real speaker-monitor levels for the direction-anchored reactive reply ring
+- SAT1 volume buttons and hardware microphone-mute switch bridged into Tater
 
-The first image still needs validation on physical SAT1 hardware. Physical
-buttons and sensor telemetry are not included yet.
+The image has completed initial boot, audio, wake-word, and LED bring-up on
+physical SAT1 hardware. Environmental sensor telemetry is not included yet.
 
 ## Runtime flows
 
@@ -69,7 +76,8 @@ The plan command always redacts credentials.
 ## Pi installation direction
 
 The primary installation path is now a complete image containing Raspberry Pi
-OS, the pinned FutureProofHomes board packages, and the Tater appliance.
+OS, the pinned FutureProofHomes board packages, and the newest Tater available
+when the image build begins.
 
 Build the standalone image with:
 

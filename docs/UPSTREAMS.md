@@ -1,14 +1,14 @@
 # Upstream references
 
 The project should assemble existing Tater components rather than fork their
-behavior unnecessarily. `upstreams.toml` records the revisions used while
-developing the first image.
+behavior unnecessarily. `upstreams.toml` records the tested revisions and the
+policy used to resolve each build input.
 
 ## Reachy Tater Standalone
 
 This is the primary application-lifecycle reference. Reuse its approach for:
 
-- installing a pinned Tater bundle separately from persistent state
+- installing Tater separately from persistent state
 - creating one stable owner-only native-satellite credential
 - passing that credential to Tater and the local satellite
 - connecting the satellite to `http://127.0.0.1:8501`
@@ -38,9 +38,13 @@ tree support are already there.
 
 ## Tater
 
-The full app remains upstream Tater. The desired edge profile belongs in Tater
-itself if possible, while this repository owns the appliance image, service
-configuration, source pinning, and SAT1-specific integration.
+The full app remains upstream Tater. Standalone builds resolve the newest
+commit on Tater's `main` branch when each build starts, then record the exact
+commit in the release metadata. A narrowly scoped build overlay supplies the
+SAT1 hardware VAD defaults without publishing an unfinished general Tater
+release; it becomes a no-op when upstream Tater gains that behavior. This
+repository owns the appliance image, service configuration, tested Linux
+Satellite pin, and SAT1-specific integration.
 
 ## FutureProofHomes Satellite1-RPi
 

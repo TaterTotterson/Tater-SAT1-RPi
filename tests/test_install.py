@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class InstallerTests(unittest.TestCase):
-    def test_dry_run_uses_pinned_remote_only_profile(self) -> None:
+    def test_dry_run_uses_latest_tater_and_pinned_satellite_profile(self) -> None:
         completed = subprocess.run(
             [str(ROOT / "script" / "install"), "--dry-run", "--skip-apt", "--no-enable"],
             cwd=ROOT,
@@ -19,13 +19,25 @@ class InstallerTests(unittest.TestCase):
         )
         self.assertEqual(completed.returncode, 0, completed.stderr)
         output = completed.stdout
-        self.assertIn("3f8500a2ddc8ffccf2c27f1eb49140d096793c45", output)
-        self.assertIn("5fcba46b1f5262efc3c49c4e43ef093222f42843", output)
+        self.assertIn("git clone --branch main --single-branch https://github.com/TaterTotterson/Tater.git", output)
+        self.assertIn("afcf78c8803414281732d2fe7ad9fe01e097ad0c", output)
         self.assertIn("TATER_SETUP_REQUIRE_LOCAL_LLM=0", output)
         self.assertIn("setup_tater.sh edge", output)
         self.assertIn("pip install --editable /opt/tater-sat1/linux-satellite", output)
         self.assertIn("tater-sat1-provisioning.service", output)
         self.assertIn("tater-sat1-leds.service", output)
+        self.assertIn("config/pulse.pa", output)
+        self.assertIn("config/pulse-client.conf", output)
+        self.assertIn("set-source-volume satellite1_input 131072", (ROOT / "config" / "pulse.pa").read_text())
+        self.assertIn("tater-sat1-i2c.conf", output)
+        self.assertIn("90-tater-sat1-wifi-powersave.conf", output)
+        self.assertIn("tater-sat1-wait-audio", output)
+        self.assertIn("tater-sat1-audio-hardware", output)
+        audio_hardware = (ROOT / "script" / "audio-hardware").read_text()
+        self.assertIn('0x1a 0x00', audio_hardware)
+        self.assertIn('0x02 0x80', audio_hardware)
+        self.assertIn("tater-sat1-audio-watchdog", output)
+        self.assertIn("websockets>=12,<16", output)
         self.assertIn("tater-sat1-setup-hotspot", output)
         self.assertIn("tater-sat1-apply-update", output)
         self.assertIn("tater-sat1-update.path", output)
@@ -53,6 +65,15 @@ class InstallerTests(unittest.TestCase):
         self.assertIn("tater-sat1-satellite.service", output)
         self.assertIn("pip install --editable /opt/tater-sat1/linux-satellite", output)
         self.assertIn("tater-sat1-provisioning.service", output)
+        self.assertIn("config/pulse.pa", output)
+        self.assertIn("config/pulse-client.conf", output)
+        self.assertIn("set-source-volume satellite1_input 131072", (ROOT / "config" / "pulse.pa").read_text())
+        self.assertIn("tater-sat1-i2c.conf", output)
+        self.assertIn("90-tater-sat1-wifi-powersave.conf", output)
+        self.assertIn("tater-sat1-wait-audio", output)
+        self.assertIn("tater-sat1-audio-hardware", output)
+        self.assertIn("tater-sat1-audio-watchdog", output)
+        self.assertNotIn("websockets>=12,<16", output)
         self.assertNotIn("setup_tater.sh edge", output)
         self.assertNotIn("git clone https://github.com/TaterTotterson/Tater.git", output)
 

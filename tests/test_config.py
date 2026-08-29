@@ -15,8 +15,12 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(config.satellite.pulse_server, "unix:/run/tater-sat1-audio/pulse/native")
         self.assertEqual(config.runtime.token_path.name, "native-satellite-token")
         self.assertTrue(config.leds.enabled)
+        self.assertEqual(config.leds.backend, "xmos")
         self.assertEqual(config.leds.pixel_count, 24)
+        self.assertEqual(config.leds.spi_bus, 0)
+        self.assertEqual(config.leds.spi_device, 0)
         self.assertEqual(config.leds.gpio_pin, 12)
+        self.assertEqual(config.leds.playback_monitor, "satellite1_output.monitor")
 
     def test_loads_paths_and_extra_arguments(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -62,6 +66,12 @@ gpio_pin = 18
             StandaloneConfig.from_mapping({"leds": {"pixel_count": 23}})
         with self.assertRaisesRegex(ValueError, "between 0 and 1"):
             StandaloneConfig.from_mapping({"leds": {"brightness": 1.1}})
+
+    def test_xmos_led_backend_requires_the_production_24_pixel_ring(self) -> None:
+        with self.assertRaisesRegex(ValueError, "must be 24"):
+            StandaloneConfig.from_mapping({"leds": {"backend": "xmos", "pixel_count": 12}})
+        config = StandaloneConfig.from_mapping({"leds": {"backend": "gpio", "pixel_count": 12}})
+        self.assertEqual(config.leds.pixel_count, 12)
 
 
 if __name__ == "__main__":

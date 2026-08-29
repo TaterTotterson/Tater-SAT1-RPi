@@ -17,18 +17,31 @@ Both flavors include:
 - FutureProofHomes Satellite1 v0.1.4 custom FUSB302 kernel, overlays, ALSA
   configuration, SDK, and DAC initialization service
 - Tater Linux Satellite with local wake-word detection
-- a private PulseAudio service for capture and playback
-- the 24-pixel SAT1 GRB ring with animations matching the ESP32 firmware
+- a private PulseAudio service for capture and playback, with normalized SAT1
+  microphone gain and automatic stalled-stream recovery
+- the 24-pixel SAT1 ring through the XMOS controller, with animations matching
+  the ESP32 firmware
 - a first-boot and recovery Wi-Fi hotspot with a captive setup portal
+- Wi-Fi power saving disabled for reliable local Tater and satellite connections
 - zram sized to 50 percent of RAM
 - signed SAT1 appliance updates with a post-boot rollback health check
 
 The standalone flavor additionally includes full Tater with its remote-only
 `edge` dependency profile and enables the Tater web interface at boot.
 
-The hardware packages, pi-gen base, Tater source, and Linux Satellite source
-are all pinned. `packaging/image.lock` contains the image and hardware hashes;
-`upstreams.toml` contains the application revisions.
+The hardware packages, pi-gen base, and Linux Satellite source are pinned.
+For the standalone flavor, every build resolves the newest commit on Tater's
+`main` branch and records that exact commit in the release `.info` file. This
+keeps newly built embedded systems current without making an in-progress build
+change underneath itself. `packaging/image.lock` contains the image and
+hardware hashes; `upstreams.toml` contains the source policy and tested
+application revisions.
+
+Before Tater is copied into the image, the SAT1 builder adds its small
+appliance-only voice-settings overlay so the hardware VAD defaults can come
+from the SAT1 service environment. Persisted settings in Tater still take
+priority. The overlay is skipped automatically once upstream Tater contains
+the same behavior.
 
 ## Build locally
 
@@ -52,7 +65,7 @@ the first full build:
 ./script/generate_development_ota_key.sh
 ```
 
-Download and verify the pinned inputs without starting pi-gen:
+Download and verify the build inputs without starting pi-gen:
 
 ```sh
 TATER_SOURCE_DIR=../Tater ./scripts/build-pi-image.sh --prepare-only
@@ -77,6 +90,21 @@ The compressed image is written under:
 .cache/pi-gen-bookworm-arm64/deploy/image_*.img.xz
 .cache/pi-gen-bookworm-arm64/deploy/tater-sat1-*-ota.sat1
 ```
+
+## Tagged GitHub releases
+
+Pushing a tag named `v*` starts the Raspberry Pi image workflow. GitHub builds
+both `standalone` and `satellite`, runs the test suite, and publishes the two
+flashable images, signed OTA bundles, checksums, build metadata, `latest.json`,
+and the Tater firmware manifest in one release.
+
+The repository secret `TATER_SAT1_OTA_PRIVATE_KEY_PEM` must contain the private
+key matching `keys/update-public.pem`. Do not rotate this key after images are
+distributed without a signed transition release.
+
+Tater checks the release's `latest.json`, matches a connected SAT1 Pi by its
+standalone or satellite board identity, and offers the newer signed bundle in
+the Firmware tab. No release is created from an ordinary branch push.
 
 If Wi-Fi is not embedded, use Raspberry Pi Imager's customization screen when
 flashing. Local builds default to the temporary lab login `tater` / `tater`;
@@ -115,8 +143,8 @@ require flashing a new image. See [Signed appliance updates](OTA.md).
 
 ## What still needs hardware validation
 
-The image is designed to boot directly into the voice appliance, but the first
-card is still a bring-up build. Validate the actual ALSA capture/playback names,
-Pi Zero 2 W memory pressure, wake-word behavior during playback, clean
-restarts, and the physical ring's GPIO, color order, orientation, and safe
-brightness. Physical buttons remain a separate adapter milestone.
+Initial physical SAT1 bring-up has confirmed boot, Wi-Fi provisioning, XMOS
+audio, wake-word playback, and the 24-pixel ring. Continue validating Pi Zero 2
+W memory pressure, wake-word behavior during playback, clean restarts, DoA
+orientation, control debounce, and safe speaker/LED levels before treating the
+image as a release build.

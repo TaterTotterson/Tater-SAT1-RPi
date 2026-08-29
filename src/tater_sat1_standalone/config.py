@@ -148,7 +148,11 @@ class SatelliteConfig:
 @dataclass(frozen=True)
 class LedConfig:
     enabled: bool = True
+    backend: str = "xmos"
     pixel_count: int = 24
+    spi_bus: int = 0
+    spi_device: int = 0
+    spi_speed_hz: int = 1_000_000
     gpio_pin: int = 12
     frequency_hz: int = 800_000
     dma_channel: int = 10
@@ -160,6 +164,7 @@ class LedConfig:
     blue: float = 0.949
     peripheral_host: str = "127.0.0.1"
     peripheral_port: int = 6055
+    playback_monitor: str = "satellite1_output.monitor"
 
     @classmethod
     def from_mapping(cls, values: Mapping[str, Any]) -> LedConfig:
@@ -169,17 +174,37 @@ class LedConfig:
             raise ValueError("leds.enabled must be a boolean")
         if not isinstance(invert, bool):
             raise ValueError("leds.invert must be a boolean")
+        backend = str(values.get("backend") or cls.backend).strip().lower()
+        if backend not in {"xmos", "gpio"}:
+            raise ValueError("leds.backend must be 'xmos' or 'gpio'")
         pixel_count = _integer(
             values.get("pixel_count"), cls.pixel_count, label="leds.pixel_count", minimum=2, maximum=1024
         )
         if pixel_count % 2:
             raise ValueError("leds.pixel_count must be even so opposing SAT1 animations remain symmetric")
+        if backend == "xmos" and pixel_count != 24:
+            raise ValueError("leds.pixel_count must be 24 when leds.backend is 'xmos'")
         host = str(values.get("peripheral_host") or cls.peripheral_host).strip()
         if not host or any(character.isspace() for character in host):
             raise ValueError("leds.peripheral_host must be a non-empty host without whitespace")
+        playback_monitor = str(values.get("playback_monitor") or cls.playback_monitor).strip()
+        if not playback_monitor or any(character.isspace() for character in playback_monitor):
+            raise ValueError("leds.playback_monitor must be a non-empty PulseAudio source name")
         return cls(
             enabled=enabled,
+            backend=backend,
             pixel_count=pixel_count,
+            spi_bus=_integer(values.get("spi_bus"), cls.spi_bus, label="leds.spi_bus", minimum=0, maximum=9),
+            spi_device=_integer(
+                values.get("spi_device"), cls.spi_device, label="leds.spi_device", minimum=0, maximum=9
+            ),
+            spi_speed_hz=_integer(
+                values.get("spi_speed_hz"),
+                cls.spi_speed_hz,
+                label="leds.spi_speed_hz",
+                minimum=100_000,
+                maximum=10_000_000,
+            ),
             gpio_pin=_integer(values.get("gpio_pin"), cls.gpio_pin, label="leds.gpio_pin", minimum=0, maximum=53),
             frequency_hz=_integer(
                 values.get("frequency_hz"),
@@ -199,6 +224,7 @@ class LedConfig:
             blue=_ratio(values.get("blue"), cls.blue, label="leds.blue"),
             peripheral_host=host,
             peripheral_port=_port(values.get("peripheral_port"), cls.peripheral_port),
+            playback_monitor=playback_monitor,
         )
 
 

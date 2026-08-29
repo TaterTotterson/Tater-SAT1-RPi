@@ -10,9 +10,13 @@ Group=tater
 SupplementaryGroups=audio
 Environment=HOME=/var/lib/tater-sat1-standalone
 Environment=XDG_RUNTIME_DIR=/run/tater-sat1-audio
+Environment=PULSE_SERVER=unix:/run/tater-sat1-audio/pulse/native
+Environment=PULSE_CLIENTCONFIG=/etc/tater-sat1-standalone/pulse-client.conf
 RuntimeDirectory=tater-sat1-audio
 RuntimeDirectoryMode=0700
-ExecStart=/usr/bin/pulseaudio --daemonize=no --exit-idle-time=-1 --log-target=journal
+ExecStartPre=/usr/local/sbin/tater-sat1-audio-hardware
+ExecStart=/usr/bin/pulseaudio --daemonize=no --exit-idle-time=-1 --log-target=journal -n --file=/etc/tater-sat1-standalone/pulse.pa
+ExecStartPost=/usr/local/sbin/tater-sat1-wait-audio
 Restart=on-failure
 RestartSec=2
 TimeoutStopSec=10

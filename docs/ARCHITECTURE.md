@@ -7,7 +7,7 @@ reusing the same SAT1 hardware, audio, and voice layers.
 ```text
 Satellite1 HAT
   XMOS / I2S / DAC --------------------+
-  24-pixel GRB ring on GPIO 12         |
+  24-pixel ring behind XMOS/SPI        |
                 |                      |
                 v                      v
   tater-sat1-leds.service     tater-sat1-voice.service
@@ -42,9 +42,11 @@ contains a short pairing code and Linux Satellite replaces it with Tater's
 durable per-device credential after the first successful connection.
 
 The image also runs `tater-sat1-audio.service`, a private PulseAudio server for
-the satellite process. `tater-sat1-firstboot.service` derives a hostname and
-device ID from the Pi serial so cloned SD cards never share an identity. It
-also creates the local token when the image flavor is standalone.
+the satellite process. A lightweight timer detects the experimental I2S
+driver's stalled-latency condition and restarts only the audio and active voice
+path. `tater-sat1-firstboot.service` derives a hostname and device ID from the
+Pi serial so cloned SD cards never share an identity. It also creates the local
+token when the image flavor is standalone.
 
 `tater-sat1-provisioning.service` checks NetworkManager at boot. With working
 Wi-Fi it exits without changing the network. Otherwise it temporarily places
@@ -70,8 +72,8 @@ board.
 ## Process ownership
 
 `systemd` owns the Tater, audio, LED, and satellite processes. The LED service
-runs as root because the Raspberry Pi WS281x PWM/DMA driver requires direct
-hardware access. The standalone voice service requires local Tater and audio.
+runs as root because its production XMOS backend needs direct access to the
+Pi SPI device. The standalone voice service requires local Tater and audio.
 The fleet voice service requires audio and network availability, then
 reconnects to the main Tater automatically.
 
@@ -80,7 +82,11 @@ reconnects to the main Tater automatically.
 The FutureProofHomes Satellite1 Python SDK supplies XMOS, DAC, and USB-C PD
 control. `tater-sat1-leds.service` listens to Tater Linux Satellite's local
 peripheral WebSocket API and reproduces the 24-pixel effects and state priority
-from `Satellite1-ESPHome/sat1/led_ring.yaml`. The ring defaults to BCM GPIO 12,
-800 kHz, GRB ordering, DMA channel 10, and PWM channel 0; all except ordering
-are configurable. Physical buttons, mute input, and sensors remain separate
-adapter work.
+from `Satellite1-ESPHome/sat1/led_ring.yaml`. The production backend sends GRB
+frames to the XMOS LED service over SPI 0.0. A configurable Raspberry Pi
+PWM/GPIO backend remains available for experimental revisions. The same XMOS
+link supplies microphone direction for the listening animation and the SAT1
+volume/microphone-mute inputs. A low-overhead reader on the private PulseAudio
+sink monitor supplies reply amplitude, allowing the ring to react to actual
+playback while remaining centered on the saved microphone direction.
+Environmental sensors remain separate adapter work.

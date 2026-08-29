@@ -96,16 +96,18 @@ manifest_value() {
 }
 
 TATER_URL="$(manifest_value tater url)"
-TATER_REVISION="$(manifest_value tater reference_revision)"
+TATER_REFERENCE="$(manifest_value tater reference)"
+TATER_UPDATE_POLICY="$(manifest_value tater update_policy)"
 SATELLITE_URL="$(manifest_value linux_satellite url)"
 SATELLITE_REVISION="$(manifest_value linux_satellite reference_revision)"
 TATER_SOURCE_DIR="${TATER_SOURCE_DIR:-}"
 SATELLITE_SOURCE_DIR="${SATELLITE_SOURCE_DIR:-}"
+TATER_REVISION="${TATER_REVISION_OVERRIDE:-}"
 
 print_plan() {
     if [ "${PI_IMAGE_FLAVOR}" = "standalone" ]; then
         identity_plan="unique_local_token"
-        tater_plan="${TATER_REVISION}"
+        tater_plan="${TATER_REVISION:-latest:${TATER_REFERENCE}}"
     else
         identity_plan="unique_device_pairing"
         tater_plan="not_bundled"
@@ -118,6 +120,7 @@ pi_gen_ref=${PI_GEN_REF}
 pi_gen_revision=${PI_GEN_REVISION}
 sat1_release=${SAT1_RELEASE_TAG}
 tater_revision=${tater_plan}
+tater_update_policy=${TATER_UPDATE_POLICY}
 linux_satellite_revision=${SATELLITE_REVISION}
 compression=xz
 release_version=${PI_RELEASE_VERSION}
@@ -136,6 +139,28 @@ fi
 require_cmd git
 require_cmd curl
 require_cmd "${PYTHON_BIN}"
+
+resolve_remote_revision() {
+    local label="$1"
+    local url="$2"
+    local reference="$3"
+    local revision=""
+
+    git check-ref-format --branch "${reference}" >/dev/null 2>&1 || {
+        printf '%s branch name is invalid: %s\n' "${label}" "${reference}" >&2
+        exit 1
+    }
+    revision="$(git ls-remote --exit-code "${url}" "refs/heads/${reference}" | awk 'NR == 1 {print $1}')"
+    [[ "${revision}" =~ ^[0-9a-f]{40}$ ]] || {
+        printf 'Could not resolve %s branch %s from %s\n' "${label}" "${reference}" "${url}" >&2
+        exit 1
+    }
+    printf '%s\n' "${revision}"
+}
+
+if [ "${PI_IMAGE_FLAVOR}" = "standalone" ] && [ -z "${TATER_REVISION}" ]; then
+    TATER_REVISION="$(resolve_remote_revision Tater "${TATER_URL}" "${TATER_REFERENCE}")"
+fi
 
 case "${REPO_ROOT}:${PI_GEN_DIR}" in
     *" "*)
@@ -236,6 +261,12 @@ fetch_asset "${SAT1_SDK_FILE}" "${SAT1_SDK_SHA256}"
 
 if [ "${PI_IMAGE_FLAVOR}" = "standalone" ]; then
     TATER_SOURCE_DIR="$(resolve_source Tater "${TATER_SOURCE_DIR}" "${REPO_ROOT}/../Tater" "${TATER_URL}" "${TATER_REVISION}" "${REPO_ROOT}/.cache/upstreams/Tater")"
+    TATER_PREPARED_DIR="${REPO_ROOT}/.cache/prepared/Tater-${TATER_REVISION}"
+    "${PYTHON_BIN}" "${REPO_ROOT}/script/prepare_tater_source.py" \
+        --source "${TATER_SOURCE_DIR}" \
+        --destination "${TATER_PREPARED_DIR}" \
+        --revision "${TATER_REVISION}" >&2
+    TATER_SOURCE_DIR="${TATER_PREPARED_DIR}"
 fi
 SATELLITE_SOURCE_DIR="$(resolve_source "Linux Satellite" "${SATELLITE_SOURCE_DIR}" "${REPO_ROOT}/../Tater-Linux-Satellite" "${SATELLITE_URL}" "${SATELLITE_REVISION}" "${REPO_ROOT}/.cache/upstreams/Tater-Linux-Satellite")"
 
@@ -402,5 +433,16 @@ done
     printf 'pi-gen completed without producing a signed OTA bundle in %s\n' "${DEPLOY_DIR}" >&2
     exit 1
 }
+
+cat > "${DEPLOY_DIR}/tater-sat1-${PI_IMAGE_FLAVOR}-${PI_RELEASE_VERSION}.info" <<EOF
+release_version=${PI_RELEASE_VERSION}
+firmware_version=${TATER_SAT1_FIRMWARE_VERSION}
+image_flavor=${PI_IMAGE_FLAVOR}
+tater_reference=${TATER_REFERENCE}
+tater_revision=${TATER_REVISION:-not_bundled}
+tater_update_policy=${TATER_UPDATE_POLICY}
+linux_satellite_revision=${SATELLITE_REVISION}
+sat1_image_revision=$(git -C "${REPO_ROOT}" rev-parse HEAD)
+EOF
 
 printf '\nImage build complete: %s/deploy\n' "${PI_GEN_DIR}"

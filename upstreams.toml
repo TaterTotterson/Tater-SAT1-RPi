@@ -1,6 +1,7 @@
 [tater]
 url = "https://github.com/TaterTotterson/Tater.git"
-reference_revision = "3f8500a2ddc8ffccf2c27f1eb49140d096793c45"
+reference = "main"
+update_policy = "latest_at_build"
 role = "Full Tater server, TaterOS, Hydra, Verbas, integrations, and native satellite API"
 
 [reachy_standalone]
@@ -10,8 +11,8 @@ role = "Primary reference for bundling full Tater with a loopback native satelli
 
 [linux_satellite]
 url = "https://github.com/TaterTotterson/Tater-Linux-Satellite.git"
-reference_revision = "5fcba46b1f5262efc3c49c4e43ef093222f42843"
-role = "Linux audio, local wake words, playback, and native satellite transport"
+reference_revision = "afcf78c8803414281732d2fe7ad9fe01e097ad0c"
+role = "Linux audio, local wake words, live Voice settings and sounds, playback, and native satellite transport"
 
 [thirdreality_firmware]
 url = "https://github.com/TaterTotterson/Tater-ThirdReality-Voice-Firmware.git"

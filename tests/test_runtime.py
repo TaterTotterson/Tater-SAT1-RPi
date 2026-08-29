@@ -25,7 +25,7 @@ class RuntimeTests(unittest.TestCase):
             config = StandaloneConfig.from_mapping(
                 {
                     "runtime": {"state_dir": temp_dir},
-                    "satellite": {"room": "Kitchen"},
+                    "satellite": {"room": "Kitchen", "audio_output_device": "satellite1_output"},
                 }
             )
             token = prepare_runtime(config.runtime)
@@ -37,6 +37,13 @@ class RuntimeTests(unittest.TestCase):
             self.assertEqual(tater.environment["TATER_REMOTE_ONLY"], "1")
             self.assertEqual(tater.environment["TATER_SETUP_REQUIRE_LOCAL_LLM"], "0")
             self.assertEqual(tater.environment["MALLOC_ARENA_MAX"], "2")
+            self.assertEqual(tater.environment["VOICE_WEBRTC_VAD_AGGRESSIVENESS"], "3")
+            self.assertEqual(tater.environment["VOICE_VAD_SILENCE_SECONDS"], "0.62")
+            self.assertEqual(tater.environment["VOICE_CONTINUED_CHAT_REOPEN_TIMEOUT_SECONDS"], "8.0")
+            self.assertEqual(
+                tater.environment["VOICE_CONTINUED_CHAT_REOPEN_NO_SPEECH_TIMEOUT_S"],
+                "3.0",
+            )
             worker_limits = {
                 name: value
                 for name, value in tater.environment.items()
@@ -45,6 +52,7 @@ class RuntimeTests(unittest.TestCase):
             self.assertEqual(set(worker_limits.values()), {"1"})
             self.assertEqual(len(worker_limits), 6)
             self.assertIn("http://127.0.0.1:8501", satellite.command)
+            self.assertIn("pulse/satellite1_output", satellite.command)
             token_index = satellite.command.index("--tater-token-file") + 1
             self.assertEqual(satellite.command[token_index], str(config.runtime.token_path))
             self.assertIn("Kitchen", satellite.command)

@@ -41,6 +41,18 @@ def build_tater_plan(config: StandaloneConfig, token: str) -> RuntimePlan:
         "TATER_SETUP_PROFILE": "edge",
         "TATER_SETUP_REQUIRE_LOCAL_LLM": "0",
         "TATER_SPEECH_ACCELERATION": "cpu",
+        # The SAT1 XMOS capture stream has a steady appliance noise floor.
+        # Aggressive WebRTC VAD plus a short, natural endpoint prevents that
+        # floor from holding every wake turn open until the hard timeout.
+        "VOICE_WEBRTC_VAD_AGGRESSIVENESS": "3",
+        "VOICE_VAD_SILENCE_SECONDS": "0.62",
+        "VOICE_VAD_MIN_SILENCE_SHORT_S": "0.40",
+        "VOICE_VAD_MIN_SILENCE_LONG_S": "0.52",
+        "VOICE_CONTINUED_CHAT_REOPEN_SILENCE_SECONDS": "0.70",
+        "VOICE_CONTINUED_CHAT_REOPEN_TIMEOUT_SECONDS": "8.0",
+        "VOICE_CONTINUED_CHAT_REOPEN_NO_SPEECH_TIMEOUT_S": "3.0",
+        "VOICE_CONTINUED_CHAT_REOPEN_MIN_SILENCE_SHORT_S": "0.45",
+        "VOICE_CONTINUED_CHAT_REOPEN_MIN_SILENCE_LONG_S": "0.60",
     }
     command = (
         str(runtime.tater_python),
@@ -60,6 +72,15 @@ def build_tater_plan(config: StandaloneConfig, token: str) -> RuntimePlan:
 def build_satellite_plan(config: StandaloneConfig) -> RuntimePlan:
     runtime = config.runtime
     satellite = config.satellite
+    audio_output_device = satellite.audio_output_device
+    if (
+        satellite.pulse_server
+        and audio_output_device not in {"auto", "default"}
+        and "/" not in audio_output_device
+    ):
+        # MPV addresses named PulseAudio sinks as ``pulse/<sink>``. Keep the
+        # friendlier bare sink name valid in existing SAT1 configuration.
+        audio_output_device = f"pulse/{audio_output_device}"
     command = [
         str(runtime.satellite_executable),
         "--name",
@@ -67,7 +88,7 @@ def build_satellite_plan(config: StandaloneConfig) -> RuntimePlan:
         "--audio-input-device",
         satellite.audio_input_device,
         "--audio-output-device",
-        satellite.audio_output_device,
+        audio_output_device,
         "--wake-model",
         satellite.wake_model,
         "--preferences-file",

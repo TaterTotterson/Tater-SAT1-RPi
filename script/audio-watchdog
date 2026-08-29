@@ -1,0 +1,31 @@
+#!/bin/sh
+set -eu
+
+export PULSE_SERVER="${PULSE_SERVER:-unix:/run/tater-sat1-audio/pulse/native}"
+export PULSE_CLIENTCONFIG="${PULSE_CLIENTCONFIG:-/etc/tater-sat1-standalone/pulse-client.conf}"
+
+AUDIO_UNIT="tater-sat1-audio.service"
+MAX_LATENCY_USEC=5000000
+
+systemctl is-active --quiet "${AUDIO_UNIT}" || exit 0
+
+source_outputs="$(pactl list source-outputs 2>/dev/null || true)"
+latency_usec="$(printf '%s\n' "${source_outputs}" | awk '/^[[:space:]]*Source Latency:/ { print $3; exit }')"
+
+# No recorder is connected yet, so there is no live stream to assess.
+[ -n "${latency_usec}" ] || exit 0
+case "${latency_usec}" in
+  *[!0-9]*) exit 0 ;;
+esac
+[ "${latency_usec}" -gt "${MAX_LATENCY_USEC}" ] || exit 0
+
+voice_active=0
+satellite_active=0
+systemctl is-active --quiet tater-sat1-voice.service && voice_active=1
+systemctl is-active --quiet tater-sat1-satellite.service && satellite_active=1
+
+logger -t tater-sat1-audio-watchdog \
+  "SAT1 microphone latency reached ${latency_usec} usec; restarting the audio path"
+systemctl restart "${AUDIO_UNIT}"
+[ "${voice_active}" -eq 0 ] || systemctl restart tater-sat1-voice.service
+[ "${satellite_active}" -eq 0 ] || systemctl restart tater-sat1-satellite.service
