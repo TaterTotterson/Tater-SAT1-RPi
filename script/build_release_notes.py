@@ -11,6 +11,13 @@ import subprocess
 RELEASE_REPO = "TaterTotterson/Tater-SAT1-RPi"
 _TAG = re.compile(r"^v[0-9][A-Za-z0-9._+-]{0,126}$")
 RELEASE_HIGHLIGHTS = {
+    "v0.1.5": (
+        "Both image flavors now let you choose the satellite name and room directly from the Wi-Fi setup page.",
+        "Save and connect now closes setup mode and hands Wi-Fi back to the normal network service without a full "
+        "device reboot, fixing the frozen setup LEDs and stalled first connection.",
+        "The active voice service restarts automatically so the new identity and connection settings take effect "
+        "while Tater and the LED service keep running.",
+    ),
     "v0.1.4": (
         "Tater Embedded now checks once daily for a newer official stable Tater release; ordinary commits, "
         "drafts, and prereleases are ignored.",

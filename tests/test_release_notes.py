@@ -50,6 +50,14 @@ class ReleaseNotesTests(unittest.TestCase):
         self.assertIn("automatically rolled back", notes)
         self.assertIn("Signed SAT1 firmware remains authoritative", notes)
 
+    def test_v015_highlights_setup_handoff_and_satellite_identity(self) -> None:
+        notes = release_notes.render_release_notes("owner/repo", "v0.1.5", "v0.1.4", [])
+
+        self.assertIn("satellite name and room", notes)
+        self.assertIn("without a full device reboot", notes)
+        self.assertIn("frozen setup LEDs", notes)
+        self.assertIn("voice service restarts automatically", notes)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -43,6 +43,17 @@ def provision_pairing(config: StandaloneConfig, pairing_code: str, server_url: s
     return url
 
 
+def provision_satellite_identity(config: StandaloneConfig, name: str, room: str) -> None:
+    resolved_name = name.strip()
+    resolved_room = room.strip()
+    if not resolved_name:
+        raise ValueError("satellite name must not be empty")
+    config.runtime.state_dir.mkdir(parents=True, exist_ok=True)
+    os.chmod(config.runtime.state_dir, 0o700)
+    _write_private(config.runtime.satellite_name_path, resolved_name, config.runtime.state_dir)
+    _write_private(config.runtime.satellite_room_path, resolved_room, config.runtime.state_dir)
+
+
 def _write_private(path: Path, value: str, owner_path: Path) -> None:
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text(value + "\n", encoding="utf-8")

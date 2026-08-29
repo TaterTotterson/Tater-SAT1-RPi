@@ -81,6 +81,14 @@ class RuntimeConfig:
         return self.state_dir / "tater-server-url"
 
     @property
+    def satellite_name_path(self) -> Path:
+        return self.state_dir / "satellite-name"
+
+    @property
+    def satellite_room_path(self) -> Path:
+        return self.state_dir / "satellite-room"
+
+    @property
     def first_boot_marker_path(self) -> Path:
         return self.state_dir / "first-boot-complete"
 

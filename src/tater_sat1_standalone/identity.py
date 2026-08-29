@@ -34,11 +34,28 @@ def device_id(config: StandaloneConfig) -> str:
 
 
 def display_name(config: StandaloneConfig) -> str:
+    override = _read_override(config.runtime.satellite_name_path)
+    if override:
+        return override
     configured = config.satellite.name.strip()
     if configured and configured.lower() != "auto":
         return configured
     suffix = device_id(config).rsplit("-", 1)[-1].upper()
     return f"Tater SAT1 {suffix}"
+
+
+def room_name(config: StandaloneConfig) -> str:
+    try:
+        return config.runtime.satellite_room_path.read_text(encoding="utf-8").strip()
+    except FileNotFoundError:
+        return config.satellite.room.strip()
+
+
+def _read_override(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8").strip()
+    except FileNotFoundError:
+        return ""
 
 
 def hostname(config: StandaloneConfig) -> str:

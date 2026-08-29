@@ -52,8 +52,11 @@ token when the image flavor is standalone.
 Wi-Fi it exits without changing the network. Otherwise it temporarily places
 `wlan0` in access-point mode, runs hostapd and an isolated dnsmasq instance,
 and serves the local setup page at `192.168.4.1`. Saving creates a private,
-autoconnecting NetworkManager profile and reboots. The satellite flavor also
-stores its one-time Tater pairing code before rebooting.
+autoconnecting NetworkManager profile, closes the hotspot, and hands `wlan0`
+back to NetworkManager without rebooting. The satellite flavor also stores its
+one-time Tater pairing code before making that handoff. Both flavors persist
+the user-selected satellite name and room outside the replaceable application
+roots, then restart only their voice service so the new identity takes effect.
 
 `tater-sat1-update.path` watches the persistent state directory for bundles
 downloaded through the authenticated native-satellite connection. The updater

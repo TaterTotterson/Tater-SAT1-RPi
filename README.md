@@ -49,7 +49,8 @@ This repository is an early runnable appliance scaffold. It currently provides:
 - a fleet satellite flavor that contains no Tater application or Redis service
 - unique hostnames and device IDs derived on first boot
 - one-time pairing with durable per-device native-satellite credentials
-- a shared first-boot Wi-Fi hotspot and captive setup portal
+- a shared first-boot Wi-Fi hotspot and captive setup portal for network,
+  satellite name, room, and satellite-only pairing
 - Tater's optional second-STT wake verification, including Observe, Enabled,
   and fail-open behavior matching the ESP firmware
 - signed, flavor-specific appliance OTA through Tater with automatic rollback

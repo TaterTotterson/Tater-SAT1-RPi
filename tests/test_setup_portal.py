@@ -5,6 +5,10 @@ from unittest import mock
 from tater_sat1_standalone.config import StandaloneConfig
 from tater_sat1_standalone.setup_portal import (
     NETWORK_CONNECTION_NAME,
+    PROVISIONING_SERVICE,
+    SATELLITE_VOICE_SERVICE,
+    STANDALONE_VOICE_SERVICE,
+    _finish_setup,
     build_page,
     networkmanager_commands,
     save_configuration,
@@ -27,6 +31,8 @@ class SetupPortalValidationTests(unittest.TestCase):
             {"ssid": "Tater Lab", "wifi_password": "potato-pass"},
         )
         self.assertEqual(values["ssid"], "Tater Lab")
+        self.assertTrue(values["satellite_name"].startswith("Tater SAT1 "))
+        self.assertEqual(values["satellite_room"], "")
         self.assertEqual(values["tater_server"], "")
         self.assertEqual(values["pairing_code"], "")
 
@@ -38,11 +44,15 @@ class SetupPortalValidationTests(unittest.TestCase):
                 {
                     "ssid": "Tater Lab",
                     "wifi_password": "potato-pass",
+                    "satellite_name": "Kitchen Tater",
+                    "satellite_room": "Kitchen",
                     "tater_server": "http://main-tater.local:8501/",
                     "pairing_code": "123456",
                 },
             )
             self.assertEqual(values["tater_server"], "http://main-tater.local:8501")
+            self.assertEqual(values["satellite_name"], "Kitchen Tater")
+            self.assertEqual(values["satellite_room"], "Kitchen")
             for fields in (
                 {"ssid": "Tater Lab", "wifi_password": "potato-pass"},
                 {
@@ -66,9 +76,29 @@ class SetupPortalValidationTests(unittest.TestCase):
             with self.subTest(fields=fields), self.assertRaises(ValueError):
                 validate_fields(config, fields)
 
+    def test_rejects_invalid_satellite_name_or_room(self) -> None:
+        config = self.standalone_config()
+        for fields in (
+            {"ssid": "Lab", "wifi_password": "potato-pass", "satellite_name": ""},
+            {"ssid": "Lab", "wifi_password": "potato-pass", "satellite_name": "x" * 65},
+            {"ssid": "Lab", "wifi_password": "potato-pass", "satellite_name": "Bad\nName"},
+            {
+                "ssid": "Lab",
+                "wifi_password": "potato-pass",
+                "satellite_name": "Good Name",
+                "satellite_room": "x" * 65,
+            },
+        ):
+            with self.subTest(fields=fields), self.assertRaises(ValueError):
+                validate_fields(config, fields)
+
     def test_page_changes_fields_by_flavor(self) -> None:
         standalone_page = build_page(self.standalone_config())
         self.assertIn('name="ssid"', standalone_page)
+        self.assertIn('name="satellite_name"', standalone_page)
+        self.assertIn('name="satellite_room"', standalone_page)
+        self.assertIn("Save and connect", standalone_page)
+        self.assertNotIn("restarting", standalone_page.lower())
         self.assertNotIn('name="pairing_code"', standalone_page)
         with tempfile.TemporaryDirectory() as temp_dir:
             satellite_page = build_page(self.satellite_config(temp_dir))
@@ -101,6 +131,8 @@ class SetupPortalPersistenceTests(unittest.TestCase):
                     {
                         "ssid": "My Network",
                         "wifi_password": "potato-pass",
+                        "satellite_name": "Breakfast Spud",
+                        "satellite_room": "Kitchen",
                         "tater_server": "https://tater.example.test",
                         "pairing_code": "pair-me",
                     },
@@ -111,8 +143,42 @@ class SetupPortalPersistenceTests(unittest.TestCase):
             self.assertIn("My Network", commands[1])
             self.assertIn("potato-pass", commands[-1])
             self.assertEqual(config.runtime.token_path.read_text(encoding="utf-8").strip(), "pair-me")
-            self.assertEqual(config.runtime.server_url_path.read_text(encoding="utf-8").strip(), "https://tater.example.test")
+            self.assertEqual(
+                config.runtime.server_url_path.read_text(encoding="utf-8").strip(),
+                "https://tater.example.test",
+            )
+            self.assertEqual(config.runtime.satellite_name_path.read_text(encoding="utf-8").strip(), "Breakfast Spud")
+            self.assertEqual(config.runtime.satellite_room_path.read_text(encoding="utf-8").strip(), "Kitchen")
             self.assertEqual(config.runtime.token_path.stat().st_mode & 0o777, 0o600)
+
+    def test_setup_handoff_restarts_satellite_voice_without_blocking(self) -> None:
+        with (
+            mock.patch("tater_sat1_standalone.setup_portal.time.sleep"),
+            mock.patch("tater_sat1_standalone.setup_portal.subprocess.run") as runner,
+        ):
+            _finish_setup("satellite")
+
+        runner.assert_called_once_with(
+            [
+                "/usr/bin/systemctl",
+                "--no-block",
+                "restart",
+                PROVISIONING_SERVICE,
+                SATELLITE_VOICE_SERVICE,
+            ],
+            check=False,
+        )
+
+    def test_setup_handoff_restarts_embedded_voice_without_restarting_tater(self) -> None:
+        with (
+            mock.patch("tater_sat1_standalone.setup_portal.time.sleep"),
+            mock.patch("tater_sat1_standalone.setup_portal.subprocess.run") as runner,
+        ):
+            _finish_setup("standalone")
+
+        command = runner.call_args.args[0]
+        self.assertIn(STANDALONE_VOICE_SERVICE, command)
+        self.assertNotIn("tater-sat1-tater.service", command)
 
 
 if __name__ == "__main__":

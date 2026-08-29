@@ -13,12 +13,15 @@ from typing import Callable, Mapping, Sequence
 from urllib.parse import parse_qs
 
 from .config import DEFAULT_CONFIG_PATH, StandaloneConfig, load_config
-from .identity import display_name, hostname
-from .provisioning import provision_pairing, validate_server_url
+from .identity import display_name, hostname, room_name
+from .provisioning import provision_pairing, provision_satellite_identity, validate_server_url
 
 
 MAX_REQUEST_BYTES = 8192
 NETWORK_CONNECTION_NAME = "tater-sat1-wifi"
+PROVISIONING_SERVICE = "tater-sat1-provisioning.service"
+STANDALONE_VOICE_SERVICE = "tater-sat1-voice.service"
+SATELLITE_VOICE_SERVICE = "tater-sat1-satellite.service"
 CAPTIVE_PATHS = {
     "/",
     "/canonical.html",
@@ -43,12 +46,16 @@ def validate_fields(config: StandaloneConfig, fields: Mapping[str, str]) -> dict
     values = {
         "ssid": fields.get("ssid", "").strip(),
         "wifi_password": fields.get("wifi_password", ""),
+        "satellite_name": fields.get("satellite_name", display_name(config)).strip(),
+        "satellite_room": fields.get("satellite_room", room_name(config)).strip(),
         "tater_server": fields.get("tater_server", "").strip(),
         "pairing_code": fields.get("pairing_code", "").strip(),
     }
     for key, label in (
         ("ssid", "Wi-Fi network name"),
         ("wifi_password", "Wi-Fi password"),
+        ("satellite_name", "Satellite name"),
+        ("satellite_room", "Room"),
         ("tater_server", "Tater server"),
         ("pairing_code", "Pairing code"),
     ):
@@ -61,6 +68,12 @@ def validate_fields(config: StandaloneConfig, fields: Mapping[str, str]) -> dict
     password_length = len(values["wifi_password"].encode("utf-8"))
     if password_length and not 8 <= password_length <= 63:
         raise ValueError("Wi-Fi password must be blank or 8 to 63 bytes")
+
+    name_length = len(values["satellite_name"].encode("utf-8"))
+    if not 1 <= name_length <= 64:
+        raise ValueError("Satellite name must be 1 to 64 bytes")
+    if len(values["satellite_room"].encode("utf-8")) > 64:
+        raise ValueError("Room must be at most 64 bytes")
 
     if config.runtime.flavor == "satellite":
         values["tater_server"] = validate_server_url(values["tater_server"])
@@ -134,6 +147,7 @@ def save_configuration(
     runner(commands[0], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     for command in commands[1:]:
         runner(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    provision_satellite_identity(config, values["satellite_name"], values["satellite_room"])
     if config.runtime.flavor == "satellite":
         provision_pairing(config, values["pairing_code"], values["tater_server"])
     os.sync()
@@ -141,7 +155,8 @@ def save_configuration(
 
 
 def build_page(config: StandaloneConfig) -> str:
-    name = html.escape(display_name(config))
+    current_name = html.escape(display_name(config), quote=True)
+    current_room = html.escape(room_name(config), quote=True)
     resolved_hostname = html.escape(hostname(config))
     if config.runtime.flavor == "satellite":
         tater_fields = """
@@ -154,10 +169,10 @@ def build_page(config: StandaloneConfig) -> str:
       <input name="pairing_code" type="password" maxlength="512" required>
       <small>Create this in Tater under Satellites &rarr; Add Satellite.</small>
     </label>"""
-        next_step = "After restarting, this SAT1 will join Wi-Fi and connect to your main Tater."
+        next_step = "After setup closes, this SAT1 will join Wi-Fi and connect to your main Tater."
     else:
         tater_fields = ""
-        next_step = f"After restarting, open http://{resolved_hostname}.local:8501 to finish Tater setup."
+        next_step = f"After it connects, open http://{resolved_hostname}.local:8501 to finish Tater setup."
 
     return f"""<!doctype html>
 <html lang="en">
@@ -184,12 +199,22 @@ def build_page(config: StandaloneConfig) -> str:
   </style>
 </head>
 <body><main>
-  <small>TATER NATIVE</small><h1>{name}</h1>
+  <small>TATER NATIVE</small><h1>{current_name}</h1>
   <p>Connect this SAT1 to Wi-Fi. Everything entered here stays on this device;
      the setup hotspot has no internet route.</p>
   <p class="notice">The open setup network is available only while this SAT1
      is waiting for a working Wi-Fi connection.</p>
   <form method="post" action="/save" autocomplete="off">
+    <label>Satellite name
+      <input name="satellite_name" maxlength="64" required
+        value="{current_name}" autocapitalize="words" spellcheck="false">
+      <small>The name shown for this SAT1 inside Tater.</small>
+    </label>
+    <label>Room
+      <input name="satellite_room" maxlength="64" value="{current_room}"
+        placeholder="Kitchen" autocapitalize="words" spellcheck="false">
+      <small>Optional room or area used to organize satellites in Tater.</small>
+    </label>
     <label>Wi-Fi network name
       <input name="ssid" maxlength="32" required autocapitalize="none" spellcheck="false">
     </label>
@@ -197,16 +222,29 @@ def build_page(config: StandaloneConfig) -> str:
       <input name="wifi_password" type="password" maxlength="63">
       <small>Leave blank only for an open Wi-Fi network.</small>
     </label>{tater_fields}
-    <button type="submit">Save and restart</button>
+    <button type="submit">Save and connect</button>
   </form>
   <p><small>{html.escape(next_step)}</small></p>
 </main></body></html>"""
 
 
-def _reboot() -> None:
+def _finish_setup(flavor: str) -> None:
     time.sleep(2)
-    subprocess.run(["/bin/sync"], check=False)
-    subprocess.run(["/usr/bin/systemctl", "reboot"], check=False)
+    # Restart only the provisioning service. Its ExecStop closes the hotspot
+    # and returns wlan0 to NetworkManager; the restarted service then waits for
+    # the saved autoconnect profile. --no-block is essential because this code
+    # runs inside the service being restarted.
+    voice_service = SATELLITE_VOICE_SERVICE if flavor == "satellite" else STANDALONE_VOICE_SERVICE
+    subprocess.run(
+        [
+            "/usr/bin/systemctl",
+            "--no-block",
+            "restart",
+            PROVISIONING_SERVICE,
+            voice_service,
+        ],
+        check=False,
+    )
 
 
 class ProvisioningHandler(BaseHTTPRequestHandler):
@@ -267,9 +305,9 @@ class ProvisioningHandler(BaseHTTPRequestHandler):
             return
         self._send_html(
             HTTPStatus.OK,
-            "<h1>Setup saved</h1><p>This SAT1 is restarting and will join your Wi-Fi network.</p>",
+            "<h1>Setup saved</h1><p>This SAT1 is closing setup mode and joining your Wi-Fi network.</p>",
         )
-        threading.Thread(target=_reboot, daemon=True).start()
+        threading.Thread(target=_finish_setup, args=(self.config.runtime.flavor,), daemon=True).start()
 
     def log_message(self, message: str, *args: object) -> None:
         print(f"tater-sat1-provisioning: {self.address_string()} - {message % args}")

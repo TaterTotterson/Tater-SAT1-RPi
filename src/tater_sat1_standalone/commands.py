@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Mapping
 
 from .config import StandaloneConfig
-from .identity import device_id, display_name
+from .identity import device_id, display_name, room_name
 from .provisioning import effective_server_url
 
 
@@ -105,8 +105,9 @@ def build_satellite_plan(config: StandaloneConfig) -> RuntimePlan:
         "--tater-board",
         satellite.board,
     ]
-    if satellite.room:
-        command.extend(("--tater-room", satellite.room))
+    room = room_name(config)
+    if room:
+        command.extend(("--tater-room", room))
     command.extend(satellite.extra_args)
     environment = {}
     if satellite.pulse_server:

@@ -7,7 +7,7 @@ from unittest import mock
 from tater_sat1_standalone.commands import build_satellite_plan, build_tater_plan
 from tater_sat1_standalone.config import StandaloneConfig
 from tater_sat1_standalone.runtime import ensure_private_token, prepare_runtime
-from tater_sat1_standalone.provisioning import provision_pairing
+from tater_sat1_standalone.provisioning import provision_pairing, provision_satellite_identity
 
 
 class RuntimeTests(unittest.TestCase):
@@ -83,6 +83,22 @@ class RuntimeTests(unittest.TestCase):
             self.assertEqual(url, "http://main-tater.local:8501")
             self.assertEqual(config.runtime.token_path.read_text(encoding="utf-8").strip(), "123456")
             self.assertEqual(config.runtime.token_path.stat().st_mode & 0o777, 0o600)
+
+    def test_hotspot_identity_overrides_are_used_by_the_satellite_plan(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            config = StandaloneConfig.from_mapping(
+                {
+                    "runtime": {"flavor": "satellite", "state_dir": temp_dir},
+                    "satellite": {"name": "Config Name", "room": "Config Room"},
+                }
+            )
+            provision_satellite_identity(config, "Sally's SAT1", "Playroom")
+
+            plan = build_satellite_plan(config)
+
+            self.assertEqual(plan.command[plan.command.index("--name") + 1], "Sally's SAT1")
+            self.assertEqual(plan.command[plan.command.index("--tater-room") + 1], "Playroom")
+            self.assertEqual(config.runtime.satellite_name_path.stat().st_mode & 0o777, 0o600)
 
 
 if __name__ == "__main__":

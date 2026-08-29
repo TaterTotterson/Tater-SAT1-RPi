@@ -39,8 +39,10 @@ The normal flow does not require SSH:
 1. Open the main Tater interface and create a short code under
    **Satellites → Add Satellite**.
 2. Join the SAT1's `Tater-SAT1-Setup-XXXXXX` Wi-Fi network.
-3. In the captive page, enter the destination Wi-Fi, main Tater address, and
-   pairing code, then choose **Save and restart**.
+3. In the captive page, choose the satellite name and room, enter the
+   destination Wi-Fi, main Tater address, and pairing code, then choose **Save
+   and connect**. The SAT1 closes its hotspot and joins the saved network
+   without rebooting.
 
 If the image already has working Wi-Fi, the equivalent SSH command remains
 available:

@@ -14,6 +14,8 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(config.runtime.satellite_executable.name, "tater-sat1-voice")
         self.assertEqual(config.satellite.pulse_server, "unix:/run/tater-sat1-audio/pulse/native")
         self.assertEqual(config.runtime.token_path.name, "native-satellite-token")
+        self.assertEqual(config.runtime.satellite_name_path.name, "satellite-name")
+        self.assertEqual(config.runtime.satellite_room_path.name, "satellite-room")
         self.assertTrue(config.leds.enabled)
         self.assertEqual(config.leds.backend, "xmos")
         self.assertEqual(config.leds.pixel_count, 24)
