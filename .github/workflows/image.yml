@@ -66,6 +66,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
 
       - name: Download both images
         uses: actions/download-artifact@v5.0.0
@@ -81,9 +83,16 @@ jobs:
             --release-tag "${GITHUB_REF_NAME}" \
             --release-dir out/release
 
+      - name: Build release notes
+        run: |
+          python3 script/build_release_notes.py \
+            --tag "${GITHUB_REF_NAME}" \
+            --output out/release/RELEASE_NOTES.md
+
       - name: Publish tagged release
         uses: softprops/action-gh-release@v2
         with:
+          body_path: out/release/RELEASE_NOTES.md
           files: |
             out/release/*.img.xz
             out/release/*.sat1
@@ -91,15 +100,3 @@ jobs:
             out/release/*-manifest.json
             out/release/*.info
             out/release/SHA256SUMS-*.txt
-          body: |
-            Ready-to-flash Satellite1 Raspberry Pi images:
-
-            - `standalone` runs Tater and the voice satellite together.
-            - `satellite` runs only the voice satellite and pairs with a main Tater server.
-
-            Both flavors support signed appliance OTA from Tater after this
-            OTA-capable image has been flashed once. Base OS and kernel changes
-            still require flashing a new image.
-
-            Flash the desired `.img.xz` with Raspberry Pi Imager, customize
-            Wi-Fi and login settings, attach the Satellite1 HAT, and boot.
