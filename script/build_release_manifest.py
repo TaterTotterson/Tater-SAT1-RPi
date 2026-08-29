@@ -10,7 +10,7 @@ from urllib.parse import quote
 
 
 _VERSION = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]{0,127}$")
-RELEASE_REPO = "TaterTotterson/Tater-SAT1-Standalone"
+RELEASE_REPO = "TaterTotterson/Tater-SAT1-RPi"
 
 
 def sha256_file(path: Path) -> str:

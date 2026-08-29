@@ -38,7 +38,11 @@ class ReleaseManifestTests(unittest.TestCase):
             for device in devices.values():
                 self.assertEqual(set(device["artifacts"]), {"ota"})
                 self.assertEqual(device["artifacts"]["ota"]["flash_transport"], "tater_native_ota")
-                self.assertTrue(device["artifacts"]["ota"]["path"].startswith("https://github.com/"))
+                self.assertTrue(
+                    device["artifacts"]["ota"]["path"].startswith(
+                        "https://github.com/TaterTotterson/Tater-SAT1-RPi/releases/download/v1.2.3/"
+                    )
+                )
             latest = json.loads((release / "latest.json").read_text(encoding="utf-8"))
             self.assertEqual(set(latest["boards"]), set(devices))
 

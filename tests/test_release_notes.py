@@ -15,6 +15,9 @@ SPEC.loader.exec_module(release_notes)
 
 
 class ReleaseNotesTests(unittest.TestCase):
+    def test_default_release_repository_uses_the_rpi_name(self) -> None:
+        self.assertEqual(release_notes.RELEASE_REPO, "TaterTotterson/Tater-SAT1-RPi")
+
     def test_first_release_lists_every_change_and_history(self) -> None:
         commits = [
             release_notes.Commit("a" * 40, "Add standalone image"),

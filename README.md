@@ -18,10 +18,12 @@
 Ready-to-flash Tater appliances for the FutureProofHomes Satellite1 HAT and a
 Raspberry Pi.
 
-The repository builds two flavors from one pinned hardware and audio base:
+The repository builds two flavors from one pinned hardware and audio base. The
+full image is the **Tater Embedded** experience; its artifact identifier remains
+`standalone` so installed devices retain a stable OTA identity:
 
-- `standalone` runs the complete Tater server and native Linux voice satellite
-  together on the SAT1 Pi.
+- `standalone` (**Tater Embedded**) runs the complete Tater server and native
+  Linux voice satellite together on the SAT1 Pi.
 - `satellite` runs only the native Linux voice satellite and pairs with a main
   Tater server elsewhere on the network.
 

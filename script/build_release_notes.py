@@ -8,7 +8,7 @@ import re
 import subprocess
 
 
-RELEASE_REPO = "TaterTotterson/Tater-SAT1-Standalone"
+RELEASE_REPO = "TaterTotterson/Tater-SAT1-RPi"
 _TAG = re.compile(r"^v[0-9][A-Za-z0-9._+-]{0,126}$")
 
 

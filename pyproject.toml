@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "tater-sat1-standalone"
 version = "0.1.0.dev0"
-description = "Build standalone and fleet Tater voice appliances for Satellite1 Raspberry Pi hardware"
+description = "Build embedded Tater and satellite-only voice appliances for Satellite1 Raspberry Pi hardware"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "AGPL-3.0-only"}
