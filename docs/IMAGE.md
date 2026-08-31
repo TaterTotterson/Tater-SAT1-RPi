@@ -33,13 +33,12 @@ Both flavors include:
 The standalone flavor additionally includes full Tater with its remote-only
 `edge` dependency profile and enables the Tater web interface at boot.
 
-The hardware packages, pi-gen base, and Linux Satellite source are pinned.
-For the standalone flavor, every build resolves the newest commit on Tater's
-`main` branch and records that exact commit in the release `.info` file. This
-keeps newly built embedded systems current without making an in-progress build
-change underneath itself. `packaging/image.lock` contains the image and
-hardware hashes; `upstreams.toml` contains the source policy and tested
-application revisions.
+The hardware packages, pi-gen base, Linux Satellite source, and standalone
+Tater release are pinned. Tater's stable tag and exact commit are recorded in
+`upstreams.toml` and the release `.info` file, so updating Tater requires a
+deliberate repository change and signed SAT1 release. `packaging/image.lock`
+contains the image and hardware hashes; `upstreams.toml` contains the source
+policy and tested application revisions.
 
 Before Tater is copied into the image, the SAT1 builder adds its small
 appliance-only voice-settings overlay so the hardware VAD defaults can come
@@ -158,13 +157,12 @@ the standalone flavor it also generates the local credential. The satellite
 flavor receives a one-time code during pairing and stores the resulting
 per-device credential. No credential is stored in either distributable image.
 
-Once an OTA-capable image has been flashed, the embedded flavor checks daily
-for official stable Tater app releases and installs them with automatic
-rollback. Complete SAT1 application releases can also be installed from the
-connected device's firmware action in Tater. Wi-Fi, configuration,
-credentials, and state are preserved. Base OS, kernel, boot, and partition
-changes still require flashing a new image. See
-[Tater app and signed appliance updates](OTA.md).
+Once an OTA-capable image has been flashed, complete SAT1 application releases
+can be installed from the connected device's firmware action in Tater. The
+standalone OTA includes the manually selected Tater revision; the device never
+downloads Tater releases independently. Wi-Fi, configuration, credentials,
+and state are preserved. Base OS, kernel, boot, and partition changes still
+require flashing a new image. See [Signed appliance updates](OTA.md).
 
 ## What still needs hardware validation
 

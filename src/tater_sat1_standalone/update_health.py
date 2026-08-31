@@ -82,30 +82,12 @@ def run_health_check(layout: Layout) -> dict[str, object]:
         layout.health_marker.unlink(missing_ok=True)
         shutil.rmtree(layout.rollback_dir, ignore_errors=True)
         if flavor == "standalone":
-            # A signed appliance update is authoritative over app-only release
-            # slots. Clear old slots only after firmware health succeeds so a
-            # failed appliance update can still restore its symlinked Tater.
+            # Clear state left by the retired app-only updater only after the
+            # signed OTA passes health, preserving rollback until then.
             shutil.rmtree(layout.tater_app_release_dir, ignore_errors=True)
-            layout.tater_app_update_dir.mkdir(parents=True, exist_ok=True)
-            status_path = layout.tater_app_update_dir / "status.json"
-            status_path.write_text(
-                json.dumps(
-                    {
-                        "schema": 1,
-                        "ok": True,
-                        "status": "firmware_override",
-                        "message": "signed SAT1 firmware installed its bundled Tater version",
-                        "firmware_version": str(marker.get("version") or ""),
-                        "timestamp": time.time(),
-                    },
-                    indent=2,
-                    sort_keys=True,
-                )
-                + "\n",
-                encoding="utf-8",
-            )
-            os.chmod(layout.tater_app_update_dir, 0o755)
-            os.chmod(status_path, 0o644)
+            shutil.rmtree(layout.tater_app_update_dir, ignore_errors=True)
+            _systemctl("disable", "tater-sat1-app-update.timer", check=False)
+            _systemctl("stop", "tater-sat1-app-update.service", check=False)
         return result
 
     restored = restore_backup(layout)

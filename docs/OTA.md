@@ -1,55 +1,19 @@
-# Tater app and signed appliance updates
+# Signed appliance updates
 
-The Tater Embedded image has two complementary update paths:
+SAT1 has one application update path: manually published, signed appliance
+OTA. The standalone payload includes Tater, Linux Satellite, hardware
+integration, services, and their tested dependency environment. The fleet
+satellite payload omits Tater because it connects to a separate server.
 
-- a lightweight daily updater for official stable Tater application releases;
-- the existing signed SAT1 appliance OTA for Tater, Linux Satellite, hardware
-  integration, services, and other complete firmware changes.
+The device never polls the main Tater repository or installs an app-only Tater
+release. To update standalone Tater, refresh the bundled source revision in
+this repository, test the complete appliance, and publish a signed SAT1 OTA.
+The OTA replaces `/opt/tater` and the SAT1 application together. A failed boot
+health check restores the exact previous appliance. A full microSD-card factory
+reflash replaces the entire system and may erase personal state; export or
+back up anything important first.
 
-The fleet satellite image uses only signed SAT1 appliance OTA because it does
-not contain a local Tater application.
-
-## Automatic stable Tater releases
-
-`tater-sat1-app-update.timer` checks GitHub once per day, with up to six hours
-of random delay so a fleet does not update simultaneously. It uses GitHub's
-latest published stable Tater release: ordinary commits, draft releases, and
-prereleases are ignored.
-
-When a newer release is found, the device:
-
-1. downloads the release source from the official Tater GitHub repository;
-2. applies the SAT1 source preparation and builds a fresh edge environment in
-   a separate version slot while the current Tater remains online;
-3. briefly stops local voice and Tater, switches `/opt/tater` to that slot,
-   and starts Tater again;
-4. accepts the release only after `http://127.0.0.1:8501/api/health` succeeds;
-5. restores the previous known-good slot automatically if health fails.
-
-A release that fails health is not retried every day. The device waits for a
-new Tater release unless an administrator explicitly retries with `--force`.
-The latest status is stored in
-`/var/lib/tater-sat1-standalone/tater-app-updates/status.json`.
-
-The updater also prevents an image built from a newer `main` commit from being
-downgraded to an older stable release. Automatic checks can be disabled in
-`/etc/default/tater-sat1-app-update`; this does not disable signed firmware
-updates.
-
-## Appliance OTA takes priority
-
-A factory image or signed SAT1 OTA is authoritative over app-only releases.
-Signed OTA replaces `/opt/tater` with its bundled version. After the complete
-appliance passes its boot health check, obsolete app slots are cleared and the
-daily updater resumes. It will install again only when an official stable
-Tater release is newer than the version now installed.
-
-App slots remain available until the firmware health check succeeds. This
-allows a failed signed firmware update to restore the exact previous Tater
-installation. A full microSD-card factory reflash replaces the entire system
-and may erase personal state; export or back up anything important first.
-
-## Signed appliance updates
+## Enabling appliance OTA
 
 Both SAT1 image flavors support signed over-the-air appliance updates through
 Tater. The first OTA-capable version must be written to the microSD card once;

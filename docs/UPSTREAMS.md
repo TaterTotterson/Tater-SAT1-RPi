@@ -47,13 +47,12 @@ DoA and beamforming implementation used by Tater Native on ESP32.
 
 ## Tater
 
-The full app remains upstream Tater. Standalone builds resolve the newest
-commit on Tater's `main` branch when each build starts, then record the exact
-commit in the release metadata. A narrowly scoped build overlay supplies the
-SAT1 hardware VAD defaults without publishing an unfinished general Tater
-release; it becomes a no-op when upstream Tater gains that behavior. This
-repository owns the appliance image, service configuration, tested Linux
-Satellite pin, and SAT1-specific integration.
+The full app remains upstream Tater. Standalone builds use the manually
+selected stable release and exact commit recorded in `upstreams.toml`; version
+`0.1.7` carries Tater `v1.1.16`. A narrowly scoped build overlay supplies SAT1
+hardware VAD defaults and becomes a no-op when upstream Tater includes that
+behavior. This repository owns the appliance image, service configuration,
+tested Linux Satellite pin, and SAT1-specific integration.
 
 ## FutureProofHomes Satellite1-RPi
 

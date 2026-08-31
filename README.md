@@ -43,7 +43,7 @@ This repository is an early runnable appliance scaffold. It currently provides:
 - configuration and deterministic launch plans
 - host diagnostics and unit tests
 - Tater's tested remote-only `edge` dependency and runtime profile
-- an installer that takes the newest Tater `main` at build time while pinning
+- an installer that pins the manually selected Tater `v1.1.16` release plus
   the tested Linux Satellite and hardware revisions
 - a Tater Tube-style `pi-gen` pipeline that exports a flashable `.img.xz`
 - a fleet satellite flavor that contains no Tater application or Redis service
@@ -54,8 +54,7 @@ This repository is an early runnable appliance scaffold. It currently provides:
 - Tater's optional second-STT wake verification, including Observe, Enabled,
   and fail-open behavior matching the ESP firmware
 - signed, flavor-specific appliance OTA through Tater with automatic rollback
-- daily, stable-release-only Tater app updates on the embedded image, with a
-  staged environment, local health check, and automatic rollback
+- Tater updates carried inside manually published signed appliance OTA releases
 - the verified Tater Native XMOS `1.1.1` image on both flavors, with an
   automatic version check before audio and no rewrite when it already matches
 - four-microphone talker tracking, DoA, fractional-delay beamforming,
@@ -146,11 +145,11 @@ The installer places:
 - persistent state at `/var/lib/tater-sat1-standalone`
 - configuration at `/etc/tater-sat1-standalone/config.toml`
 
-The Tater Embedded flavor checks once daily for a newer official stable Tater
-release. Ordinary commits, drafts, and prereleases are ignored. The update is
-prepared while the current Tater keeps running, then switched only after its
-dependencies are ready. A failed local health check restores the previous
-known-good release. See [Tater app and signed appliance updates](docs/OTA.md).
+The Tater Embedded flavor does not download Tater releases independently.
+Refresh the bundled Tater revision when preparing this repository, then publish
+it through the signed SAT1 appliance OTA. A failed appliance health check
+restores the previous known-good release. See
+[Signed appliance updates](docs/OTA.md).
 
 See [Image building and flashing](docs/IMAGE.md),
 [Wi-Fi hotspot setup](docs/PROVISIONING.md),

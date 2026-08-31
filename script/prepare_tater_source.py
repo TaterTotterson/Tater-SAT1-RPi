@@ -25,8 +25,14 @@ def main() -> int:
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--destination", type=Path, required=True)
     parser.add_argument("--revision", required=True)
+    parser.add_argument("--release-tag", default="")
     args = parser.parse_args()
-    metadata = prepare(args.source, args.destination, args.revision.strip())
+    metadata = prepare(
+        args.source,
+        args.destination,
+        args.revision.strip(),
+        release_tag=args.release_tag.strip(),
+    )
     print(json.dumps(metadata, sort_keys=True))
     return 0
 

@@ -71,7 +71,7 @@ manifest_value() {
 }
 
 TATER_URL="$(manifest_value tater url)"
-TATER_REFERENCE="$(manifest_value tater reference)"
+TATER_REVISION="$(manifest_value tater reference_revision)"
 SATELLITE_URL="$(manifest_value linux_satellite url)"
 SATELLITE_REVISION="$(manifest_value linux_satellite reference_revision)"
 
@@ -123,36 +123,6 @@ clone_pinned() {
     git clone "${source_url}" "${destination}"
   fi
   git -C "${destination}" checkout --detach "${revision}"
-}
-
-clone_latest() {
-  source_url="$1"
-  reference="$2"
-  destination="$3"
-
-  if [ "${DRY_RUN}" = "1" ]; then
-    run git clone --branch "${reference}" --single-branch "${source_url}" "${destination}"
-    run git -C "${destination}" checkout --detach "origin/${reference}"
-    return 0
-  fi
-
-  git check-ref-format --branch "${reference}" >/dev/null 2>&1 || {
-    printf 'Invalid Tater branch name: %s\n' "${reference}" >&2
-    exit 1
-  }
-  if [ -d "${destination}/.git" ]; then
-    if [ -n "$(git -C "${destination}" status --porcelain)" ]; then
-      printf 'Refusing to update modified checkout: %s\n' "${destination}" >&2
-      exit 1
-    fi
-    git -C "${destination}" fetch origin "refs/heads/${reference}:refs/remotes/origin/${reference}"
-  elif [ -e "${destination}" ]; then
-    printf 'Install destination exists but is not a Git checkout: %s\n' "${destination}" >&2
-    exit 1
-  else
-    git clone --branch "${reference}" --single-branch "${source_url}" "${destination}"
-  fi
-  git -C "${destination}" checkout --detach "refs/remotes/origin/${reference}"
 }
 
 section "System packages"
@@ -219,7 +189,7 @@ if [ "${BUNDLED_SOURCES}" = "1" ]; then
   printf '%s\n' "  using source trees already embedded in the image"
 else
   if [ "${FLAVOR}" = "standalone" ]; then
-    clone_latest "${TATER_URL}" "${TATER_REFERENCE}" "${TATER_APP_DIR}"
+    clone_pinned "${TATER_URL}" "${TATER_REVISION}" "${TATER_APP_DIR}"
   fi
   clone_pinned "${SATELLITE_URL}" "${SATELLITE_REVISION}" "${SATELLITE_APP_DIR}"
 fi
@@ -316,13 +286,12 @@ if [ "${DRY_RUN}" = "1" ] || [ ! -e /etc/default/tater-sat1-setup ]; then
   run install -m 0644 "${PROJECT_DIR}/config/setup-hotspot.env.example" "/etc/default/tater-sat1-setup"
 fi
 if [ "${FLAVOR}" = "standalone" ]; then
+  # These inert units remain in OTA payloads so cards flashed before v0.1.7
+  # can install the transition release with their fixed recovery verifier.
   run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-app-update.service" "${SYSTEMD_DIR}/tater-sat1-app-update.service"
   run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-app-update.timer" "${SYSTEMD_DIR}/tater-sat1-app-update.timer"
   run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-tater.service" "${SYSTEMD_DIR}/tater-sat1-tater.service"
   run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-voice.service" "${SYSTEMD_DIR}/tater-sat1-voice.service"
-  if [ "${DRY_RUN}" = "1" ] || [ ! -e /etc/default/tater-sat1-app-update ]; then
-    run install -m 0644 "${PROJECT_DIR}/config/tater-app-update.env.example" "/etc/default/tater-sat1-app-update"
-  fi
 else
   run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-satellite.service" "${SYSTEMD_DIR}/tater-sat1-satellite.service"
   run install -m 0755 "${PROJECT_DIR}/script/pair" "/usr/local/bin/tater-sat1-pair"
@@ -338,10 +307,14 @@ run runuser -u "${SERVICE_USER}" -- "${APPLIANCE_VENV_DIR}/bin/tater-sat1-standa
 if [ "${ENABLE_SERVICES}" = "1" ]; then
   section "Enable appliance"
   run systemctl daemon-reload
+  if [ "${FLAVOR}" = "standalone" ]; then
+    run systemctl disable --now tater-sat1-app-update.timer
+    run systemctl stop tater-sat1-app-update.service
+  fi
   run systemctl enable tater-sat1-update-health.service
   run systemctl enable --now tater-sat1-audio-watchdog.timer
   if [ "${FLAVOR}" = "standalone" ]; then
-    run systemctl enable --now tater-sat1-firstboot.service tater-sat1-provisioning.service tater-sat1-xmos.service tater-sat1-audio.service tater-sat1-leds.service tater-sat1-tater.service tater-sat1-voice.service tater-sat1-update.path tater-sat1-app-update.timer
+    run systemctl enable --now tater-sat1-firstboot.service tater-sat1-provisioning.service tater-sat1-xmos.service tater-sat1-audio.service tater-sat1-leds.service tater-sat1-tater.service tater-sat1-voice.service tater-sat1-update.path
   else
     run systemctl enable --now tater-sat1-firstboot.service tater-sat1-provisioning.service tater-sat1-xmos.service tater-sat1-audio.service tater-sat1-leds.service tater-sat1-satellite.service tater-sat1-update.path
   fi

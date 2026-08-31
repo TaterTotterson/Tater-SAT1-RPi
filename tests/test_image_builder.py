@@ -26,8 +26,11 @@ class ImageBuilderTests(unittest.TestCase):
         self.assertIn("pi_gen_revision=67262a4ad0959aab2a9d84a6392b1967999e8f50", completed.stdout)
         self.assertIn("sat1_release=v0.1.4", completed.stdout)
         self.assertIn("image_flavor=standalone", completed.stdout)
-        self.assertIn("tater_revision=latest:main", completed.stdout)
-        self.assertIn("tater_update_policy=latest_at_build", completed.stdout)
+        self.assertIn(
+            "tater_revision=v1.1.16:04819a5a510c553c7d7e384e09883e6c3cd1437e",
+            completed.stdout,
+        )
+        self.assertIn("tater_update_policy=pinned_release", completed.stdout)
         self.assertIn("xmos_firmware=v1.1.1", completed.stdout)
         self.assertIn(
             "xmos_sha256=8ab57bd9da5f114746fcbc3d25ea57b32ea3938c61ed4b545d5d93a3d410c0e5",
@@ -172,8 +175,9 @@ class ImageBuilderTests(unittest.TestCase):
         self.assertIn("keys/update-public.pem", builder)
         self.assertIn("prepare_tater_source.py", builder)
         self.assertIn(".tater-sat1-build.json", chroot_stage)
-        self.assertIn("tater-sat1-app-update", chroot_stage)
+        self.assertNotIn("venv/bin/tater-sat1-app-update", chroot_stage)
         self.assertIn("tater-sat1-app-update.timer", chroot_stage)
+        self.assertIn("test ! -L /etc/systemd/system/timers.target.wants/tater-sat1-app-update.timer", chroot_stage)
 
     def test_builder_writes_a_checksum_for_the_finished_image(self) -> None:
         builder = (ROOT / "scripts" / "build-pi-image.sh").read_text(encoding="utf-8")

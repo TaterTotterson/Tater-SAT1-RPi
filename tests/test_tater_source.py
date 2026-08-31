@@ -32,7 +32,7 @@ class TaterSourceTests(unittest.TestCase):
             source = self.source(root, MODULE.OLD_SETTINGS_BLOCK)
             destination = root / "prepared"
 
-            metadata = MODULE.prepare(source, destination, "a" * 40)
+            metadata = MODULE.prepare(source, destination, "a" * 40, release_tag="v1.1.16")
 
             pipeline = (destination / MODULE.VOICE_PIPELINE).read_text(encoding="utf-8")
             self.assertIn("def _voice_setting_or_environment", pipeline)
@@ -41,6 +41,7 @@ class TaterSourceTests(unittest.TestCase):
             self.assertEqual(metadata["overlays"], ["sat1_voice_environment_defaults"])
             recorded = json.loads((destination / ".tater-sat1-build.json").read_text(encoding="utf-8"))
             self.assertEqual(recorded["tater_reference_revision"], "a" * 40)
+            self.assertEqual(recorded["tater_release_tag"], "v1.1.16")
 
     def test_accepts_tater_after_upstream_absorbs_the_overlay(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

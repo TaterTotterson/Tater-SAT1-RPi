@@ -174,6 +174,10 @@ class OtaTests(unittest.TestCase):
             original_config = layout.config.read_text(encoding="utf-8")
             bundle = self._bundle(Path(temporary) / "release", "standalone")
             layout.update_dir.mkdir(parents=True, exist_ok=True)
+            legacy_release = layout.tater_app_release_dir / "v1.2.3"
+            legacy_release.mkdir(parents=True)
+            layout.tater_app_update_dir.mkdir(parents=True)
+            (layout.tater_app_update_dir / "status.json").write_text("{}\n", encoding="utf-8")
             handoff = layout.update_dir / "tater-self-ota-session.json"
             handoff.write_text('{"session_id":"fw_test"}\n', encoding="utf-8")
             shutil.copy2(bundle, layout.pending_bundle)
@@ -194,11 +198,10 @@ class OtaTests(unittest.TestCase):
             self.assertEqual((layout.state_dir / "native-satellite-token").read_text(encoding="utf-8"), "keep-me\n")
             self.assertEqual(handoff.read_text(encoding="utf-8"), '{"session_id":"fw_test"}\n')
             self.assertEqual((root / "opt/tater-sat1/release-marker").read_text(encoding="utf-8"), "new\n")
+            self.assertEqual((root / "opt/tater/app/tateros_app.py").read_text(encoding="utf-8"), "new\n")
             self.assertFalse(layout.rollback_dir.exists())
-            app_update_status = json.loads(
-                (layout.tater_app_update_dir / "status.json").read_text(encoding="utf-8")
-            )
-            self.assertEqual(app_update_status["status"], "firmware_override")
+            self.assertFalse(layout.tater_app_release_dir.exists())
+            self.assertFalse(layout.tater_app_update_dir.exists())
 
     def test_failed_health_check_restores_previous_appliance(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

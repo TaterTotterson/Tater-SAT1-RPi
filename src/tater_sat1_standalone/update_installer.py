@@ -46,6 +46,9 @@ COMMON_FILES = (
 )
 FLAVOR_FILES = {
     "standalone": (
+        # Inert compatibility units remain required so the fixed verifier on
+        # cards flashed before automatic app updates were removed can accept
+        # the transition OTA payload.
         "etc/systemd/system/tater-sat1-app-update.service",
         "etc/systemd/system/tater-sat1-app-update.timer",
         "etc/systemd/system/tater-sat1-tater.service",
@@ -401,9 +404,6 @@ def apply_pending(layout: Layout) -> dict[str, Any]:
         raise FileNotFoundError(f"pending SAT1 OTA bundle not found: {layout.pending_bundle}")
     layout.lock.touch(mode=0o600, exist_ok=True)
     with layout.lock.open("r+") as lock:
-        # App-only Tater releases share this short switch lock. Waiting here
-        # lets the signed appliance OTA remain authoritative without killing
-        # an app update in the middle of its rollback-safe symlink switch.
         fcntl.flock(lock, fcntl.LOCK_EX)
         with tempfile.TemporaryDirectory(prefix="verify-", dir=layout.update_dir) as temporary:
             work_dir = Path(temporary)
@@ -454,7 +454,8 @@ def apply_pending(layout: Layout) -> dict[str, Any]:
                 _systemctl("daemon-reload")
                 _systemctl("enable", "tater-sat1-update.path", "tater-sat1-update-health.service")
                 if flavor == "standalone":
-                    _systemctl("enable", "tater-sat1-app-update.timer")
+                    _systemctl("disable", "tater-sat1-app-update.timer", check=False)
+                    _systemctl("stop", "tater-sat1-app-update.service", check=False)
                 os.sync()
             except Exception:
                 restore_backup(layout)

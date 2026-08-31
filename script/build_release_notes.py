@@ -11,6 +11,14 @@ import subprocess
 RELEASE_REPO = "TaterTotterson/Tater-SAT1-RPi"
 _TAG = re.compile(r"^v[0-9][A-Za-z0-9._+-]{0,126}$")
 RELEASE_HIGHLIGHTS = {
+    "v0.1.7": (
+        "Standalone images now bundle the manually selected Tater `v1.1.16` release instead of resolving Tater "
+        "`main` during each build.",
+        "The separate daily Tater downloader has been removed; Tater now changes only as part of a signed SAT1 "
+        "appliance OTA, together with the tested voice and hardware integration.",
+        "Signed OTA health checks and full-appliance rollback remain in place, and disabled compatibility units let "
+        "older flashed cards accept this transition release safely.",
+    ),
     "v0.1.6": (
         "Both image flavors now bundle the checksum-pinned Tater Native XMOS `v1.1.1` firmware with the same "
         "four-microphone beamforming, talker direction, AEC, noise suppression, and gain control used by the "

@@ -113,6 +113,7 @@ manifest_value() {
 
 TATER_URL="$(manifest_value tater url)"
 TATER_REFERENCE="$(manifest_value tater reference)"
+TATER_PINNED_REVISION="$(manifest_value tater reference_revision)"
 TATER_UPDATE_POLICY="$(manifest_value tater update_policy)"
 SATELLITE_URL="$(manifest_value linux_satellite url)"
 SATELLITE_REVISION="$(manifest_value linux_satellite reference_revision)"
@@ -120,12 +121,12 @@ XMOS_VERSION="$(manifest_value tater_native_xmos version)"
 XMOS_SHA256="$(manifest_value tater_native_xmos sha256)"
 TATER_SOURCE_DIR="${TATER_SOURCE_DIR:-}"
 SATELLITE_SOURCE_DIR="${SATELLITE_SOURCE_DIR:-}"
-TATER_REVISION="${TATER_REVISION_OVERRIDE:-}"
+TATER_REVISION="${TATER_REVISION_OVERRIDE:-${TATER_PINNED_REVISION}}"
 
 print_plan() {
     if [ "${PI_IMAGE_FLAVOR}" = "standalone" ]; then
         identity_plan="unique_local_token"
-        tater_plan="${TATER_REVISION:-latest:${TATER_REFERENCE}}"
+        tater_plan="${TATER_REFERENCE}:${TATER_REVISION}"
     else
         identity_plan="unique_device_pairing"
         tater_plan="not_bundled"
@@ -161,28 +162,6 @@ fi
 require_cmd git
 require_cmd curl
 require_cmd "${PYTHON_BIN}"
-
-resolve_remote_revision() {
-    local label="$1"
-    local url="$2"
-    local reference="$3"
-    local revision=""
-
-    git check-ref-format --branch "${reference}" >/dev/null 2>&1 || {
-        printf '%s branch name is invalid: %s\n' "${label}" "${reference}" >&2
-        exit 1
-    }
-    revision="$(git ls-remote --exit-code "${url}" "refs/heads/${reference}" | awk 'NR == 1 {print $1}')"
-    [[ "${revision}" =~ ^[0-9a-f]{40}$ ]] || {
-        printf 'Could not resolve %s branch %s from %s\n' "${label}" "${reference}" "${url}" >&2
-        exit 1
-    }
-    printf '%s\n' "${revision}"
-}
-
-if [ "${PI_IMAGE_FLAVOR}" = "standalone" ] && [ -z "${TATER_REVISION}" ]; then
-    TATER_REVISION="$(resolve_remote_revision Tater "${TATER_URL}" "${TATER_REFERENCE}")"
-fi
 
 case "${REPO_ROOT}:${PI_GEN_DIR}" in
     *" "*)
@@ -287,7 +266,8 @@ if [ "${PI_IMAGE_FLAVOR}" = "standalone" ]; then
     "${PYTHON_BIN}" "${REPO_ROOT}/script/prepare_tater_source.py" \
         --source "${TATER_SOURCE_DIR}" \
         --destination "${TATER_PREPARED_DIR}" \
-        --revision "${TATER_REVISION}" >&2
+        --revision "${TATER_REVISION}" \
+        --release-tag "${TATER_REFERENCE}" >&2
     TATER_SOURCE_DIR="${TATER_PREPARED_DIR}"
 fi
 SATELLITE_SOURCE_DIR="$(resolve_source "Linux Satellite" "${SATELLITE_SOURCE_DIR}" "${REPO_ROOT}/../Tater-Linux-Satellite" "${SATELLITE_URL}" "${SATELLITE_REVISION}" "${REPO_ROOT}/.cache/upstreams/Tater-Linux-Satellite")"

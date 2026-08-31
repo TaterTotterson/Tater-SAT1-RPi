@@ -19,7 +19,8 @@ class InstallerTests(unittest.TestCase):
         )
         self.assertEqual(completed.returncode, 0, completed.stderr)
         output = completed.stdout
-        self.assertIn("git clone --branch main --single-branch https://github.com/TaterTotterson/Tater.git", output)
+        self.assertIn("git clone https://github.com/TaterTotterson/Tater.git /opt/tater/app", output)
+        self.assertIn("checkout --detach 04819a5a510c553c7d7e384e09883e6c3cd1437e", output)
         self.assertIn("4069417f495d9b5cf4dc9d0a38ce2fbb42d575ae", output)
         self.assertIn("TATER_SETUP_REQUIRE_LOCAL_LLM=0", output)
         self.assertIn("setup_tater.sh edge", output)
@@ -47,9 +48,11 @@ class InstallerTests(unittest.TestCase):
         self.assertIn(': > "${ACTIVE_FILE}"', setup_hotspot)
         self.assertIn("tater-sat1-apply-update", output)
         self.assertIn("tater-sat1-update.path", output)
+        # Inert units are retained only for OTA compatibility with older cards.
         self.assertIn("tater-sat1-app-update.service", output)
         self.assertIn("tater-sat1-app-update.timer", output)
-        self.assertIn("tater-app-update.env.example", output)
+        self.assertNotIn("tater-app-update.env.example", output)
+        self.assertNotIn("tater-sat1-app-update --automatic", output)
         self.assertIn("update-public.pem", output)
         self.assertNotIn("apt-get update", output)
 

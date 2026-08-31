@@ -67,6 +67,14 @@ class ReleaseNotesTests(unittest.TestCase):
         self.assertIn("flash verification", notes)
         self.assertIn("signed appliance OTA", notes)
 
+    def test_v017_highlights_pinned_tater_and_ota_only_updates(self) -> None:
+        notes = release_notes.render_release_notes("owner/repo", "v0.1.7", "v0.1.6", [])
+
+        self.assertIn("Tater `v1.1.16`", notes)
+        self.assertIn("daily Tater downloader has been removed", notes)
+        self.assertIn("signed SAT1 appliance OTA", notes)
+        self.assertIn("full-appliance rollback", notes)
+
 
 if __name__ == "__main__":
     unittest.main()

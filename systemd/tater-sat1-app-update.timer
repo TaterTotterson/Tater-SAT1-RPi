@@ -1,11 +1,10 @@
 [Unit]
-Description=Daily stable Tater release check
+Description=Disabled legacy Tater app updater compatibility timer
+ConditionPathExists=!/
+RefuseManualStart=yes
 
 [Timer]
-OnCalendar=daily
-RandomizedDelaySec=6h
-AccuracySec=15min
-Persistent=true
+OnActiveSec=1d
 Unit=tater-sat1-app-update.service
 
 [Install]
