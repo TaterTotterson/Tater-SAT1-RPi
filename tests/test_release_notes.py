@@ -75,6 +75,16 @@ class ReleaseNotesTests(unittest.TestCase):
         self.assertIn("signed SAT1 appliance OTA", notes)
         self.assertIn("full-appliance rollback", notes)
 
+    def test_v018_highlights_memory_safe_tater_and_s420_handoff(self) -> None:
+        notes = release_notes.render_release_notes("owner/repo", "v0.1.8", "v0.1.7", [])
+
+        self.assertIn("Tater `v1.1.17`", notes)
+        self.assertIn("streams large firmware downloads", notes)
+        self.assertIn("Raspberry Pi Zero 2 W", notes)
+        self.assertIn("ThirdReality S420 and SAT1 OTA", notes)
+        self.assertIn("device-side health check", notes)
+        self.assertIn("automatic rollback protection", notes)
+
 
 if __name__ == "__main__":
     unittest.main()

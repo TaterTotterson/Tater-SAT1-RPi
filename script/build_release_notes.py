@@ -11,6 +11,14 @@ import subprocess
 RELEASE_REPO = "TaterTotterson/Tater-SAT1-RPi"
 _TAG = re.compile(r"^v[0-9][A-Za-z0-9._+-]{0,126}$")
 RELEASE_HIGHLIGHTS = {
+    "v0.1.8": (
+        "Standalone images now bundle Tater `v1.1.17`, which streams large firmware downloads to disk instead of "
+        "holding the complete package in Raspberry Pi memory.",
+        "Embedded Tater can stage future SAT1 appliance packages without exhausting the limited RAM and swap on a "
+        "Raspberry Pi Zero 2 W.",
+        "ThirdReality S420 and SAT1 OTA tasks return after the signed update is accepted and let the appliance "
+        "finish in the background; SAT1 keeps its device-side health check and automatic rollback protection.",
+    ),
     "v0.1.7": (
         "Standalone images now bundle the manually selected Tater `v1.1.16` release instead of resolving Tater "
         "`main` during each build.",

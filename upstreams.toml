@@ -1,7 +1,7 @@
 [tater]
 url = "https://github.com/TaterTotterson/Tater.git"
-reference = "v1.1.16"
-reference_revision = "04819a5a510c553c7d7e384e09883e6c3cd1437e"
+reference = "v1.1.17"
+reference_revision = "f5e955b00ee52cdfdce0aac4ea0099188c73fea0"
 update_policy = "pinned_release"
 role = "Full Tater server, TaterOS, Hydra, Verbas, integrations, and native satellite API"
 
