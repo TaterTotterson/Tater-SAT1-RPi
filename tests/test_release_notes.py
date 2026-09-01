@@ -85,6 +85,15 @@ class ReleaseNotesTests(unittest.TestCase):
         self.assertIn("device-side health check", notes)
         self.assertIn("automatic rollback protection", notes)
 
+    def test_v019_highlights_adaface_and_spudlink_model_sync(self) -> None:
+        notes = release_notes.render_release_notes("owner/repo", "v0.1.9", "v0.1.8", [])
+
+        self.assertIn("Tater `v1.1.22`", notes)
+        self.assertIn("AdaFace IR-50 WebFace4M", notes)
+        self.assertIn("retains FaceNet profiles for rollback", notes)
+        self.assertIn("never compares embeddings from different models", notes)
+        self.assertIn("without downloading AdaFace to the Spudlet", notes)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -43,7 +43,7 @@ This repository is an early runnable appliance scaffold. It currently provides:
 - configuration and deterministic launch plans
 - host diagnostics and unit tests
 - Tater's tested remote-only `edge` dependency and runtime profile
-- an installer that pins the manually selected Tater `v1.1.17` release plus
+- an installer that pins the manually selected Tater `v1.1.22` release plus
   the tested Linux Satellite and hardware revisions
 - a Tater Tube-style `pi-gen` pipeline that exports a flashable `.img.xz`
 - a fleet satellite flavor that contains no Tater application or Redis service

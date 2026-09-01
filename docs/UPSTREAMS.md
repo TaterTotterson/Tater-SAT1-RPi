@@ -49,7 +49,7 @@ DoA and beamforming implementation used by Tater Native on ESP32.
 
 The full app remains upstream Tater. Standalone builds use the manually
 selected stable release and exact commit recorded in `upstreams.toml`; version
-`0.1.8` carries Tater `v1.1.17`. A narrowly scoped build overlay supplies SAT1
+`0.1.9` carries Tater `v1.1.22`. A narrowly scoped build overlay supplies SAT1
 hardware VAD defaults and becomes a no-op when upstream Tater includes that
 behavior. This repository owns the appliance image, service configuration,
 tested Linux Satellite pin, and SAT1-specific integration.

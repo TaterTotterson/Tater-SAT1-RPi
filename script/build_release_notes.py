@@ -11,6 +11,14 @@ import subprocess
 RELEASE_REPO = "TaterTotterson/Tater-SAT1-RPi"
 _TAG = re.compile(r"^v[0-9][A-Za-z0-9._+-]{0,126}$")
 RELEASE_HIGHLIGHTS = {
+    "v0.1.9": (
+        "Standalone images now bundle Tater `v1.1.22`, including the selectable AdaFace IR-50 WebFace4M "
+        "Face ID model alongside FaceNet512.",
+        "Tater safely prepares model-specific face embeddings before switching, retains FaceNet profiles for "
+        "rollback, and never compares embeddings from different models.",
+        "SpudLink clients follow the Hub's selected Face ID model and re-embed linked face crops through the Hub "
+        "without downloading AdaFace to the Spudlet.",
+    ),
     "v0.1.8": (
         "Standalone images now bundle Tater `v1.1.17`, which streams large firmware downloads to disk instead of "
         "holding the complete package in Raspberry Pi memory.",
