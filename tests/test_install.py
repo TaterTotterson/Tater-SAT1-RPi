@@ -20,7 +20,7 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(completed.returncode, 0, completed.stderr)
         output = completed.stdout
         self.assertIn("git clone https://github.com/TaterTotterson/Tater.git /opt/tater/app", output)
-        self.assertIn("checkout --detach 23333e94f5b35d666f0dd6f2a3243b08aa1b8215", output)
+        self.assertIn("checkout --detach 8c4e94469856c9b294c21c05373e55dde7a0917a", output)
         self.assertIn("4069417f495d9b5cf4dc9d0a38ce2fbb42d575ae", output)
         self.assertIn("TATER_SETUP_REQUIRE_LOCAL_LLM=0", output)
         self.assertIn("setup_tater.sh edge", output)

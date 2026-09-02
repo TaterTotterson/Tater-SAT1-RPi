@@ -94,6 +94,14 @@ class ReleaseNotesTests(unittest.TestCase):
         self.assertIn("never compares embeddings from different models", notes)
         self.assertIn("without downloading AdaFace to the Spudlet", notes)
 
+    def test_v0110_highlights_tater_update_and_persistent_core_storage(self) -> None:
+        notes = release_notes.render_release_notes("owner/repo", "v0.1.10", "v0.1.9", [])
+
+        self.assertIn("Tater `v1.1.23`", notes)
+        self.assertIn("persistent, Tater-owned SAT1 storage", notes)
+        self.assertIn("permission-denied error", notes)
+        self.assertIn("downloaded cores survive signed SAT1 appliance updates", notes)
+
 
 if __name__ == "__main__":
     unittest.main()

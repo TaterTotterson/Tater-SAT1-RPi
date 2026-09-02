@@ -27,6 +27,8 @@ def build_tater_plan(config: StandaloneConfig, token: str) -> RuntimePlan:
         "MALLOC_ARENA_MAX": "2",
         "PYTHONPATH": str(runtime.tater_app_dir),
         "TATER_AGENT_ROOT": str(runtime.agent_lab_dir),
+        "TATER_CORE_BUILTIN_DIR": str(runtime.builtin_core_dir),
+        "TATER_CORE_DIR": str(runtime.core_dir),
         "TATER_LOAD_PROFILE_ENV": "0",
         "TATER_NATIVE_SATELLITE_TOKEN": token,
         "TATER_REDIS_CONFIG_PATH": str(runtime.redis_config_path),

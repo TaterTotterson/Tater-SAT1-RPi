@@ -11,6 +11,13 @@ import subprocess
 RELEASE_REPO = "TaterTotterson/Tater-SAT1-RPi"
 _TAG = re.compile(r"^v[0-9][A-Za-z0-9._+-]{0,126}$")
 RELEASE_HIGHLIGHTS = {
+    "v0.1.10": (
+        "Standalone images now bundle Tater `v1.1.23`.",
+        "Downloaded cores now use persistent, Tater-owned SAT1 storage, fixing the permission-denied error caused "
+        "by attempts to write into the protected application bundle.",
+        "Bundled cores remain available from the read-only Tater source tree, while downloaded cores survive signed "
+        "SAT1 appliance updates.",
+    ),
     "v0.1.9": (
         "Standalone images now bundle Tater `v1.1.22`, including the selectable AdaFace IR-50 WebFace4M "
         "Face ID model alongside FaceNet512.",

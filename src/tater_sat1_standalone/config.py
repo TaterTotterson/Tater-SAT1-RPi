@@ -101,6 +101,14 @@ class RuntimeConfig:
         return self.state_dir / "agent-lab"
 
     @property
+    def core_dir(self) -> Path:
+        return self.state_dir / "cores"
+
+    @property
+    def builtin_core_dir(self) -> Path:
+        return self.tater_app_dir / "cores"
+
+    @property
     def redis_config_path(self) -> Path:
         return self.state_dir / "redis-connection.json"
 
