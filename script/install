@@ -293,30 +293,20 @@ if [ "${FLAVOR}" = "standalone" ]; then
   run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-app-update.timer" "${SYSTEMD_DIR}/tater-sat1-app-update.timer"
   run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-tater.service" "${SYSTEMD_DIR}/tater-sat1-tater.service"
   run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-voice.service" "${SYSTEMD_DIR}/tater-sat1-voice.service"
+  run install -m 0755 "${PROJECT_DIR}/script/airplay-permissions" "/usr/local/sbin/tater-sat1-airplay-permissions"
 else
   run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-satellite.service" "${SYSTEMD_DIR}/tater-sat1-satellite.service"
   run install -m 0755 "${PROJECT_DIR}/script/pair" "/usr/local/bin/tater-sat1-pair"
 fi
 run chown -R "${SERVICE_USER}:${SERVICE_USER}" "${STATE_DIR}"
 if [ "${FLAVOR}" = "standalone" ]; then
-  # Tater setup runs as root while assembling the image, so its low-port probe
-  # succeeds without adding a capability. Resolve the managed sender after the
-  # final chown (which clears file capabilities) and grant only that binary the
-  # permission needed for AirPlay PTP ports 319 and 320.
-  if [ "${DRY_RUN}" = "1" ]; then
-    run setcap cap_net_bind_service=+ep "${STATE_DIR}/tater-runtime/<managed-airplay-sender>"
+  # Image assembly cannot write file capabilities inside its build container.
+  # Defer this one privileged filesystem operation until the image boots on
+  # the Raspberry Pi; direct installs can apply it immediately.
+  if [ "${DEFER_INIT}" = "1" ]; then
+    printf '%s\n' "  deferring AirPlay sender permissions until first boot"
   else
-    AIRPLAY_SENDER_BIN="$(
-      cd "${TATER_APP_DIR}"
-      TATER_RUNTIME_DIR="${STATE_DIR}/tater-runtime" \
-      PYTHONPATH="${TATER_APP_DIR}" \
-        "${TATER_VENV_DIR}/bin/python" -c \
-        'from airplay_bridge import ensure_airplay_cli; print(ensure_airplay_cli())'
-    )"
-    [ -x "${AIRPLAY_SENDER_BIN}" ] || { printf 'Managed AirPlay sender is missing: %s\n' "${AIRPLAY_SENDER_BIN}" >&2; exit 1; }
-    run setcap cap_net_bind_service=+ep "${AIRPLAY_SENDER_BIN}"
-    getcap "${AIRPLAY_SENDER_BIN}" | grep -q 'cap_net_bind_service' \
-      || { printf '%s\n' "Could not grant the AirPlay sender access to UDP ports 319 and 320." >&2; exit 1; }
+    run /usr/local/sbin/tater-sat1-airplay-permissions
   fi
 fi
 if [ "${DEFER_INIT}" = "1" ]; then

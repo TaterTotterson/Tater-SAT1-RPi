@@ -53,6 +53,7 @@ FLAVOR_FILES = {
         "etc/systemd/system/tater-sat1-app-update.timer",
         "etc/systemd/system/tater-sat1-tater.service",
         "etc/systemd/system/tater-sat1-voice.service",
+        "usr/local/sbin/tater-sat1-airplay-permissions",
     ),
     "satellite": (
         "etc/systemd/system/tater-sat1-satellite.service",

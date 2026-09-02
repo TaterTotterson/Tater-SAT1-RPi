@@ -111,6 +111,14 @@ class ReleaseNotesTests(unittest.TestCase):
         self.assertIn("PTP clock ports", notes)
         self.assertIn("Tater server remains unprivileged", notes)
 
+    def test_v0112_highlights_first_boot_airplay_permissions(self) -> None:
+        notes = release_notes.render_release_notes("owner/repo", "v0.1.12", "v0.1.11", [])
+
+        self.assertIn("Raspberry Pi's first boot", notes)
+        self.assertIn("restricted image-build container", notes)
+        self.assertIn("Tater service unprivileged", notes)
+        self.assertIn("checksum-verified AirPlay sender", notes)
+
 
 if __name__ == "__main__":
     unittest.main()

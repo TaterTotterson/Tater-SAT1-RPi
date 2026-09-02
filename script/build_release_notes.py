@@ -11,6 +11,14 @@ import subprocess
 RELEASE_REPO = "TaterTotterson/Tater-SAT1-RPi"
 _TAG = re.compile(r"^v[0-9][A-Za-z0-9._+-]{0,126}$")
 RELEASE_HIGHLIGHTS = {
+    "v0.1.12": (
+        "Completes the standalone AirPlay image repair by applying the managed sender's low-port permission on "
+        "the Raspberry Pi's first boot instead of inside the restricted image-build container.",
+        "Keeps the Tater service unprivileged and grants the capability only to the checksum-verified AirPlay "
+        "sender executable.",
+        "Retains Tater `v1.1.23`, the pinned native receiver, and persistent user-downloaded core, Verba, and "
+        "portal storage.",
+    ),
     "v0.1.11": (
         "Repairs the standalone image build by allowing Tater `v1.1.23` setup to install the pinned native "
         "AirPlay receiver and its build dependencies.",

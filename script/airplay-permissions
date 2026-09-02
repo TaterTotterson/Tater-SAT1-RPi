@@ -1,0 +1,23 @@
+#!/bin/sh
+set -eu
+
+TATER_APP_DIR="${TATER_INSTALL_TATER_APP_DIR:-/opt/tater/app}"
+TATER_VENV_DIR="${TATER_INSTALL_TATER_VENV_DIR:-/opt/tater/venv}"
+STATE_DIR="${TATER_INSTALL_STATE_DIR:-/var/lib/tater-sat1-standalone}"
+
+[ "$(id -u)" = "0" ] || { printf '%s\n' "AirPlay permission setup must run as root." >&2; exit 1; }
+[ -f "${TATER_APP_DIR}/airplay_bridge.py" ] || { printf '%s\n' "Tater AirPlay Bridge is not installed." >&2; exit 1; }
+[ -x "${TATER_VENV_DIR}/bin/python" ] || { printf '%s\n' "Tater's Python environment is not installed." >&2; exit 1; }
+
+AIRPLAY_SENDER_BIN="$(
+  cd "${TATER_APP_DIR}"
+  TATER_RUNTIME_DIR="${STATE_DIR}/tater-runtime" \
+  PYTHONPATH="${TATER_APP_DIR}" \
+    "${TATER_VENV_DIR}/bin/python" -c \
+    'from airplay_bridge import ensure_airplay_cli; print(ensure_airplay_cli())'
+)"
+
+[ -x "${AIRPLAY_SENDER_BIN}" ] || { printf 'Managed AirPlay sender is missing: %s\n' "${AIRPLAY_SENDER_BIN}" >&2; exit 1; }
+setcap cap_net_bind_service=+ep "${AIRPLAY_SENDER_BIN}"
+getcap "${AIRPLAY_SENDER_BIN}" | grep -q 'cap_net_bind_service' \
+  || { printf '%s\n' "Could not grant the AirPlay sender access to UDP ports 319 and 320." >&2; exit 1; }
