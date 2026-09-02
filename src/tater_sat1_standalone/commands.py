@@ -27,10 +27,10 @@ def build_tater_plan(config: StandaloneConfig, token: str) -> RuntimePlan:
         "MALLOC_ARENA_MAX": "2",
         "PYTHONPATH": str(runtime.tater_app_dir),
         "TATER_AGENT_ROOT": str(runtime.agent_lab_dir),
-        "TATER_CORE_BUILTIN_DIR": str(runtime.builtin_core_dir),
         "TATER_CORE_DIR": str(runtime.core_dir),
         "TATER_LOAD_PROFILE_ENV": "0",
         "TATER_NATIVE_SATELLITE_TOKEN": token,
+        "TATER_PORTAL_DIR": str(runtime.portal_dir),
         "TATER_REDIS_CONFIG_PATH": str(runtime.redis_config_path),
         "TATER_REMOTE_ONLY": "1",
         "TATER_RUNTIME_BACKGROUND_WORKERS": "1",
@@ -44,6 +44,7 @@ def build_tater_plan(config: StandaloneConfig, token: str) -> RuntimePlan:
         "TATER_SETUP_PROFILE": "edge",
         "TATER_SETUP_REQUIRE_LOCAL_LLM": "0",
         "TATER_SPEECH_ACCELERATION": "cpu",
+        "TATER_VERBA_DIR": str(runtime.verba_dir),
         # The SAT1 XMOS capture stream has a steady appliance noise floor.
         # Aggressive WebRTC VAD plus a short, natural endpoint prevents that
         # floor from holding every wake turn open until the hard timeout.

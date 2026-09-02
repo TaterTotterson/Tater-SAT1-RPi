@@ -49,12 +49,13 @@ DoA and beamforming implementation used by Tater Native on ESP32.
 
 The full app remains upstream Tater. Standalone builds use the manually
 selected stable release and exact commit recorded in `upstreams.toml`; version
-`0.1.10` carries Tater `v1.1.23`. Downloaded cores live in persistent,
-service-owned SAT1 state while bundled cores remain in the protected Tater
-application tree. A narrowly scoped build overlay supplies SAT1 hardware VAD
-defaults and becomes a no-op when upstream Tater includes that behavior. This
-repository owns the appliance image, service configuration, tested Linux
-Satellite pin, and SAT1-specific integration.
+`0.1.10` carries Tater `v1.1.23`. Downloaded cores, Verbas, and portals live in
+persistent, service-owned SAT1 state instead of the protected Tater application
+tree. Tater ships only the empty Python package scaffolding for these surfaces;
+all installed content comes from the user. A narrowly scoped build overlay
+supplies SAT1 hardware VAD defaults and becomes a no-op when upstream Tater
+includes that behavior. This repository owns the appliance image, service
+configuration, tested Linux Satellite pin, and SAT1-specific integration.
 
 ## FutureProofHomes Satellite1-RPi
 

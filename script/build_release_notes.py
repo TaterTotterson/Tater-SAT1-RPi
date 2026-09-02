@@ -13,10 +13,10 @@ _TAG = re.compile(r"^v[0-9][A-Za-z0-9._+-]{0,126}$")
 RELEASE_HIGHLIGHTS = {
     "v0.1.10": (
         "Standalone images now bundle Tater `v1.1.23`.",
-        "Downloaded cores now use persistent, Tater-owned SAT1 storage, fixing the permission-denied error caused "
-        "by attempts to write into the protected application bundle.",
-        "Bundled cores remain available from the read-only Tater source tree, while downloaded cores survive signed "
-        "SAT1 appliance updates.",
+        "Downloaded cores, Verbas, and portals now use persistent, Tater-owned SAT1 storage, fixing the "
+        "permission-denied errors caused by attempts to write into the protected application bundle.",
+        "User-installed extensions now survive signed SAT1 appliance updates; Tater's application tree retains only "
+        "the empty package scaffolding shipped by the main project.",
     ),
     "v0.1.9": (
         "Standalone images now bundle Tater `v1.1.22`, including the selectable AdaFace IR-50 WebFace4M "

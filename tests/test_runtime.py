@@ -40,11 +40,18 @@ class RuntimeTests(unittest.TestCase):
                 str(config.runtime.state_dir / "updates"),
             )
             self.assertEqual(tater.environment["TATER_SETUP_REQUIRE_LOCAL_LLM"], "0")
-            self.assertEqual(tater.environment["TATER_CORE_DIR"], str(config.runtime.core_dir))
-            self.assertEqual(
-                tater.environment["TATER_CORE_BUILTIN_DIR"],
-                str(config.runtime.builtin_core_dir),
-            )
+            surface_paths = {
+                "TATER_CORE_DIR": config.runtime.core_dir,
+                "TATER_VERBA_DIR": config.runtime.verba_dir,
+                "TATER_PORTAL_DIR": config.runtime.portal_dir,
+            }
+            for env_name, path in surface_paths.items():
+                self.assertEqual(tater.environment[env_name], str(path))
+                self.assertTrue(path.is_dir())
+                self.assertEqual(os.stat(path).st_mode & 0o777, 0o700)
+            self.assertNotIn("TATER_CORE_BUILTIN_DIR", tater.environment)
+            self.assertNotIn("TATER_VERBA_BUILTIN_DIR", tater.environment)
+            self.assertNotIn("TATER_PORTAL_BUILTIN_DIR", tater.environment)
             self.assertEqual(tater.environment["MALLOC_ARENA_MAX"], "2")
             self.assertEqual(tater.environment["VOICE_WEBRTC_VAD_AGGRESSIVENESS"], "3")
             self.assertEqual(tater.environment["VOICE_VAD_SILENCE_SECONDS"], "0.62")
@@ -66,13 +73,16 @@ class RuntimeTests(unittest.TestCase):
             self.assertEqual(satellite.command[token_index], str(config.runtime.token_path))
             self.assertIn("Kitchen", satellite.command)
             self.assertTrue(config.runtime.satellite_state_dir.is_dir())
-            self.assertTrue(config.runtime.core_dir.is_dir())
             self.assertEqual(os.stat(config.runtime.state_dir).st_mode & 0o777, 0o700)
-            self.assertEqual(os.stat(config.runtime.core_dir).st_mode & 0o777, 0o700)
-            downloaded_core = Path(tater.environment["TATER_CORE_DIR"]) / "example_core.py"
-            downloaded_core.write_text("CORE_SETTINGS = {}\n", encoding="utf-8")
-            self.assertTrue(downloaded_core.is_file())
-            self.assertFalse((config.runtime.builtin_core_dir / downloaded_core.name).exists())
+            downloaded_files = {
+                "TATER_CORE_DIR": "example_core.py",
+                "TATER_VERBA_DIR": "example.py",
+                "TATER_PORTAL_DIR": "example_portal.py",
+            }
+            for env_name, filename in downloaded_files.items():
+                downloaded = Path(tater.environment[env_name]) / filename
+                downloaded.write_text("SETTINGS = {}\n", encoding="utf-8")
+                self.assertTrue(downloaded.is_file())
 
     def test_satellite_flavor_pairs_with_remote_tater_without_local_token(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

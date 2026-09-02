@@ -98,9 +98,10 @@ class ReleaseNotesTests(unittest.TestCase):
         notes = release_notes.render_release_notes("owner/repo", "v0.1.10", "v0.1.9", [])
 
         self.assertIn("Tater `v1.1.23`", notes)
+        self.assertIn("cores, Verbas, and portals", notes)
         self.assertIn("persistent, Tater-owned SAT1 storage", notes)
-        self.assertIn("permission-denied error", notes)
-        self.assertIn("downloaded cores survive signed SAT1 appliance updates", notes)
+        self.assertIn("permission-denied errors", notes)
+        self.assertIn("User-installed extensions now survive signed SAT1 appliance updates", notes)
 
 
 if __name__ == "__main__":

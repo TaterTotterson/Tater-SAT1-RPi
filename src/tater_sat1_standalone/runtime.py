@@ -13,11 +13,14 @@ def prepare_runtime(config: RuntimeConfig) -> str:
         config.tater_runtime_dir,
         config.agent_lab_dir,
         config.core_dir,
+        config.verba_dir,
+        config.portal_dir,
         config.satellite_state_dir,
     ):
         path.mkdir(parents=True, exist_ok=True)
     os.chmod(config.state_dir, 0o700)
-    os.chmod(config.core_dir, 0o700)
+    for path in (config.core_dir, config.verba_dir, config.portal_dir):
+        os.chmod(path, 0o700)
     if config.flavor == "standalone":
         return ensure_private_token(config.token_path)
     try:

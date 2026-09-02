@@ -105,8 +105,12 @@ class RuntimeConfig:
         return self.state_dir / "cores"
 
     @property
-    def builtin_core_dir(self) -> Path:
-        return self.tater_app_dir / "cores"
+    def verba_dir(self) -> Path:
+        return self.state_dir / "verba"
+
+    @property
+    def portal_dir(self) -> Path:
+        return self.state_dir / "portals"
 
     @property
     def redis_config_path(self) -> Path:
