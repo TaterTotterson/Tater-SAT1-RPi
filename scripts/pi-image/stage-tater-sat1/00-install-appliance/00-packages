@@ -10,6 +10,7 @@ hostapd
 i2c-tools
 iproute2
 libasound2-dev
+libcap2-bin
 libmpv-dev
 mpv
 network-manager

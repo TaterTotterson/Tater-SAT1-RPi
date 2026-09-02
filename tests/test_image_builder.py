@@ -158,6 +158,7 @@ class ImageBuilderTests(unittest.TestCase):
             ROOT / "scripts/pi-image/stage-tater-sat1/00-install-appliance/00-packages"
         ).read_text(encoding="utf-8")
         self.assertIn("flashrom\n", packages)
+        self.assertIn("libcap2-bin\n", packages)
         self.assertIn("test -x /usr/sbin/flashrom", stage)
         self.assertNotIn("test -x /usr/bin/flashrom", stage)
 

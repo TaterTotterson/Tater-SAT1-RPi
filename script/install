@@ -140,6 +140,7 @@ if [ "${INSTALL_APT}" = "1" ]; then
     i2c-tools \
     iproute2 \
     libasound2-dev \
+    libcap2-bin \
     libmpv-dev \
     mpv \
     network-manager \
@@ -202,7 +203,7 @@ if [ "${FLAVOR}" = "standalone" ]; then
       "TATER_VENV_DIR=${TATER_VENV_DIR}" \
       "TATER_RUNTIME_DIR=${STATE_DIR}/tater-runtime" \
       "TATER_AGENT_ROOT=${STATE_DIR}/agent-lab" \
-      TATER_SETUP_INSTALL_SYSTEM_DEPS=0 \
+      TATER_SETUP_INSTALL_SYSTEM_DEPS=1 \
       TATER_SETUP_LLAMA_CPP_NATIVE=0 \
       TATER_SETUP_REQUIRE_LOCAL_LLM=0 \
       sh setup_tater.sh edge
@@ -213,7 +214,7 @@ if [ "${FLAVOR}" = "standalone" ]; then
         TATER_VENV_DIR="${TATER_VENV_DIR}" \
         TATER_RUNTIME_DIR="${STATE_DIR}/tater-runtime" \
         TATER_AGENT_ROOT="${STATE_DIR}/agent-lab" \
-        TATER_SETUP_INSTALL_SYSTEM_DEPS=0 \
+        TATER_SETUP_INSTALL_SYSTEM_DEPS=1 \
         TATER_SETUP_LLAMA_CPP_NATIVE=0 \
         TATER_SETUP_REQUIRE_LOCAL_LLM=0 \
       sh setup_tater.sh edge
@@ -297,6 +298,27 @@ else
   run install -m 0755 "${PROJECT_DIR}/script/pair" "/usr/local/bin/tater-sat1-pair"
 fi
 run chown -R "${SERVICE_USER}:${SERVICE_USER}" "${STATE_DIR}"
+if [ "${FLAVOR}" = "standalone" ]; then
+  # Tater setup runs as root while assembling the image, so its low-port probe
+  # succeeds without adding a capability. Resolve the managed sender after the
+  # final chown (which clears file capabilities) and grant only that binary the
+  # permission needed for AirPlay PTP ports 319 and 320.
+  if [ "${DRY_RUN}" = "1" ]; then
+    run setcap cap_net_bind_service=+ep "${STATE_DIR}/tater-runtime/<managed-airplay-sender>"
+  else
+    AIRPLAY_SENDER_BIN="$(
+      cd "${TATER_APP_DIR}"
+      TATER_RUNTIME_DIR="${STATE_DIR}/tater-runtime" \
+      PYTHONPATH="${TATER_APP_DIR}" \
+        "${TATER_VENV_DIR}/bin/python" -c \
+        'from airplay_bridge import ensure_airplay_cli; print(ensure_airplay_cli())'
+    )"
+    [ -x "${AIRPLAY_SENDER_BIN}" ] || { printf 'Managed AirPlay sender is missing: %s\n' "${AIRPLAY_SENDER_BIN}" >&2; exit 1; }
+    run setcap cap_net_bind_service=+ep "${AIRPLAY_SENDER_BIN}"
+    getcap "${AIRPLAY_SENDER_BIN}" | grep -q 'cap_net_bind_service' \
+      || { printf '%s\n' "Could not grant the AirPlay sender access to UDP ports 319 and 320." >&2; exit 1; }
+  fi
+fi
 if [ "${DEFER_INIT}" = "1" ]; then
   printf '%s\n' "  deferring unique token creation until first boot"
 else

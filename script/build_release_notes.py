@@ -11,6 +11,14 @@ import subprocess
 RELEASE_REPO = "TaterTotterson/Tater-SAT1-RPi"
 _TAG = re.compile(r"^v[0-9][A-Za-z0-9._+-]{0,126}$")
 RELEASE_HIGHLIGHTS = {
+    "v0.1.11": (
+        "Repairs the standalone image build by allowing Tater `v1.1.23` setup to install the pinned native "
+        "AirPlay receiver and its build dependencies.",
+        "Includes Linux capability tooling and grants only the managed AirPlay sender access to its low-numbered "
+        "PTP clock ports; the Tater server remains unprivileged.",
+        "Retains the persistent, Tater-owned core, Verba, and portal download directories introduced for this "
+        "release series.",
+    ),
     "v0.1.10": (
         "Standalone images now bundle Tater `v1.1.23`.",
         "Downloaded cores, Verbas, and portals now use persistent, Tater-owned SAT1 storage, fixing the "

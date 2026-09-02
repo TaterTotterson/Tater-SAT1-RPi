@@ -103,6 +103,14 @@ class ReleaseNotesTests(unittest.TestCase):
         self.assertIn("permission-denied errors", notes)
         self.assertIn("User-installed extensions now survive signed SAT1 appliance updates", notes)
 
+    def test_v0111_highlights_airplay_image_build_repair(self) -> None:
+        notes = release_notes.render_release_notes("owner/repo", "v0.1.11", "v0.1.10", [])
+
+        self.assertIn("Tater `v1.1.23`", notes)
+        self.assertIn("pinned native AirPlay receiver", notes)
+        self.assertIn("PTP clock ports", notes)
+        self.assertIn("Tater server remains unprivileged", notes)
+
 
 if __name__ == "__main__":
     unittest.main()
