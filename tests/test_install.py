@@ -21,7 +21,7 @@ class InstallerTests(unittest.TestCase):
         output = completed.stdout
         self.assertIn("git clone https://github.com/TaterTotterson/Tater.git /opt/tater/app", output)
         self.assertIn("checkout --detach 8c4e94469856c9b294c21c05373e55dde7a0917a", output)
-        self.assertIn("4069417f495d9b5cf4dc9d0a38ce2fbb42d575ae", output)
+        self.assertIn("56268f363efc196e27005049bc0ff7fd11b06d20", output)
         self.assertIn("TATER_SETUP_INSTALL_SYSTEM_DEPS=1", output)
         self.assertIn("TATER_SETUP_REQUIRE_LOCAL_LLM=0", output)
         self.assertIn("setup_tater.sh edge", output)
@@ -37,6 +37,11 @@ class InstallerTests(unittest.TestCase):
         self.assertIn("tater-sat1-audio-hardware", output)
         self.assertIn("sat1_xmos_1_1_1_factory.bin", output)
         self.assertIn("tater-sat1-xmos.service", output)
+        for service_name in ("tater-sat1-voice.service", "tater-sat1-satellite.service"):
+            service = (ROOT / "systemd" / service_name).read_text()
+            self.assertIn("AmbientCapabilities=CAP_NET_ADMIN CAP_NET_RAW", service)
+            self.assertIn("CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_RAW", service)
+            self.assertIn("bluetooth.target", service)
         self.assertIn("tater-sat1-xmos-firmware", (ROOT / "systemd/tater-sat1-audio.service").read_text())
         audio_hardware = (ROOT / "script" / "audio-hardware").read_text()
         self.assertIn('0x1a 0x00', audio_hardware)

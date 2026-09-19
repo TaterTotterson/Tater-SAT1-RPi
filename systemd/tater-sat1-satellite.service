@@ -1,14 +1,16 @@
 [Unit]
 Description=Satellite1 voice runtime connected to a network Tater server
 Requires=tater-sat1-firstboot.service tater-sat1-audio.service
-Wants=network-online.target
-After=tater-sat1-firstboot.service tater-sat1-audio.service network-online.target sound.target
+Wants=network-online.target bluetooth.target
+After=tater-sat1-firstboot.service tater-sat1-audio.service network-online.target sound.target hciuart.service bluetooth.target
 
 [Service]
 Type=simple
 User=tater
 Group=tater
 SupplementaryGroups=audio gpio i2c spi
+AmbientCapabilities=CAP_NET_ADMIN CAP_NET_RAW
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_RAW
 Environment=PYTHONUNBUFFERED=1
 Environment=PULSE_CLIENTCONFIG=/etc/tater-sat1-standalone/pulse-client.conf
 ExecStart=/opt/tater-sat1/venv/bin/tater-sat1-standalone --config /etc/tater-sat1-standalone/config.toml run satellite

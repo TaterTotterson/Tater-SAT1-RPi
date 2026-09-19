@@ -41,6 +41,13 @@ def ota_client_class() -> type[Any]:
             public_key = Path(os.getenv("TATER_SAT1_UPDATE_PUBLIC_KEY", str(DEFAULT_PUBLIC_KEY)))
             self._sat1_ota = NativeOtaController(self, state_dir, flavor, public_key)
 
+        def _ble_should_pause(self) -> bool:
+            if super()._ble_should_pause():
+                return True
+            ota = getattr(self, "_sat1_ota", None)
+            task = getattr(ota, "task", None)
+            return task is not None and not task.done()
+
         def _handle_message(self, body: dict[str, Any]) -> None:
             if self._sat1_ota.handle_message(body):
                 return

@@ -53,6 +53,8 @@ This repository is an early runnable appliance scaffold. It currently provides:
   satellite name, room, and satellite-only pairing
 - Tater's optional second-STT wake verification, including Observe, Enabled,
   and fail-open behavior matching the ESP firmware
+- always-on bounded BLE advertisement observation for Tater room presence,
+  paused during voice, playback, and appliance OTA work
 - signed, flavor-specific appliance OTA through Tater with automatic rollback
 - Tater updates carried inside manually published signed appliance OTA releases
 - the verified Tater Native XMOS `1.1.1` image on both flavors, with an

@@ -88,6 +88,13 @@ service owns it. The standalone voice service requires local Tater and audio.
 The fleet voice service requires audio and network availability, then
 reconnects to the main Tater automatically.
 
+Both voice services receive only `CAP_NET_RAW` and `CAP_NET_ADMIN`, allowing
+the shared Linux satellite runtime to observe BLE advertisements through the
+Pi controller without running as root. Scanning uses fixed-size batching and a
+low duty cycle, pauses for voice, playback, and OTA work, and degrades to an
+unavailable heartbeat status without interrupting the satellite when the
+adapter is absent.
+
 ## Hardware adapter
 
 The FutureProofHomes Satellite1 Python SDK supplies XMOS, DAC, and USB-C PD
