@@ -119,6 +119,17 @@ class ReleaseNotesTests(unittest.TestCase):
         self.assertIn("Tater service unprivileged", notes)
         self.assertIn("checksum-verified AirPlay sender", notes)
 
+    def test_v0113_highlights_bounded_ble_room_presence(self) -> None:
+        notes = release_notes.render_release_notes("owner/repo", "v0.1.13", "v0.1.12", [])
+
+        self.assertIn("BLE advertisement observation", notes)
+        self.assertIn("live presence interface", notes)
+        self.assertIn("fixed-memory batching", notes)
+        self.assertIn("low-duty raw HCI scan", notes)
+        self.assertIn("voice, playback", notes)
+        self.assertIn("two Bluetooth capabilities", notes)
+        self.assertIn("no Bluetooth adapter", notes)
+
 
 if __name__ == "__main__":
     unittest.main()

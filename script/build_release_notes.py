@@ -11,6 +11,14 @@ import subprocess
 RELEASE_REPO = "TaterTotterson/Tater-SAT1-RPi"
 _TAG = re.compile(r"^v[0-9][A-Za-z0-9._+-]{0,126}$")
 RELEASE_HIGHLIGHTS = {
+    "v0.1.13": (
+        "Adds always-on BLE advertisement observation to both SAT1 image flavors so Tater can place nearby "
+        "devices in rooms using the same live presence interface as Tater Native satellites.",
+        "Uses fixed-memory batching and a low-duty raw HCI scan that pauses automatically during voice, playback, "
+        "and signed appliance OTA work.",
+        "Keeps the voice process unprivileged with only the two Bluetooth capabilities it needs, and continues "
+        "normal satellite operation when no Bluetooth adapter is available.",
+    ),
     "v0.1.12": (
         "Completes the standalone AirPlay image repair by applying the managed sender's low-port permission on "
         "the Raspberry Pi's first boot instead of inside the restricted image-build container.",
