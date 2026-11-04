@@ -162,3 +162,7 @@ and [Roadmap](docs/ROADMAP.md) for the implementation path.
 
 AGPL-3.0-only. The standalone appliance combines with Tater, which is licensed
 under the GNU Affero General Public License v3.
+
+## Trademarks
+
+The Tater name and logo are governed by the [Tater Trademark Policy](TRADEMARKS.md).
