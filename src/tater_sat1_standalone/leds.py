@@ -23,6 +23,8 @@ LOGGER = logging.getLogger("tater-sat1-leds")
 RGB = tuple[int, int, int]
 BLACK: RGB = (0, 0, 0)
 RED: RGB = (255, 0, 0)
+ORANGE: RGB = (255, 96, 0)
+AMBER: RGB = (255, 160, 0)
 WARM_WHITE: RGB = (255, 227, 181)
 LIGHT_OBJECT_ID = "led_ring"
 DEFAULT_SETUP_ACTIVE_PATH = Path("/run/tater-sat1-setup/active")
@@ -420,7 +422,16 @@ class Sat1LedRenderer:
 
         phase = snapshot.phase
         if phase == LedPhase.INITIALIZING:
-            return LedFrame(tuple([scale_color(WARM_WHITE, 0.33)] * self.pixel_count), 0.1)
+            comets = self._native_comet(
+                self._animation_tick // 2, scale_color(ORANGE, 0.5), dual=True
+            )
+            sparkles = self._native_twinkle(self._animation_tick, scale_color(AMBER, 0.3))
+            pixels = tuple(
+                (max(red, glow_red), max(green, glow_green), max(blue, glow_blue))
+                for (red, green, blue), (glow_red, glow_green, glow_blue) in zip(comets, sparkles)
+            )
+            self._animation_tick += 1
+            return LedFrame(pixels, 0.05)
         if phase == LedPhase.PROVISIONING:
             pixels = self._native_twinkle(self._animation_tick, WARM_WHITE)
             self._animation_tick += 1

@@ -85,6 +85,7 @@ STATE_DIR="${TATER_INSTALL_STATE_DIR:-/var/lib/tater-sat1-standalone}"
 CONFIG_DIR="${TATER_INSTALL_CONFIG_DIR:-/etc/tater-sat1-standalone}"
 SYSTEMD_DIR="${TATER_INSTALL_SYSTEMD_DIR:-/etc/systemd/system}"
 MODULES_LOAD_DIR="${TATER_INSTALL_MODULES_LOAD_DIR:-/etc/modules-load.d}"
+UDEV_RULES_DIR="${TATER_INSTALL_UDEV_RULES_DIR:-/etc/udev/rules.d}"
 NETWORKMANAGER_CONF_DIR="${TATER_INSTALL_NETWORKMANAGER_CONF_DIR:-/etc/NetworkManager/conf.d}"
 CONFIG_PATH="${CONFIG_DIR}/config.toml"
 VERSION_PATH="${CONFIG_DIR}/version"
@@ -173,7 +174,7 @@ section "Service account and directories"
 if [ "${DRY_RUN}" = "1" ] || ! id "${SERVICE_USER}" >/dev/null 2>&1; then
   run useradd --system --user-group --home-dir "${STATE_DIR}" --shell /usr/sbin/nologin "${SERVICE_USER}"
 fi
-run install -d -m 0755 "${APPLIANCE_ROOT}" "${CONFIG_DIR}" "${SYSTEMD_DIR}" "${MODULES_LOAD_DIR}" "${NETWORKMANAGER_CONF_DIR}" "${XMOS_FIRMWARE_DIR}"
+run install -d -m 0755 "${APPLIANCE_ROOT}" "${CONFIG_DIR}" "${SYSTEMD_DIR}" "${MODULES_LOAD_DIR}" "${UDEV_RULES_DIR}" "${NETWORKMANAGER_CONF_DIR}" "${XMOS_FIRMWARE_DIR}"
 if [ "${FLAVOR}" = "standalone" ]; then
   run install -d -m 0755 "${TATER_ROOT}"
 fi
@@ -246,6 +247,10 @@ run "${APPLIANCE_VENV_DIR}/bin/python" "${SATELLITE_APP_DIR}/script/install-send
 run "${APPLIANCE_VENV_DIR}/bin/python" -m pip install "${PROJECT_DIR}"
 run install -d -m 0755 "${APPLIANCE_ROOT}/script" "${APPLIANCE_ROOT}/config"
 run install -m 0755 "${PROJECT_DIR}/script/bluez-permissions" "${APPLIANCE_ROOT}/script/bluez-permissions"
+run install -m 0755 "${PROJECT_DIR}/script/init-audio" "${APPLIANCE_ROOT}/script/init-audio"
+run install -m 0755 "${PROJECT_DIR}/script/hardware-setup" "${APPLIANCE_ROOT}/script/hardware-setup"
+run install -m 0644 "${PROJECT_DIR}/config/99-tater-sat1-i2c.rules" "${APPLIANCE_ROOT}/config/99-tater-sat1-i2c.rules"
+run install -m 0644 "${PROJECT_DIR}/config/satellite1-init.conf" "${APPLIANCE_ROOT}/config/satellite1-init.conf"
 run install -m 0644 "${PROJECT_DIR}/config/bluez-dbus.conf" "${APPLIANCE_ROOT}/config/bluez-dbus.conf"
 run install -m 0644 \
   "${PROJECT_DIR}/firmware/xmos/sat1_xmos_1_1_1_factory.bin" \
@@ -272,12 +277,15 @@ else
   fi
 fi
 run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-audio.service" "${SYSTEMD_DIR}/tater-sat1-audio.service"
+run install -d -m 0755 "${SYSTEMD_DIR}/satellite1-init.service.d"
+run install -m 0644 "${PROJECT_DIR}/config/satellite1-init.conf" "${SYSTEMD_DIR}/satellite1-init.service.d/10-tater-sat1.conf"
 run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-xmos.service" "${SYSTEMD_DIR}/tater-sat1-xmos.service"
 run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-audio-watchdog.service" "${SYSTEMD_DIR}/tater-sat1-audio-watchdog.service"
 run install -m 0644 "${PROJECT_DIR}/systemd/tater-sat1-audio-watchdog.timer" "${SYSTEMD_DIR}/tater-sat1-audio-watchdog.timer"
 run install -m 0644 "${PROJECT_DIR}/config/pulse.pa" "${CONFIG_DIR}/pulse.pa"
 run install -m 0644 "${PROJECT_DIR}/config/pulse-client.conf" "${CONFIG_DIR}/pulse-client.conf"
 run install -m 0644 "${PROJECT_DIR}/config/tater-sat1-i2c.conf" "${MODULES_LOAD_DIR}/tater-sat1-i2c.conf"
+run install -m 0644 "${PROJECT_DIR}/config/99-tater-sat1-i2c.rules" "${UDEV_RULES_DIR}/99-tater-sat1-i2c.rules"
 run install -m 0644 "${PROJECT_DIR}/config/NetworkManager-wifi-powersave.conf" "${NETWORKMANAGER_CONF_DIR}/90-tater-sat1-wifi-powersave.conf"
 run install -m 0755 "${PROJECT_DIR}/script/wait-audio" "/usr/local/sbin/tater-sat1-wait-audio"
 run install -m 0755 "${PROJECT_DIR}/script/audio-hardware" "/usr/local/sbin/tater-sat1-audio-hardware"

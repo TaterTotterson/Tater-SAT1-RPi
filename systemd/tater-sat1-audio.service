@@ -17,6 +17,7 @@ RuntimeDirectoryMode=0700
 # This root-only fallback keeps OTA from v0.1.5 safe: that updater knows how
 # to replace this audio unit and /opt/tater-sat1, but not the new XMOS unit.
 # A per-boot marker makes later audio restarts avoid touching the shared SPI bus.
+ExecStartPre=+/opt/tater-sat1/script/hardware-setup
 ExecStartPre=+/opt/tater-sat1/venv/bin/tater-sat1-xmos-firmware --once-marker /run/tater-sat1-xmos-verified.json
 ExecStartPre=/usr/local/sbin/tater-sat1-audio-hardware
 ExecStart=/usr/bin/pulseaudio --daemonize=no --exit-idle-time=-1 --log-target=journal -n --file=/etc/tater-sat1-standalone/pulse.pa

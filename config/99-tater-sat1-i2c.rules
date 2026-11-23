@@ -1,0 +1,3 @@
+# The vendor audio initializer orders itself after dev-i2c\x2d1.device.
+# Debian's i2c-dev rule sets permissions but does not publish device readiness.
+SUBSYSTEM=="i2c-dev", KERNEL=="i2c-1", TAG+="systemd"

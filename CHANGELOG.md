@@ -1,3 +1,15 @@
+# 0.1.15
+
+- Show an orange comet chase with amber sparkles while the voice runtime starts.
+- Fix SAT1 startup on ordinary USB power when the audio SDK cannot read a
+  negotiated USB-PD contract, and remove a 90-second I²C device wait.
+- Prevent a login-session audio server from claiming the sound card.
+- Fix automatic installation of Tater's XMOS audio firmware after switching
+  from ESPHome. Keep flashrom's default write verification and verify the
+  running firmware version before starting audio.
+- Validate startup, wake detection, and spoken replies on a SAT1 with a
+  Raspberry Pi Zero 2 W using the updated shared voice runtime.
+
 # 0.1.14
 
 - Update both SAT1 Raspberry Pi image flavors to Tater Linux Satellite 1.2.0.

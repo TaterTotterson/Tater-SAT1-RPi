@@ -1,0 +1,31 @@
+#!/bin/sh
+set -eu
+
+APPLIANCE_ROOT="$(CDPATH= cd "$(dirname "$0")/.." && pwd -P)"
+RULE=/etc/udev/rules.d/99-tater-sat1-i2c.rules
+DROPIN=/etc/systemd/system/satellite1-init.service.d/10-tater-sat1.conf
+
+# Apply the image's audio ownership policy to existing cards receiving OTA.
+# The private system service owns ALSA; login-session servers must not race it.
+for unit in pulseaudio.socket pulseaudio.service; do
+  if [ "$(systemctl --global is-enabled "${unit}" 2>/dev/null || true)" != "masked" ]; then
+    systemctl --global mask "${unit}"
+  fi
+done
+
+# Older cards have a fixed OTA allowlist. Carry these additions inside the
+# signed appliance tree and apply them before waiting for the vendor service.
+if ! cmp -s "${APPLIANCE_ROOT}/config/satellite1-init.conf" "${DROPIN}"; then
+  install -d -m 0755 "$(dirname "${DROPIN}")"
+  install -m 0644 "${APPLIANCE_ROOT}/config/satellite1-init.conf" "${DROPIN}"
+  systemctl daemon-reload
+fi
+if ! cmp -s "${APPLIANCE_ROOT}/config/99-tater-sat1-i2c.rules" "${RULE}" || \
+   ! systemctl is-active --quiet 'dev-i2c\x2d1.device'; then
+  install -d -m 0755 "$(dirname "${RULE}")"
+  install -m 0644 "${APPLIANCE_ROOT}/config/99-tater-sat1-i2c.rules" "${RULE}"
+  udevadm control --reload-rules
+  udevadm trigger --action=change --subsystem-match=i2c-dev
+  udevadm settle --timeout=10
+fi
+systemctl start satellite1-init.service

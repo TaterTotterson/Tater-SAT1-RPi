@@ -11,6 +11,17 @@ import subprocess
 RELEASE_REPO = "TaterTotterson/Tater-SAT1-RPi"
 _TAG = re.compile(r"^v[0-9][A-Za-z0-9._+-]{0,126}$")
 RELEASE_HIGHLIGHTS = {
+    "v0.1.15": (
+        "Shows two orange comets with glowing trails and amber sparkles while the voice runtime starts.",
+        "Removes a 90-second I2C device wait and fixes audio initialization when USB-PD contract information "
+        "is unavailable.",
+        "Prevents login-session PulseAudio servers from claiming the sound card used by SAT1's private audio "
+        "server. The fix applies to new images and existing cards receiving OTA.",
+        "Repairs automatic XMOS firmware installation after switching from ESPHome, preserving flashrom's "
+        "default write verification and checking the running firmware version before starting audio.",
+        "Validates startup, wake detection, and spoken replies on a SAT1 with a Raspberry Pi Zero 2 W. "
+        "Retains Tater Linux Satellite `1.2.0`, including dual-detector wake confirmation and wake-boundary support.",
+    ),
     "v0.1.14": (
         "Updates both standalone and satellite images to Tater Linux Satellite `1.2.0`.",
         "Adds shared wake profiles, ONNX wake engines, and wake-boundary inference to preserve commands spoken "

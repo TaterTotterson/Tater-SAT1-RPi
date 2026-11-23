@@ -27,6 +27,7 @@ COMMON_DIRECTORIES = ("opt/tater-sat1",)
 FLAVOR_DIRECTORIES = {"standalone": ("opt/tater",), "satellite": ()}
 XMOS_FIRMWARE_RELATIVE = "opt/tater-sat1/firmware/xmos/sat1_xmos_1_1_1_factory.bin"
 COMMON_FILES = (
+    "etc/systemd/system/satellite1-init.service.d/10-tater-sat1.conf",
     "etc/systemd/system/tater-sat1-audio.service",
     "etc/systemd/system/tater-sat1-xmos.service",
     "etc/systemd/system/tater-sat1-audio-watchdog.service",
@@ -38,6 +39,7 @@ COMMON_FILES = (
     "etc/tater-sat1-standalone/pulse.pa",
     "etc/tater-sat1-standalone/pulse-client.conf",
     "etc/modules-load.d/tater-sat1-i2c.conf",
+    "etc/udev/rules.d/99-tater-sat1-i2c.rules",
     "etc/NetworkManager/conf.d/90-tater-sat1-wifi-powersave.conf",
     "usr/local/sbin/tater-sat1-firstboot",
     "usr/local/sbin/tater-sat1-setup-hotspot",

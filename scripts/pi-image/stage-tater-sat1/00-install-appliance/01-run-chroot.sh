@@ -30,6 +30,8 @@ TATER_SAT1_VERSION="${FIRMWARE_VERSION}" /opt/tater-sat1-standalone-src/script/i
 # The image owns its audio server. Linux Satellite's soundcard backend uses
 # this private PulseAudio socket while mpv handles response playback through
 # the same server.
+# A separate login-session server can otherwise claim ALSA when SSH is used.
+systemctl --global mask pulseaudio.socket pulseaudio.service
 sed -i \
     's|^pulse_server = .*|pulse_server = "unix:/run/tater-sat1-audio/pulse/native"|' \
     /etc/tater-sat1-standalone/config.toml
@@ -57,8 +59,12 @@ test -s /opt/tater-sat1/firmware/xmos/sat1_xmos_1_1_1_factory.bin
 test -x /usr/sbin/flashrom
 test -x /usr/local/sbin/tater-sat1-audio-watchdog
 test -x /usr/local/sbin/tater-sat1-audio-hardware
+test -x /opt/tater-sat1/script/init-audio
+test -x /opt/tater-sat1/script/hardware-setup
+test -s /etc/systemd/system/satellite1-init.service.d/10-tater-sat1.conf
 test -s /etc/tater-sat1-standalone/pulse.pa
 grep -qxF 'i2c-dev' /etc/modules-load.d/tater-sat1-i2c.conf
+grep -q 'TAG+="systemd"' /etc/udev/rules.d/99-tater-sat1-i2c.rules
 grep -qxF 'wifi.powersave = 2' /etc/NetworkManager/conf.d/90-tater-sat1-wifi-powersave.conf
 grep -qxF 'dtoverlay=pwm,pin=12,func=4' /boot/firmware/config.txt
 grep -q '^enabled = true$' /etc/satellite1.conf

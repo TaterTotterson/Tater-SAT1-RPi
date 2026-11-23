@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+"""Run the pinned SAT1 SDK initializer on supplies without USB-PD telemetry."""
+
+import logging
+
+
+def main() -> int:
+    from satellite1 import audio_out
+    from satellite1.cli.cli_sat1 import main as vendor_main
+    from satellite1.components.power_delivery import PDContract
+
+    read_contract = audio_out.get_pd_contract
+
+    def optional_contract():
+        contract = read_contract()
+        if contract is None:
+            # The SDK's speaker setup assumes this is always a PDContract.
+            # Its low-voltage power mode also applies to ordinary 5 V USB.
+            logging.getLogger("tater-sat1-audio").warning(
+                "No USB-PD contract reported; initializing the speaker in low-voltage mode"
+            )
+            return PDContract(voltage=None, current=None)
+        return contract
+
+    audio_out.get_pd_contract = optional_contract
+    return vendor_main(["dac", "setup"])
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

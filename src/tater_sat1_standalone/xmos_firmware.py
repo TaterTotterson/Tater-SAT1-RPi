@@ -109,9 +109,11 @@ def ensure_xmos_firmware(
     try:
         # The v0.1.4 SDK's flash command returns status 1 even after a
         # successful write, so the authoritative result is the version read
-        # after its flashrom write-and-verify pass.
+        # after its flashrom write-and-verify pass. Do not pass --verify: that
+        # SDK translates it into a bare flashrom -v, which requires a filename
+        # and aborts before writing. flashrom -w already verifies by default.
         runner(
-            [str(tool), "-v", "flash-firmware", str(firmware), "--verify"],
+            [str(tool), "-v", "flash-firmware", str(firmware)],
             check=False,
         )
     finally:

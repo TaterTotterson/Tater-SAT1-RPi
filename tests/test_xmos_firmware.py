@@ -65,7 +65,8 @@ class XmosFirmwareTests(unittest.TestCase):
 
         self.assertEqual(result.status, "updated")
         commands = [call.args[0] for call in runner.call_args_list]
-        self.assertIn([str(tool), "-v", "flash-firmware", str(firmware), "--verify"], commands)
+        self.assertIn([str(tool), "-v", "flash-firmware", str(firmware)], commands)
+        self.assertFalse(any("--verify" in command for command in commands))
         self.assertIn([str(tool), "disable-flashing"], commands)
 
     def test_unverified_factory_image_is_never_written(self) -> None:
