@@ -50,8 +50,14 @@ This repository is an early runnable appliance scaffold. It currently provides:
   satellite name, room, and satellite-only pairing
 - Tater's optional second-STT wake verification, including Observe, Enabled,
   and fail-open behavior matching the ESP firmware
-- always-on bounded BLE advertisement observation for Tater room presence,
-  paused during voice, playback, and appliance OTA work
+- Linux Satellite **1.2.0**, with MicroWakeWord, ONNX openWakeWord and
+  NanoWakeWord, shared wake profiles, and wake-boundary inference
+- synchronized Sendspin music, stereo channel selection, speech ducking,
+  and audio scenes through the SAT1 private audio server
+- on-demand Bluetooth discovery and GATT connections, with discovery paused
+  during voice, playback, and appliance OTA work
+- live name and room changes that persist across restarts and remain visible
+  in the local setup portal
 - signed, flavor-specific appliance OTA through Tater with automatic rollback
 - Tater updates carried inside manually published signed appliance OTA releases
 - the verified Tater Native XMOS `1.1.1` image on both flavors, with an
@@ -100,8 +106,8 @@ The plan command always redacts credentials.
 ## Pi installation direction
 
 The primary installation path is now a complete image containing Raspberry Pi
-OS, the pinned FutureProofHomes board packages, and the newest Tater available
-when the image build begins.
+OS, the pinned FutureProofHomes board packages, Linux Satellite 1.2.0, and the
+Tater application release selected in `upstreams.toml`.
 
 Build the standalone image with:
 

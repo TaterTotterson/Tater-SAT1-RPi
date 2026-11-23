@@ -11,6 +11,19 @@ import subprocess
 RELEASE_REPO = "TaterTotterson/Tater-SAT1-RPi"
 _TAG = re.compile(r"^v[0-9][A-Za-z0-9._+-]{0,126}$")
 RELEASE_HIGHLIGHTS = {
+    "v0.1.14": (
+        "Updates both standalone and satellite images to Tater Linux Satellite `1.2.0`.",
+        "Adds shared wake profiles, ONNX wake engines, and wake-boundary inference to preserve commands spoken "
+        "immediately after the wake word.",
+        "Bundles the shared Sendspin player for synchronized music, stereo channel routing, persistent player "
+        "state, and speech ducking through SAT1's audio server.",
+        "Replaces continuous Bluetooth room-presence scanning with on-demand discovery and the shared GATT proxy. "
+        "Discovery pauses during voice, media, and appliance OTA work.",
+        "Uses SAT1's XMOS echo cancellation with the shared wake/playback behavior and saves live satellite "
+        "name and room changes alongside the local setup flow.",
+        "Adds compatibility tests against the pinned runtime and an ARM64 Debian Bookworm Sendspin build check. "
+        "Physical SAT1 audio and Bluetooth testing remains pending.",
+    ),
     "v0.1.13": (
         "Adds always-on BLE advertisement observation to both SAT1 image flavors so Tater can place nearby "
         "devices in rooms using the same live presence interface as Tater Native satellites.",
@@ -160,7 +173,7 @@ def render_release_notes(repo: str, tag: str, previous_tag: str | None, commits:
             f"- {commit.subject} ([`{commit.sha[:7]}`](https://github.com/{repo}/commit/{commit.sha}))"
             for commit in commits
         )
-    else:
+    elif not highlights:
         lines.append("- No user-facing changes were recorded for this release.")
     lines.extend(["", _changelog_link(repo, tag, previous_tag), ""])
     return "\n".join(lines)

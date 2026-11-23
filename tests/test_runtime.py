@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 import tempfile
@@ -72,6 +73,14 @@ class RuntimeTests(unittest.TestCase):
             token_index = satellite.command.index("--tater-token-file") + 1
             self.assertEqual(satellite.command[token_index], str(config.runtime.token_path))
             self.assertIn("Kitchen", satellite.command)
+            self.assertEqual(satellite.environment["TATER_DATA_DIR"], str(config.runtime.satellite_state_dir))
+            self.assertEqual(satellite.environment["PULSE_SINK"], "satellite1_output")
+            self.assertEqual(satellite.environment["TATER_SENDSPIN_BINARY"], "/opt/tater-sat1/sendspin/bin/sendspin-cli")
+            self.assertEqual(
+                satellite.command[satellite.command.index("--tater-identity-file") + 1],
+                str(config.runtime.satellite_identity_path),
+            )
+            self.assertEqual(satellite.command[satellite.command.index("--peripheral-host") + 1], "127.0.0.1")
             self.assertTrue(config.runtime.satellite_state_dir.is_dir())
             self.assertEqual(os.stat(config.runtime.state_dir).st_mode & 0o777, 0o700)
             downloaded_files = {
@@ -120,6 +129,21 @@ class RuntimeTests(unittest.TestCase):
             self.assertEqual(plan.command[plan.command.index("--name") + 1], "Sally's SAT1")
             self.assertEqual(plan.command[plan.command.index("--tater-room") + 1], "Playroom")
             self.assertEqual(config.runtime.satellite_name_path.stat().st_mode & 0o777, 0o600)
+            self.assertEqual(config.runtime.satellite_identity_path.stat().st_mode & 0o777, 0o600)
+
+    def test_live_identity_survives_restart_and_local_setup_can_replace_it(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            config = StandaloneConfig.from_mapping({"runtime": {"state_dir": directory}})
+            provision_satellite_identity(config, "Setup name", "Setup room")
+            # This is the atomic file written by Linux Satellite's live settings.
+            config.runtime.satellite_identity_path.write_text(json.dumps({"name": "Kitchen SAT1", "room": ""}))
+            plan = build_satellite_plan(config)
+            self.assertEqual(plan.command[plan.command.index("--name") + 1], "Kitchen SAT1")
+            self.assertNotIn("--tater-room", plan.command)
+            provision_satellite_identity(config, "New setup name", "Office")
+            plan = build_satellite_plan(config)
+            self.assertEqual(plan.command[plan.command.index("--name") + 1], "New setup name")
+            self.assertEqual(plan.command[plan.command.index("--tater-room") + 1], "Office")
 
 
 if __name__ == "__main__":

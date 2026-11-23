@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import re
 import uuid
@@ -34,6 +35,9 @@ def device_id(config: StandaloneConfig) -> str:
 
 
 def display_name(config: StandaloneConfig) -> str:
+    identity = _saved_identity(config)
+    if identity is not None:
+        return identity["name"]
     override = _read_override(config.runtime.satellite_name_path)
     if override:
         return override
@@ -45,10 +49,25 @@ def display_name(config: StandaloneConfig) -> str:
 
 
 def room_name(config: StandaloneConfig) -> str:
+    identity = _saved_identity(config)
+    if identity is not None:
+        return identity["room"]
     try:
         return config.runtime.satellite_room_path.read_text(encoding="utf-8").strip()
     except FileNotFoundError:
         return config.satellite.room.strip()
+
+
+def _saved_identity(config: StandaloneConfig) -> dict[str, str] | None:
+    """Read the same atomic identity file used by the shared native client."""
+    try:
+        value = json.loads(config.runtime.satellite_identity_path.read_text(encoding="utf-8"))
+        name, room = value["name"], value["room"]
+        if not isinstance(name, str) or not name.strip() or not isinstance(room, str):
+            return None
+        return {"name": name.strip(), "room": room.strip()}
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
 
 
 def _read_override(path: Path) -> str:

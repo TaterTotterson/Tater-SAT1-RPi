@@ -120,6 +120,15 @@ class RuntimeConfig:
     def satellite_state_dir(self) -> Path:
         return self.state_dir / "satellite-runtime"
 
+    @property
+    def satellite_identity_path(self) -> Path:
+        return self.satellite_state_dir / "identity.json"
+
+    @property
+    def sendspin_binary(self) -> Path:
+        # The launcher lives at <appliance>/venv/bin/tater-sat1-voice.
+        return self.satellite_executable.parents[2] / "sendspin/bin/sendspin-cli"
+
 
 @dataclass(frozen=True)
 class TaterConfig:

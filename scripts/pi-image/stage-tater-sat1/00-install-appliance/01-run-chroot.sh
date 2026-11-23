@@ -45,6 +45,12 @@ test -x /usr/local/sbin/tater-sat1-apply-update
 test -x /usr/local/sbin/tater-sat1-update-health
 test -x /opt/tater-sat1/venv/bin/tater-sat1-provisioning
 test -x /opt/tater-sat1/venv/bin/tater-sat1-voice
+test -x /opt/tater-sat1/sendspin/bin/sendspin-cli
+test -s /opt/tater-sat1/sendspin/share/tater-sendspin-channel-routing
+/opt/tater-sat1/venv/bin/python -c 'import onnxruntime; import linux_voice_assistant.wake_boundary; import linux_voice_assistant.bluetooth_proxy'
+PYTHONPATH=/opt/tater-sat1-standalone-src/src \
+TATER_SENDSPIN_BINARY=/opt/tater-sat1/sendspin/bin/sendspin-cli TATER_REQUIRE_SHARED_RUNTIME=1 \
+    /opt/tater-sat1/venv/bin/python -m unittest discover -s /opt/tater-sat1-standalone-src/tests -p test_shared_runtime.py -v
 test -x /opt/tater-sat1/venv/bin/tater-sat1-leds
 test -x /opt/tater-sat1/venv/bin/tater-sat1-xmos-firmware
 test -s /opt/tater-sat1/firmware/xmos/sat1_xmos_1_1_1_factory.bin

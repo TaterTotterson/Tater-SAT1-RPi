@@ -1,6 +1,8 @@
 alsa-utils
+bluez
 build-essential
 ca-certificates
+cmake
 curl
 dnsmasq-base
 ffmpeg
@@ -10,12 +12,16 @@ hostapd
 i2c-tools
 iproute2
 libasound2-dev
+libavahi-client-dev
 libcap2-bin
 libmpv-dev
+libpulse-dev
+libssl-dev
 mpv
 network-manager
 openssl
 openssh-server
+pkg-config
 portaudio19-dev
 pulseaudio
 pulseaudio-utils
@@ -27,3 +33,4 @@ rfkill
 sudo
 xz-utils
 zram-tools
+zlib1g-dev

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -52,6 +53,17 @@ def provision_satellite_identity(config: StandaloneConfig, name: str, room: str)
     os.chmod(config.runtime.state_dir, 0o700)
     _write_private(config.runtime.satellite_name_path, resolved_name, config.runtime.state_dir)
     _write_private(config.runtime.satellite_room_path, resolved_room, config.runtime.state_dir)
+    config.runtime.satellite_state_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+    try:
+        owner = config.runtime.state_dir.stat()
+        os.chown(config.runtime.satellite_state_dir, owner.st_uid, owner.st_gid)
+    except (AttributeError, PermissionError):
+        pass
+    _write_private(
+        config.runtime.satellite_identity_path,
+        json.dumps({"name": resolved_name, "room": resolved_room}),
+        config.runtime.state_dir,
+    )
 
 
 def _write_private(path: Path, value: str, owner_path: Path) -> None:

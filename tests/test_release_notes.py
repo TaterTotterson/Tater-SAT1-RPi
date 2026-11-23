@@ -119,6 +119,21 @@ class ReleaseNotesTests(unittest.TestCase):
         self.assertIn("Tater service unprivileged", notes)
         self.assertIn("checksum-verified AirPlay sender", notes)
 
+    def test_v0114_highlights_shared_runtime_audio_and_on_demand_bluetooth(self) -> None:
+        notes = release_notes.render_release_notes("owner/repo", "v0.1.14", "v0.1.13", [])
+
+        self.assertIn("Tater Linux Satellite `1.2.0`", notes)
+        self.assertIn("both standalone and satellite images", notes)
+        self.assertIn("wake-boundary inference", notes)
+        self.assertIn("Sendspin", notes)
+        self.assertIn("speech ducking", notes)
+        self.assertIn("on-demand discovery", notes)
+        self.assertIn("shared GATT proxy", notes)
+        self.assertIn("name and room changes", notes)
+        self.assertIn("Physical SAT1 audio and Bluetooth testing remains pending", notes)
+        self.assertNotIn("No user-facing changes", notes)
+        self.assertNotIn("Adds always-on BLE", notes)
+
     def test_v0113_highlights_bounded_ble_room_presence(self) -> None:
         notes = release_notes.render_release_notes("owner/repo", "v0.1.13", "v0.1.12", [])
 

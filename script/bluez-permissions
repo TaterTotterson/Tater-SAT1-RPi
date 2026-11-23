@@ -1,0 +1,16 @@
+#!/bin/sh
+set -eu
+
+APPLIANCE_ROOT="$(CDPATH= cd "$(dirname "$0")/.." && pwd -P)"
+SOURCE="${APPLIANCE_ROOT}/config/bluez-dbus.conf"
+DESTINATION=/etc/dbus-1/system.d/tater-sat1-bluetooth.conf
+
+# Keep the policy in the signed appliance tree. Applying it before voice
+# startup also upgrades existing cards whose OTA allowlist predates BlueZ.
+if ! cmp -s "${SOURCE}" "${DESTINATION}"; then
+  install -d -m 0755 /etc/dbus-1/system.d
+  install -m 0644 "${SOURCE}" "${DESTINATION}"
+  if systemctl is-active --quiet dbus.service; then
+    systemctl reload dbus.service
+  fi
+fi

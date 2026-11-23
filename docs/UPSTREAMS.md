@@ -25,6 +25,20 @@ Use its wake-word, audio session, playback, reconnect, and native WebSocket
 implementations. Add SAT1 hardware through an adapter rather than copying the
 transport into this repository.
 
+Both image flavors pin Linux Satellite **1.2.0** at
+`aef52946edb5bf25475cae1fccd1c26866ddcffe`. Install its ONNX extra and build its
+checksum/revision-pinned Sendspin player with the shared install script. The
+player binary and channel-routing support live under `/opt/tater-sat1/sendspin`
+so the signed appliance update and rollback include them. Pairing state, wake
+downloads, live settings and satellite identity stay in persistent state.
+
+SAT1 advertises the XMOS hardware AEC path to the shared wake/playback logic.
+The adapter also keeps the shared Bluetooth latency guards and pauses discovery
+during signed appliance OTA. Bluetooth uses on-demand BlueZ/GATT operations;
+the old continuous room-presence observer is no longer included. A service-user
+D-Bus policy is applied before voice startup, including after updates of older
+cards, without adding new paths to the signed OTA format.
+
 The fleet image also reuses Linux Satellite's short-code pairing exchange and
 durable per-device token persistence. This repository only supplies unique Pi
 identity, service supervision, and the pairing command.
@@ -49,7 +63,7 @@ DoA and beamforming implementation used by Tater Native on ESP32.
 
 The full app remains upstream Tater. Standalone builds use the manually
 selected stable release and exact commit recorded in `upstreams.toml`; version
-`0.1.13` carries Tater `v1.1.23`. Downloaded cores, Verbas, and portals live in
+`0.1.14` carries Tater `v1.1.23`. Downloaded cores, Verbas, and portals live in
 persistent, service-owned SAT1 state instead of the protected Tater application
 tree. Tater ships only the empty Python package scaffolding for these surfaces;
 all installed content comes from the user. A narrowly scoped build overlay

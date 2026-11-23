@@ -13,6 +13,7 @@ class _FakeNativeClient:
         del args
         self.capabilities = dict(kwargs.get("capabilities") or {})
         self.base_ble_pause = False
+        self.features = SimpleNamespace(bluetooth=SimpleNamespace(should_pause=lambda: self.base_ble_pause))
 
     def _ble_should_pause(self) -> bool:
         return self.base_ble_pause
@@ -33,15 +34,21 @@ class VoiceClientTests(unittest.TestCase):
             },
         ):
             client_class = ota_client_class()
-            client = client_class(board="satellite1_rpi_standalone")
+            state = SimpleNamespace()
+            client = client_class(SimpleNamespace(state=state), board="satellite1_rpi_standalone")
 
+        self.assertTrue(state.tater_playback_reference_aec)
         self.assertFalse(client._ble_should_pause())
+        self.assertFalse(client.features.bluetooth.should_pause())
         client._sat1_ota.task = SimpleNamespace(done=lambda: False)
         self.assertTrue(client._ble_should_pause())
+        self.assertTrue(client.features.bluetooth.should_pause())
         client._sat1_ota.task = SimpleNamespace(done=lambda: True)
         self.assertFalse(client._ble_should_pause())
+        self.assertFalse(client.features.bluetooth.should_pause())
         client.base_ble_pause = True
         self.assertTrue(client._ble_should_pause())
+        self.assertTrue(client.features.bluetooth.should_pause())
 
 
 if __name__ == "__main__":

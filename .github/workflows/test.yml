@@ -14,3 +14,32 @@ jobs:
           python-version: "3.11"
       - run: ./script/test
 
+  shared-runtime:
+    runs-on: ubuntu-24.04-arm
+    container: python:3.11-bookworm
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install audio and player build dependencies
+        run: |
+          apt-get update
+          apt-get install -y libmpv-dev libpulse-dev cmake libavahi-client-dev libssl-dev pkg-config zlib1g-dev
+      - name: Install the pinned Linux runtime and Sendspin player
+        run: |
+          python3 - <<'PY'
+          import os, pathlib, subprocess, tomllib
+          pin = tomllib.loads(pathlib.Path('upstreams.toml').read_text())['linux_satellite']
+          source = pathlib.Path(os.environ['RUNNER_TEMP']) / 'linux-satellite'
+          subprocess.run(['git', 'init', str(source)], check=True)
+          tag = f"refs/tags/{pin['reference']}"
+          subprocess.run(['git', '-C', str(source), 'fetch', '--depth=1', pin['url'], f'{tag}:{tag}'], check=True)
+          actual = subprocess.check_output(['git', '-C', str(source), 'rev-parse', f'{tag}^{{commit}}'], text=True).strip()
+          assert actual == pin['reference_revision'], 'Linux Satellite release tag no longer matches its source pin'
+          subprocess.run(['git', '-C', str(source), 'checkout', '--detach', actual], check=True)
+          subprocess.run(['python3', '-m', 'pip', 'install', '-e', f'{source}[onnx]'], check=True)
+          subprocess.run(['python3', str(source / 'script/install-sendspin'), '--prefix', str(pathlib.Path(os.environ['RUNNER_TEMP']) / 'sendspin')], check=True)
+          PY
+      - name: Test SAT1 against the pinned runtime
+        env:
+          TATER_REQUIRE_SHARED_RUNTIME: "1"
+        run: TATER_SENDSPIN_BINARY="$RUNNER_TEMP/sendspin/bin/sendspin-cli" ./script/test
+

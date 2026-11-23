@@ -107,14 +107,27 @@ def build_satellite_plan(config: StandaloneConfig) -> RuntimePlan:
         device_id(config),
         "--tater-board",
         satellite.board,
+        "--tater-identity-file",
+        str(runtime.satellite_identity_path),
+        "--peripheral-host",
+        config.leds.peripheral_host,
+        "--peripheral-port",
+        str(config.leds.peripheral_port),
     ]
     room = room_name(config)
     if room:
         command.extend(("--tater-room", room))
     command.extend(satellite.extra_args)
-    environment = {}
+    environment = {
+        "TATER_DATA_DIR": str(runtime.satellite_state_dir),
+        "TATER_SENDSPIN_BINARY": str(runtime.sendspin_binary),
+    }
     if satellite.pulse_server:
         environment["PULSE_SERVER"] = satellite.pulse_server
+        # mpv uses pulse/<sink>, while Sendspin uses Pulse's default sink.
+        sink = audio_output_device.removeprefix("pulse/")
+        if sink not in {"auto", "default"} and "/" not in sink:
+            environment["PULSE_SINK"] = sink
     return RuntimePlan(
         command=tuple(command),
         environment=environment,
