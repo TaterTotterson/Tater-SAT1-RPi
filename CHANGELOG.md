@@ -1,8 +1,10 @@
-# Unreleased
+# 0.1.16
 
 - Update Tater Embedded from Tater 1.1.23 to the stable Tater 3.0.9 release,
   including the refreshed TaterOS UI and current assistant and satellite
   features. Keep the remote-only edge profile for the Raspberry Pi.
+- Verify edge-profile startup, WebUI, Redis, and authenticated native-satellite
+  connections in an ARM64 Debian Bookworm container with a 512 MiB memory limit.
 
 # 0.1.15
 

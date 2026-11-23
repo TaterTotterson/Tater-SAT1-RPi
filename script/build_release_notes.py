@@ -11,6 +11,16 @@ import subprocess
 RELEASE_REPO = "TaterTotterson/Tater-SAT1-RPi"
 _TAG = re.compile(r"^v[0-9][A-Za-z0-9._+-]{0,126}$")
 RELEASE_HIGHLIGHTS = {
+    "v0.1.16": (
+        "Updates Tater Embedded (`standalone`) from Tater `1.1.23` to the stable Tater `3.0.9` release, "
+        "including the refreshed TaterOS interface and current assistant and satellite features.",
+        "Keeps the lightweight, remote-only edge profile: language models and speech providers run remotely, "
+        "while wake detection and satellite audio stay on the SAT1.",
+        "Verifies edge-profile tests, WebUI startup, Redis health, and an authenticated native-satellite "
+        "connection in ARM64 Debian Bookworm with a 512 MiB container memory limit.",
+        "Retains Linux Satellite `1.2.0`, Tater XMOS `1.1.1`, the orange comet startup animation, "
+        "and the startup/audio fixes from `0.1.15` in both image flavors.",
+    ),
     "v0.1.15": (
         "Shows two orange comets with glowing trails and amber sparkles while the voice runtime starts.",
         "Removes a 90-second I2C device wait and fixes audio initialization when USB-PD contract information "
