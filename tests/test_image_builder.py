@@ -27,7 +27,7 @@ class ImageBuilderTests(unittest.TestCase):
         self.assertIn("sat1_release=v0.1.4", completed.stdout)
         self.assertIn("image_flavor=standalone", completed.stdout)
         self.assertIn(
-            "tater_revision=v1.1.23:8c4e94469856c9b294c21c05373e55dde7a0917a",
+            "tater_revision=v3.0.9:6c43d6c3bbb22854455bf437cf7da53d752c8173",
             completed.stdout,
         )
         self.assertIn("tater_update_policy=pinned_release", completed.stdout)

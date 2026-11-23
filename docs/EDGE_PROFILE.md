@@ -31,8 +31,10 @@ local model providers unavailable in a clean, explicit way.
 
 The edge profile has an isolated installation/import test and starts the full
 Tater application without Torch, TensorFlow, ONNX Runtime, Faster Whisper, or
-other local-model packages. The first host measurement was approximately
-122 MiB RSS at idle with Redis connected and zero models loaded. A real Pi
+other local-model packages. Tater 3.0.9 passed its edge-profile tests, WebUI
+startup, Redis health check, and authenticated native-satellite handshake in an
+ARM64 Debian Bookworm container with a 512 MiB memory limit. The application
+process used approximately 139 MiB RSS with zero models loaded. A real Pi
 measurement remains the performance gate.
 
 ## Missing provider work

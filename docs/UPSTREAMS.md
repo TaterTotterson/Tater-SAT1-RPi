@@ -62,8 +62,8 @@ DoA and beamforming implementation used by Tater Native on ESP32.
 ## Tater
 
 The full app remains upstream Tater. Standalone builds use the manually
-selected stable release and exact commit recorded in `upstreams.toml`; version
-`0.1.15` carries Tater `v1.1.23`. Downloaded cores, Verbas, and portals live in
+selected Tater `v3.0.9` stable release and exact commit recorded in
+`upstreams.toml`. Downloaded cores, Verbas, and portals live in
 persistent, service-owned SAT1 state instead of the protected Tater application
 tree. Tater ships only the empty Python package scaffolding for these surfaces;
 all installed content comes from the user. A narrowly scoped build overlay

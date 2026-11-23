@@ -1,3 +1,9 @@
+# Unreleased
+
+- Update Tater Embedded from Tater 1.1.23 to the stable Tater 3.0.9 release,
+  including the refreshed TaterOS UI and current assistant and satellite
+  features. Keep the remote-only edge profile for the Raspberry Pi.
+
 # 0.1.15
 
 - Show an orange comet chase with amber sparkles while the voice runtime starts.
