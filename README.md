@@ -72,7 +72,10 @@ After pairing, manage voice settings, wake words, name, room, and volume from
 ## Everyday features
 
 - **Wake words:** microWakeWord, openWakeWord, and NanoWakeWord, with optional
-  dual-detector confirmation and a boundary model for natural speech.
+  dual-detector confirmation.
+- **Speak without pausing:** the wake-boundary model helps preserve the start
+  of commands spoken immediately after the wake word, such as
+  “Hey Tater, turn on the lights.”
 - **Clearer audio:** four-microphone beamforming, echo cancellation, and noise reduction.
 - **Music and replies:** Sendspin playback, stereo channels, speech ducking,
   announcements, and local timers.
