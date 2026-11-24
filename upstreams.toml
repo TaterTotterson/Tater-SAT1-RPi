@@ -12,8 +12,8 @@ role = "Primary reference for bundling full Tater with a loopback native satelli
 
 [linux_satellite]
 url = "https://github.com/TaterTotterson/Tater-Linux-Satellite.git"
-reference = "v1.2.0"
-reference_revision = "aef52946edb5bf25475cae1fccd1c26866ddcffe"
+reference = "v1.2.1"
+reference_revision = "4c0762e5919741875b2a976712ac421bf8eb3908"
 role = "Shared wake profiles, boundary inference, ONNX wake engines, Sendspin and speech ducking, on-demand Bluetooth proxy, live identity/settings, timers, and native satellite transport"
 
 [thirdreality_firmware]

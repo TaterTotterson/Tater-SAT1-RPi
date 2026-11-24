@@ -25,8 +25,9 @@ Use its wake-word, audio session, playback, reconnect, and native WebSocket
 implementations. Add SAT1 hardware through an adapter rather than copying the
 transport into this repository.
 
-Both image flavors pin Linux Satellite **1.2.0** at
-`aef52946edb5bf25475cae1fccd1c26866ddcffe`. Install its ONNX extra and build its
+Both image flavors pin Linux Satellite **1.2.1** at
+`4c0762e5919741875b2a976712ac421bf8eb3908`, including the concurrent custom
+wake-model and boundary-cache write fixes. Install its ONNX extra and build its
 checksum/revision-pinned Sendspin player with the shared install script. The
 player binary and channel-routing support live under `/opt/tater-sat1/sendspin`
 so the signed appliance update and rollback include them. Pairing state, wake

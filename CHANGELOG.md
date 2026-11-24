@@ -1,3 +1,14 @@
+# 0.1.17
+
+- Update both satellite-only and Tater Embedded images to Linux Satellite 1.2.1.
+- Fix custom wake-model activation when startup and incoming settings trigger
+  overlapping downloads. Cover NanoWakeWord, openWakeWord, custom microWakeWord
+  model writes, and boundary-model caching with independent temporary files.
+- Verify the concurrency regression tests and the selected MWW + NanoWakeWord
+  GRU profile on a running SAT1 Raspberry Pi Zero 2 W.
+- Simplify setup documentation, include Home Assistant bridge management, and
+  explain wake boundaries and recommended dual-detector wake confirmation.
+
 # 0.1.16
 
 - Update Tater Embedded from Tater 1.1.23 to the stable Tater 3.0.9 release,

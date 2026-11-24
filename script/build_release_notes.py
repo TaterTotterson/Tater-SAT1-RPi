@@ -11,6 +11,17 @@ import subprocess
 RELEASE_REPO = "TaterTotterson/Tater-SAT1-RPi"
 _TAG = re.compile(r"^v[0-9][A-Za-z0-9._+-]{0,126}$")
 RELEASE_HIGHLIGHTS = {
+    "v0.1.17": (
+        "Updates both satellite-only and Tater Embedded images to Tater Linux Satellite `1.2.1`, "
+        "pinned to the exact release commit.",
+        "Fixes custom wake-model activation when startup and incoming settings trigger overlapping downloads. "
+        "Independent temporary files protect NanoWakeWord, openWakeWord, custom microWakeWord model writes, "
+        "and boundary-model caching.",
+        "Verifies overlapping-download regression tests on a SAT1 Raspberry Pi Zero 2 W and confirms its "
+        "custom MWW + NanoWakeWord GRU profile loads and reports ready.",
+        "Refreshes setup guidance for Tater and the Home Assistant bridge, wake boundaries, and recommended "
+        "dual-detector wake confirmation.",
+    ),
     "v0.1.16": (
         "Updates Tater Embedded (`standalone`) from Tater `1.1.23` to the stable Tater `3.0.9` release, "
         "including the refreshed TaterOS interface and current assistant and satellite features.",
