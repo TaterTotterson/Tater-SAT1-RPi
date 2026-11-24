@@ -12,163 +12,96 @@
 
 # Tater SAT1 Raspberry Pi Images
 
-Ready-to-flash Tater appliances for the FutureProofHomes Satellite1 HAT and a
-Raspberry Pi.
+Turn a **FutureProofHomes Satellite1 HAT + Raspberry Pi Zero 2 W** into a
+voice assistant. Run Tater on the device, or connect it to an existing Tater
+server or Home Assistant.
 
-The repository builds two flavors from one pinned hardware and audio base. The
-full image is the **Tater Embedded** experience; its artifact identifier remains
-`standalone` so installed devices retain a stable OTA identity:
+## Choose your image
 
-- `standalone` (**Tater Embedded**) runs the complete Tater server and native
-  Linux voice satellite together on the SAT1 Pi.
-- `satellite` runs only the native Linux voice satellite and pairs with a main
-  Tater server elsewhere on the network.
+| Image | Use it when |
+| --- | --- |
+| **Tater Embedded** (`standalone`) | You want the Tater server, web interface, and voice satellite together on the Pi. |
+| **Satellite only** (`satellite`) | You already run Tater elsewhere, or want to connect directly to Home Assistant through the bridge. |
 
-Wake detection and audio stay on the SAT1 device. Resource-intensive speech
-recognition, language-model, and speech synthesis work runs on Tater or its
-configured remote APIs.
+Tater Embedded uses remote providers for language models, speech recognition,
+and speech synthesis. Wake detection and audio run locally on the SAT1.
 
-## Status
+## What you need
 
-This repository is an early runnable appliance scaffold. It currently provides:
+- A **Satellite1 HAT with a Raspberry Pi Zero 2 W**.
+- A **16 GB or larger microSD card** and a reliable power supply.
+- Wi-Fi and either remote model providers, an existing Tater server, or the
+  Home Assistant bridge, depending on your chosen image.
 
-- separate `systemd` services for Tater, SAT1 audio, and the voice runtime
-- microphone level normalization and automatic recovery if the experimental
-  SAT1 I2S capture stream stalls
-- automatic creation of a shared private native-satellite token
-- a loopback-only satellite connection to the local Tater server
-- configuration and deterministic launch plans
-- host diagnostics and unit tests
-- Tater's tested remote-only `edge` dependency and runtime profile
-- an installer that pins the manually selected Tater `v3.0.9` release plus
-  the tested Linux Satellite and hardware revisions
-- a Tater Tube-style `pi-gen` pipeline that exports a flashable `.img.xz`
-- a fleet satellite flavor that contains no Tater application or Redis service
-- unique hostnames and device IDs derived on first boot
-- one-time pairing with durable per-device native-satellite credentials
-- a shared first-boot Wi-Fi hotspot and captive setup portal for network,
-  satellite name, room, and satellite-only pairing
-- Tater's optional second-STT wake verification, including Observe, Enabled,
-  and fail-open behavior matching the ESP firmware
-- Linux Satellite **1.2.0**, with MicroWakeWord, ONNX openWakeWord and
-  NanoWakeWord, shared wake profiles, and wake-boundary inference
-- synchronized Sendspin music, stereo channel selection, speech ducking,
-  and audio scenes through the SAT1 private audio server
-- on-demand Bluetooth discovery and GATT connections, with discovery paused
-  during voice, playback, and appliance OTA work
-- live name and room changes that persist across restarts and remain visible
-  in the local setup portal
-- signed, flavor-specific appliance OTA through Tater with automatic rollback
-- Tater updates carried inside manually published signed appliance OTA releases
-- the verified Tater Native XMOS `1.1.1` image on both flavors, with an
-  automatic version check before audio and no rewrite when it already matches
-- four-microphone talker tracking, DoA, fractional-delay beamforming,
-  microphone calibration/fallback, AEC, noise suppression, and AGC on XMOS
-- the SAT1 24-pixel ring, driven through its XMOS controller, with the voice,
-  timer, volume, mute, and connection animations used by the ESP32 firmware
-- XMOS direction-of-arrival input for the warm-tipped listening beam and saved
-  reply direction
-- real speaker-monitor levels for the direction-anchored reactive reply ring
-- SAT1 volume buttons and hardware microphone-mute switch bridged into Tater
+## Get started
 
-The image has completed initial boot, audio, wake-word, and LED bring-up on
-physical SAT1 hardware. Environmental sensor telemetry is not included yet.
+1. [Download the latest release](https://github.com/TaterTotterson/Tater-SAT1-RPi/releases/latest)
+   and choose the `standalone` or `satellite` **`.img.xz`** file.
+2. In Raspberry Pi Imager, choose **Use Custom** and flash the card. Skip Wi-Fi
+   customization to use the guided setup below.
+3. With power disconnected, attach the HAT and insert the card. Power on and
+   allow several minutes for the first boot and audio setup.
+4. Join **Tater-SAT1-Setup-XXXXXX** from a phone or computer. If its setup page
+   does not open, browse to **http://192.168.4.1**.
+5. Enter your Wi-Fi, satellite name, and room, then choose **Save and connect**.
+   For the satellite-only image, also enter your controller's URL and pairing
+   code from Tater or the Home Assistant bridge.
 
-## Runtime flows
+**Tater Embedded:** open `http://<pi-ip>:8501` after it joins your network and
+configure your remote model and speech providers in TaterOS.
 
-```text
-SAT1 HAT -> local wake/audio service -> Tater on localhost:8501
-                                      -> remote STT/LLM/TTS APIs
+**Satellite only:** create a pairing code in your main Tater app under
+**Voice & devices → Satellites → Add Satellite** before completing setup.
+For Home Assistant, follow the section below.
 
-SAT1 HAT -> local wake/audio service -> main Tater over the LAN
-```
+## Home Assistant
 
-The design follows the existing Tater Reachy Standalone pattern while keeping
-the runtimes as independently supervised services.
+Choose the **satellite** image and install the
+[Tater Home Assistant Satellites bridge](https://github.com/TaterTotterson/Tater-Home-Assistant-Satellites).
+It connects SAT1 directly to **Home Assistant Assist** or optional **Mini-Tater**.
+The main Tater app is not required for this setup.
 
-## Development
+1. Follow the [bridge installation guide](https://github.com/TaterTotterson/Tater-Home-Assistant-Satellites#get-started).
+2. In Home Assistant, open **Tater Satellites → Add satellite** to get a pairing code.
+3. Enter the **Home Assistant URL shown in the bridge** and that code in SAT1's
+   setup page, along with your Wi-Fi details.
 
-Run the tests without installing the package:
+After pairing, manage voice settings, wake words, name, room, and volume from
+**Tater Satellites** in Home Assistant.
 
-```sh
-./script/test
-```
+## Everyday features
 
-Inspect the commands that would run with the example configuration:
+- **Wake words:** microWakeWord, openWakeWord, and NanoWakeWord, with optional
+  dual-detector confirmation and a boundary model for natural speech.
+- **Clearer audio:** four-microphone beamforming, echo cancellation, and noise reduction.
+- **Music and replies:** Sendspin playback, stereo channels, speech ducking,
+  announcements, and local timers.
+- **Device controls:** animated LED ring, volume buttons, and hardware microphone mute.
+- **Bluetooth:** on-demand discovery and connections for compatible devices.
 
-```sh
-./script/plan
-./script/plan config/config.toml.example satellite
-```
+## Updates
 
-The plan command always redacts credentials.
+Releases include flashable images and signed appliance updates. In Tater,
+use the connected satellite's firmware update action. Updates preserve Wi-Fi,
+pairing, and user data, with automatic rollback if startup checks fail.
 
-## Pi installation direction
+Tater Embedded receives its bundled Tater updates through SAT1 releases.
+See [update instructions](docs/OTA.md) and [what changed](CHANGELOG.md).
 
-The primary installation path is now a complete image containing Raspberry Pi
-OS, the pinned FutureProofHomes board packages, Linux Satellite 1.2.0, and the
-Tater application release selected in `upstreams.toml`.
+## Help and development
 
-Build the standalone image with:
+- [Image selection, flashing, and hardware setup](docs/IMAGE.md)
+- [Wi-Fi setup and recovery](docs/PROVISIONING.md)
+- [Pairing with an existing Tater server](docs/FLEET_IMAGE.md)
+- [Signed updates and preserved data](docs/OTA.md)
+- [Remote-only model profile](docs/EDGE_PROFILE.md)
 
-```sh
-./scripts/build-pi-image.sh
-```
+For development, see [installation](docs/INSTALL.md),
+[architecture](docs/ARCHITECTURE.md), and [upstream references](docs/UPSTREAMS.md).
+Run `./script/test` for tests; see the [image guide](docs/IMAGE.md#build-locally)
+to build your own image.
 
-Build the fleet satellite image with:
+## License and trademarks
 
-```sh
-./scripts/build-pi-image.sh --flavor satellite
-```
-
-Flash the resulting `.img.xz` using Raspberry Pi Imager's **Use Custom**
-option. SSH is disabled in the image by default. If remote shell access is
-needed, explicitly enable it in Raspberry Pi Imager and supply a unique
-password or public key, keeping the appliance username `tater`. On first boot,
-join the unique
-`Tater-SAT1-Setup-XXXXXX` hotspot and follow the captive page; SSH is not
-required for normal setup. See
-[Wi-Fi hotspot setup](docs/PROVISIONING.md) and
-[Image building and flashing](docs/IMAGE.md).
-
-Preview the complete installation without modifying the host:
-
-```sh
-./script/install --dry-run
-```
-
-On a dedicated Satellite1 Raspberry Pi image, install with:
-
-```sh
-sudo ./script/install
-```
-
-The installer places:
-
-- the full Tater source and edge environment under `/opt/tater` for standalone
-- this launcher and Tater Linux Satellite at `/opt/tater-sat1/venv`
-- persistent state at `/var/lib/tater-sat1-standalone`
-- configuration at `/etc/tater-sat1-standalone/config.toml`
-
-The Tater Embedded flavor does not download Tater releases independently.
-Refresh the bundled Tater revision when preparing this repository, then publish
-it through the signed SAT1 appliance OTA. A failed appliance health check
-restores the previous known-good release. See
-[Signed appliance updates](docs/OTA.md).
-
-See [Image building and flashing](docs/IMAGE.md),
-[Wi-Fi hotspot setup](docs/PROVISIONING.md),
-[Fleet satellite image](docs/FLEET_IMAGE.md),
-[Signed appliance updates](docs/OTA.md),
-[Installation](docs/INSTALL.md), [Architecture](docs/ARCHITECTURE.md),
-[Edge profile](docs/EDGE_PROFILE.md), [Upstream references](docs/UPSTREAMS.md),
-and [Roadmap](docs/ROADMAP.md) for the implementation path.
-
-## License
-
-AGPL-3.0-only. The standalone appliance combines with Tater, which is licensed
-under the GNU Affero General Public License v3.
-
-## Trademarks
-
-The Tater name and logo are governed by the [Tater Trademark Policy](TRADEMARKS.md).
+Licensed under [GNU AGPL v3](LICENSE). The Tater name and logo are covered by
+the [Tater Trademark Policy](TRADEMARKS.md).
