@@ -12,9 +12,9 @@ import time
 from typing import Callable
 
 
-TARGET_VERSION = "v1.2.0-dev.1"
-FIRMWARE_SHA256 = "e5ad83ffd66f03b3ddba1dfef14d9829d15ead9fab0dc416f8a57f0cdf69ec88"
-DEFAULT_FIRMWARE = Path("/opt/tater-sat1/firmware/xmos/sat1_xmos_1_2_0_dev1_factory.bin")
+TARGET_VERSION = "v1.2.0-dev.8"
+FIRMWARE_SHA256 = "da5d2bb570d8165e02f746dc35896a3954a09e07f3131e3530582f0b975a4ac4"
+DEFAULT_FIRMWARE = Path("/opt/tater-sat1/firmware/xmos/sat1_xmos_1_2_0_dev8_factory.bin")
 DEFAULT_TOOL = Path("/usr/bin/sat1-xmos")
 _VERSION = re.compile(r"^v[0-9]+\.[0-9]+\.[0-9]+(?:-(?:alpha|beta|rc|dev)(?:\.[0-9]+)?)?$")
 

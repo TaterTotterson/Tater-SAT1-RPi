@@ -25,7 +25,9 @@ _VERSION = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]{0,127}$")
 
 COMMON_DIRECTORIES = ("opt/tater-sat1",)
 FLAVOR_DIRECTORIES = {"standalone": ("opt/tater",), "satellite": ()}
-XMOS_FIRMWARE_RELATIVE = "opt/tater-sat1/firmware/xmos/sat1_xmos_1_2_0_dev1_factory.bin"
+XMOS_FIRMWARE_RELATIVE = "opt/tater-sat1/firmware/xmos/sat1_xmos_1_2_0_dev8_factory.bin"
+# v0.1.18 OTA verifiers require this path inside the replacement application tree.
+PREVIOUS_XMOS_FIRMWARE_RELATIVE = "opt/tater-sat1/firmware/xmos/sat1_xmos_1_2_0_dev1_factory.bin"
 # Installed OTA verifiers from older releases still require this recovery path.
 LEGACY_XMOS_FIRMWARE_RELATIVE = "opt/tater-sat1/firmware/xmos/sat1_xmos_1_1_1_factory.bin"
 COMMON_FILES = (
@@ -323,7 +325,7 @@ def validate_payload(payload_root: Path, flavor: str, version: str) -> None:
     for relative in managed_files(flavor):
         if not (payload_root / relative).is_file():
             raise ValueError(f"OTA payload is missing file: /{relative}")
-    for firmware in (XMOS_FIRMWARE_RELATIVE, LEGACY_XMOS_FIRMWARE_RELATIVE):
+    for firmware in (XMOS_FIRMWARE_RELATIVE, PREVIOUS_XMOS_FIRMWARE_RELATIVE, LEGACY_XMOS_FIRMWARE_RELATIVE):
         if not (payload_root / firmware).is_file():
             raise ValueError(f"OTA payload is missing XMOS firmware: /{firmware}")
     installed_version = (payload_root / "etc/tater-sat1-standalone/version").read_text(encoding="utf-8").strip()

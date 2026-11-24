@@ -1,3 +1,12 @@
+# 0.1.19
+
+- Enable the IC/VNR stage after the calibrated pre-AEC beam and stereo-reference
+  2Y2X AEC using Tater Native XMOS 1.2.0-dev.8 in both image flavors.
+- Share the exact XMOS payload with native Sat1 0.7.0-r2; retain direction finding,
+  microphone calibration/health, noise suppression, AGC, and protocol 0x11.
+- Update the checksum-pinned boot target and preserve dev.1 and 1.1.1 image paths
+  for existing signed OTA verifiers. Tater-host hardware checks follow the builds.
+
 # 0.1.18
 
 - Bundle the exact working XMOS 1.2.0-dev.1 image shared with native Sat1

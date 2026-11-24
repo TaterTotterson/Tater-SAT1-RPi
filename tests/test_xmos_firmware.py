@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from pathlib import Path
 import subprocess
 import sys
@@ -23,13 +24,14 @@ class XmosFirmwareTests(unittest.TestCase):
     def test_parse_version_ignores_cli_noise(self) -> None:
         self.assertEqual(parse_version("setup complete\nv1.1.1\n"), "v1.1.1")
         self.assertEqual(parse_version("v1.0.4-alpha.8\n"), "v1.0.4-alpha.8")
+        self.assertEqual(parse_version("v1.2.0-dev.8\n"), "v1.2.0-dev.8")
         self.assertEqual(parse_version("v1.2.0-dev.1\n"), "v1.2.0-dev.1")
         self.assertIsNone(parse_version("None\n"))
 
     def test_matching_firmware_is_left_untouched(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             firmware, tool, digest = self._fixture(directory)
-            runner = mock.Mock(return_value=subprocess.CompletedProcess([], 0, "v1.2.0-dev.1\n", ""))
+            runner = mock.Mock(return_value=subprocess.CompletedProcess([], 0, "v1.2.0-dev.8\n", ""))
 
             result = ensure_xmos_firmware(
                 firmware,
@@ -50,7 +52,7 @@ class XmosFirmwareTests(unittest.TestCase):
     def test_mismatched_firmware_is_written_verified_and_released_from_reset(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             firmware, tool, digest = self._fixture(directory)
-            versions = iter(("v1.0.3\n", "v1.2.0-dev.1\n"))
+            versions = iter(("v1.2.0-dev.1\n", "v1.2.0-dev.8\n"))
 
             def run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
                 stdout = next(versions) if command[-1] == "tater_sat1_standalone.xmos_control" else ""
@@ -91,7 +93,7 @@ class XmosFirmwareTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             firmware, tool, digest = self._fixture(directory)
             marker = Path(directory) / "run" / "verified.json"
-            runner = mock.Mock(return_value=subprocess.CompletedProcess([], 0, "v1.2.0-dev.1\n", ""))
+            runner = mock.Mock(return_value=subprocess.CompletedProcess([], 0, "v1.2.0-dev.8\n", ""))
 
             first = ensure_xmos_firmware_once(
                 marker,
@@ -113,6 +115,28 @@ class XmosFirmwareTests(unittest.TestCase):
         self.assertEqual(first.status, "unchanged")
         self.assertEqual(second.status, "already_verified_this_boot")
         self.assertEqual(runner.call_count, 1)
+
+    def test_dev1_boot_marker_does_not_skip_the_ic_enabled_update(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            firmware, tool, digest = self._fixture(directory)
+            marker = Path(directory) / "verified.json"
+            marker.write_text(json.dumps({"target_version": "v1.2.0-dev.1", "firmware_sha256": digest}))
+            versions = iter(("v1.2.0-dev.1\n", "v1.2.0-dev.8\n"))
+
+            def run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
+                stdout = next(versions) if command[-1] == "tater_sat1_standalone.xmos_control" else ""
+                return subprocess.CompletedProcess(command, 0, stdout, "")
+
+            runner = mock.Mock(side_effect=run)
+            result = ensure_xmos_firmware_once(
+                marker, firmware, expected_sha256=digest, tool=tool, runner=runner, sleeper=mock.Mock()
+            )
+            self.assertEqual(result.status, "updated")
+            self.assertIn(
+                [str(tool), "-v", "flash-firmware", str(firmware)],
+                [call.args[0] for call in runner.call_args_list],
+            )
+            self.assertEqual(json.loads(marker.read_text())["target_version"], "v1.2.0-dev.8")
 
 
 if __name__ == "__main__":

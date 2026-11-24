@@ -23,11 +23,11 @@ role = "Embedded Linux packaging, hardware bridge, provisioning, and update refe
 
 [tater_native_xmos]
 url = "https://github.com/TaterTotterson/Tater-Native-Firmware.git"
-reference = "native-0.7.0-r1"
-reference_revision = "5d2a850018a3b1ba882e54791f9e681817b73921"
-version = "v1.2.0-dev.1"
-sha256 = "e5ad83ffd66f03b3ddba1dfef14d9829d15ead9fab0dc416f8a57f0cdf69ec88"
-role = "Four-microphone XMOS DoA, beamforming, calibration, AEC, noise suppression, and AGC"
+reference = "native-0.7.0-r2"
+reference_revision = "27ff14d441b4e808869a33dce917a318ce431135"
+version = "v1.2.0-dev.8"
+sha256 = "da5d2bb570d8165e02f746dc35896a3954a09e07f3131e3530582f0b975a4ac4"
+role = "Four-microphone XMOS DoA, beamforming, calibration, stereo-reference AEC, IC/VNR, noise suppression, and AGC"
 
 [satellite1_rpi]
 url = "https://github.com/FutureProofHomes/Satellite1-RPi.git"

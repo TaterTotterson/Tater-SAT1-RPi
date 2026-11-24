@@ -53,11 +53,11 @@ tree support are already there.
 
 ## Tater Native XMOS
 
-Both RPi image flavors bundle the tested XMOS `1.2.0-dev.1` factory image from
-the published `Tater-Native-Firmware` `native-0.7.0-r1` tag. Its source revision,
+Both RPi image flavors bundle the shared XMOS `1.2.0-dev.8` factory image from
+the published `Tater-Native-Firmware` `native-0.7.0-r2` tag. Its source revision,
 version, and binary SHA-256 are pinned in `upstreams.toml`. The boot verifier
 uses the appliance protocol 0x10/0x11 reader to check the running version and
-the FutureProofHomes utility to write and verify the external XMOS flash, while the audio processing itself remains the same four-microphone
+the FutureProofHomes utility to write and verify the external XMOS flash, while both image flavors use the same IC-enabled four-microphone
 DoA and beamforming implementation used by Tater Native on ESP32.
 
 ## Tater

@@ -21,6 +21,7 @@ from tater_sat1_standalone.update_health import run_health_check  # noqa: E402
 from tater_sat1_standalone.update_installer import (  # noqa: E402
     Layout,
     XMOS_FIRMWARE_RELATIVE,
+    PREVIOUS_XMOS_FIRMWARE_RELATIVE,
     LEGACY_XMOS_FIRMWARE_RELATIVE,
     apply_pending,
     managed_directories,
@@ -43,9 +44,10 @@ def populate_rootfs(root: Path, flavor: str, version: str, marker: str) -> None:
     launcher.write_text("#!/bin/sh\n", encoding="utf-8")
     launcher.chmod(0o755)
     (root / "opt/tater-sat1/release-marker").write_text(marker + "\n", encoding="utf-8")
-    xmos = root / "opt/tater-sat1/firmware/xmos/sat1_xmos_1_2_0_dev1_factory.bin"
+    xmos = root / "opt/tater-sat1/firmware/xmos/sat1_xmos_1_2_0_dev8_factory.bin"
     xmos.parent.mkdir(parents=True, exist_ok=True)
     xmos.write_bytes(b"test XMOS factory image")
+    xmos.with_name("sat1_xmos_1_2_0_dev1_factory.bin").write_bytes(b"previous XMOS recovery image")
     xmos.with_name("sat1_xmos_1_1_1_factory.bin").write_bytes(b"legacy XMOS recovery image")
     if flavor == "standalone":
         app = root / "opt/tater/app/tateros_app.py"
@@ -54,16 +56,21 @@ def populate_rootfs(root: Path, flavor: str, version: str, marker: str) -> None:
 
 
 class OtaTests(unittest.TestCase):
-    def test_replacement_payload_keeps_both_xmos_paths_for_old_and_new_verifiers(self) -> None:
+    def test_replacement_payload_keeps_all_xmos_paths_for_existing_verifiers(self) -> None:
         for flavor in ("standalone", "satellite"):
             with self.subTest(flavor=flavor), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
-                populate_rootfs(root, flavor, "v0.1.18", "new")
-                validate_payload(root, flavor, "v0.1.18")
-                self.assertTrue((root / XMOS_FIRMWARE_RELATIVE).is_file())
-                (root / LEGACY_XMOS_FIRMWARE_RELATIVE).unlink()
-                with self.assertRaisesRegex(ValueError, "missing XMOS firmware"):
-                    validate_payload(root, flavor, "v0.1.18")
+                populate_rootfs(root, flavor, "v0.1.19", "new")
+                validate_payload(root, flavor, "v0.1.19")
+                for relative in (XMOS_FIRMWARE_RELATIVE, PREVIOUS_XMOS_FIRMWARE_RELATIVE,
+                                 LEGACY_XMOS_FIRMWARE_RELATIVE):
+                    with self.subTest(path=relative):
+                        image = root / relative
+                        data = image.read_bytes()
+                        image.unlink()
+                        with self.assertRaisesRegex(ValueError, "missing XMOS firmware"):
+                            validate_payload(root, flavor, "v0.1.19")
+                        image.write_bytes(data)
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -135,7 +142,7 @@ class OtaTests(unittest.TestCase):
             self.assertEqual(manifest["version"], "tater-sat1-test-v2")
             self.assertTrue((payload / "opt/tater/app/tateros_app.py").is_file())
             self.assertTrue(
-                (payload / "opt/tater-sat1/firmware/xmos/sat1_xmos_1_2_0_dev1_factory.bin").is_file()
+                (payload / "opt/tater-sat1/firmware/xmos/sat1_xmos_1_2_0_dev8_factory.bin").is_file()
             )
 
             with self.assertRaisesRegex(ValueError, "does not match installed"):

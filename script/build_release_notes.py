@@ -11,6 +11,14 @@ import subprocess
 RELEASE_REPO = "TaterTotterson/Tater-SAT1-RPi"
 _TAG = re.compile(r"^v[0-9][A-Za-z0-9._+-]{0,126}$")
 RELEASE_HIGHLIGHTS = {
+    "v0.1.19": (
+        "Enables the XMOS interference-cancellation and voice/noise-ratio stage in both SAT1 image flavors "
+        "using the shared Tater Native `1.2.0-dev.8` image from Sat1 `0.7.0-r2`.",
+        "Retains calibrated four-microphone direction finding and pre-AEC beamforming, two-channel AEC "
+        "with stereo echo references, noise suppression, gain control, and protocol 0x11.",
+        "Updates the checksum-pinned boot verifier and keeps both prior XMOS image paths so existing "
+        "signed OTA verifiers can accept the update. Tater-host hardware testing follows the builds.",
+    ),
     "v0.1.18": (
         "Bundles the exact working XMOS `1.2.0-dev.1` image shared with native Sat1 `0.7.0-r1`, "
         "retaining four-microphone direction finding, calibration, pre-AEC beamforming, stereo echo "
