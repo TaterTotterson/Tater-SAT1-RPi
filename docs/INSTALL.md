@@ -110,6 +110,20 @@ sudo journalctl -u tater-sat1-xmos.service -b
 Do not remove power while an XMOS write is in progress. A normal boot with an
 already matching version performs only the version read and checksum check.
 
+### Startup time
+
+Changing XMOS firmware requires a flash write and verification before audio
+can start. On the Pi Zero 2 W this can add about three minutes to that boot,
+including when switching the same hardware between ESP32 and RPi images with
+different XMOS targets. Subsequent boots with matching firmware skip the write.
+
+Use `systemd-analyze blame` and
+`journalctl -b -u tater-sat1-xmos.service -o short-monotonic` to distinguish
+an XMOS update from ordinary startup. The voice process also needs time to
+load after its systemd service starts; its `Peripheral API listening` message
+marks the point when local voice controls are available. An invalid pairing
+token is a separate setup problem and does not require rewriting XMOS.
+
 ## SAT1 LED ring
 
 The LED controller follows the production ESP32 SAT1 firmware: slow waiting

@@ -38,6 +38,28 @@ approximately 45 seconds.
 When Wi-Fi is supplied through Raspberry Pi Imager or baked into an image, the
 SAT1 connects normally and does not start the hotspot.
 
+## Reset setup with the action button
+
+Click the center/action button five times quickly, then press it a sixth time
+and keep holding for five seconds. The ring fills amber as clicks are counted
+and shows an orange countdown during the hold. Releasing early cancels it.
+
+The gesture clears saved Wi-Fi profiles, satellite name/room and, on the
+satellite-only image, the saved Tater address and pairing token. It stops voice
+and opens `Tater-SAT1-Setup-XXXXXX` again. Re-enter Wi-Fi and a fresh pairing
+code through the setup page. The installed image, embedded Tater settings and
+application data remain in place.
+
+Recovery reads the physical action button directly on Pi BCM7, so it works
+while the voice runtime is disconnected or pairing is invalid, and even when
+ring output is disabled. It is blocked while an appliance update is pending
+or running. The button must be released after startup before the gesture can
+be entered; simply holding it at power-on does not reset setup.
+
+New images reserve BCM7 with `dtoverlay=spi0-1cs`. Older cards receiving this
+support through OTA get that boot setting on startup; reboot once more after
+the update if the action button is still reserved as `spi0 CS1`.
+
 Useful diagnostics over SSH are:
 
 ```sh

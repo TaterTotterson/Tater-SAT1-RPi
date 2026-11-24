@@ -69,6 +69,8 @@ grep -qxF 'i2c-dev' /etc/modules-load.d/tater-sat1-i2c.conf
 grep -q 'TAG+="systemd"' /etc/udev/rules.d/99-tater-sat1-i2c.rules
 grep -qxF 'wifi.powersave = 2' /etc/NetworkManager/conf.d/90-tater-sat1-wifi-powersave.conf
 grep -qxF 'dtoverlay=pwm,pin=12,func=4' /boot/firmware/config.txt
+grep -qxF 'dtoverlay=spi0-1cs' /boot/firmware/config.txt
+/opt/tater-sat1/venv/bin/python -c 'import gpiod; from gpiod.line import Bias, Direction'
 grep -q '^enabled = true$' /etc/satellite1.conf
 grep -q '^startup_muted = false$' /etc/satellite1.conf
 grep -q '^audio_input_device = "satellite1_input"$' /etc/tater-sat1-standalone/config.toml

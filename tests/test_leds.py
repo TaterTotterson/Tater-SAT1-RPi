@@ -22,6 +22,7 @@ from tater_sat1_standalone.leds import (
     pcm_s16le_level,
     run_setup_state_monitor,
 )
+from tater_sat1_standalone.setup_reset import ResetFeedback
 
 
 def snapshot(phase: LedPhase, **overrides: object) -> LedSnapshot:
@@ -64,6 +65,20 @@ class LedStateTests(unittest.TestCase):
 
         self.state.set_provisioning(False)
         self.assertEqual(self.state.snapshot(now=1).phase, LedPhase.THINKING)
+
+    def test_reset_feedback_works_without_voice_connection_and_clears_to_setup(self) -> None:
+        self.state.set_provisioning(True)
+        self.state.set_reset_feedback(ResetFeedback(clicks=3))
+        snapshot = self.state.snapshot()
+        self.assertEqual(snapshot.phase, LedPhase.SETUP_RESET)
+        renderer = Sat1LedRenderer()
+        clicks = renderer.render(snapshot)
+        self.assertEqual(sum(pixel != BLACK for pixel in clicks.pixels), 14)
+        self.state.set_reset_feedback(ResetFeedback(clicks=5, remaining=2.5))
+        countdown = renderer.render(self.state.snapshot())
+        self.assertEqual(sum(pixel != BLACK for pixel in countdown.pixels), 12)
+        self.state.set_reset_feedback(ResetFeedback())
+        self.assertEqual(self.state.snapshot().phase, LedPhase.PROVISIONING)
 
     def test_pipeline_events_select_the_esp32_voice_phases(self) -> None:
         self.connect()

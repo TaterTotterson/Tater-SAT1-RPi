@@ -5,6 +5,12 @@ APPLIANCE_ROOT="$(CDPATH= cd "$(dirname "$0")/.." && pwd -P)"
 RULE=/etc/udev/rules.d/99-tater-sat1-i2c.rules
 DROPIN=/etc/systemd/system/satellite1-init.service.d/10-tater-sat1.conf
 
+# Carry GPIO recovery support to cards receiving OTA, without adding a path
+# to the fixed file allowlists in older appliance updaters.
+if ! python3 "${APPLIANCE_ROOT}/script/configure-action-button"; then
+  printf '%s\n' 'Could not reserve the action button in boot config; audio startup will continue.' >&2
+fi
+
 # Apply the image's audio ownership policy to existing cards receiving OTA.
 # The private system service owns ALSA; login-session servers must not race it.
 for unit in pulseaudio.socket pulseaudio.service; do

@@ -85,6 +85,8 @@ After pairing, manage voice settings, wake words, name, room, and volume from
 - **Music and replies:** Sendspin playback, stereo channels, speech ducking,
   announcements, and local timers.
 - **Device controls:** animated LED ring, volume buttons, and hardware microphone mute.
+- **Setup recovery:** five quick action-button clicks, then hold the sixth
+  press for five seconds to forget Wi-Fi/pairing and reopen the setup hotspot.
 - **Shared settings:** manage wake words, volume, name, and room from Tater or
   the Home Assistant bridge.
 - **Bluetooth:** on-demand discovery and connections for compatible devices.

@@ -1,3 +1,13 @@
+# Unreleased
+
+- Add physical setup recovery: five quick action-button clicks followed by a
+  five-second hold on the sixth press, with ring feedback and cancellation.
+- Read the action button directly from Pi BCM7, independently of voice/server
+  connectivity. Reserve its pin instead of unused SPI chip select 1.
+- Clear Wi-Fi setup and satellite pairing on confirmation, then reopen the
+  setup hotspot while preserving the installed image and embedded Tater data.
+- Keep setup reset unavailable during pending or running appliance updates.
+
 # 0.1.19
 
 - Enable the IC/VNR stage after the calibrated pre-AEC beam and stereo-reference

@@ -1,0 +1,24 @@
+#!/usr/bin/env python3
+"""Reserve BCM7 for the SAT1 action button, rather than unused SPI chip select 1."""
+
+from pathlib import Path
+import sys
+
+
+def configure(path: Path) -> bool:
+    content = path.read_text(encoding="utf-8")
+    suffix = "\n[all]\n# SAT1 action button uses BCM7; XMOS only needs SPI0 CE0.\ndtoverlay=spi0-1cs\n"
+    if content.endswith(suffix):
+        return False
+    with path.open("a", encoding="utf-8") as stream:
+        stream.write(suffix)
+        stream.flush()
+        import os
+        os.fsync(stream.fileno())
+    return True
+
+
+if __name__ == "__main__":
+    path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("/boot/firmware/config.txt")
+    if configure(path):
+        print("SAT1 action button boot configuration updated; takes effect after reboot")

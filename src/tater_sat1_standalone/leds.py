@@ -17,7 +17,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Protocol
 
-from .config import DEFAULT_CONFIG_PATH, LedConfig, load_config
+from .config import DEFAULT_CONFIG_PATH, LedConfig, StandaloneConfig, load_config
+from .setup_reset import ActionButtonInput, ResetFeedback, SetupResetGesture, reset_setup
 from .xmos_control import XmosControl
 
 LOGGER = logging.getLogger("tater-sat1-leds")
@@ -32,6 +33,7 @@ DEFAULT_SETUP_ACTIVE_PATH = Path("/run/tater-sat1-setup/active")
 
 
 class LedPhase(str, Enum):
+    SETUP_RESET = "setup_reset"
     INITIALIZING = "initializing"
     PROVISIONING = "provisioning"
     DISCONNECTED = "disconnected"
@@ -69,6 +71,7 @@ class LedSnapshot:
     thinking_animation: str = "sat1_thinking"
     tool_call_animation: str = "ping_pong"
     replying_animation: str = "sat1_replying"
+    reset_feedback: ResetFeedback = ResetFeedback()
 
 
 @dataclass(frozen=True)
@@ -132,6 +135,7 @@ class LedState:
         self._lva_connected = False
         self._ha_connected = False
         self._provisioning = False
+        self._reset_feedback = ResetFeedback()
         self._pipeline_phase = "idle"
         self._last_event = ""
         self._mic_muted = False
@@ -165,6 +169,10 @@ class LedState:
     def set_provisioning(self, active: bool) -> None:
         with self._lock:
             self._provisioning = bool(active)
+
+    def set_reset_feedback(self, feedback: ResetFeedback) -> None:
+        with self._lock:
+            self._reset_feedback = feedback
 
     def set_lva_connected(self, connected: bool) -> None:
         with self._lock:
@@ -321,7 +329,9 @@ class LedState:
     def snapshot(self, *, now: float | None = None) -> LedSnapshot:
         timestamp = time.monotonic() if now is None else now
         with self._lock:
-            if self._provisioning:
+            if self._reset_feedback != ResetFeedback():
+                phase = LedPhase.SETUP_RESET
+            elif self._provisioning:
                 phase = LedPhase.PROVISIONING
             elif not self._lva_connected:
                 phase = LedPhase.DISCONNECTED if self._ever_lva_connected else LedPhase.INITIALIZING
@@ -374,6 +384,7 @@ class LedState:
                 thinking_animation=self._thinking_animation,
                 tool_call_animation=self._tool_call_animation,
                 replying_animation=self._replying_animation,
+                reset_feedback=self._reset_feedback,
             )
 
 
@@ -422,6 +433,18 @@ class Sat1LedRenderer:
             )
 
         phase = snapshot.phase
+        if phase == LedPhase.SETUP_RESET:
+            feedback = snapshot.reset_feedback
+            pixels = [BLACK] * self.pixel_count
+            if feedback.failed or feedback.resetting:
+                pixels = [RED if feedback.failed else (0, 180, 0)] * self.pixel_count
+            elif feedback.remaining is not None:
+                count = math.ceil(self.pixel_count * feedback.remaining / SetupResetGesture.HOLD)
+                pixels[:count] = [ORANGE] * count
+            else:
+                count = min(self.pixel_count, feedback.clicks * self.pixel_count // 5)
+                pixels[:count] = [AMBER] * count
+            return LedFrame(tuple(pixels), 0.025)
         if phase == LedPhase.INITIALIZING:
             comets = self._native_comet(
                 self._animation_tick // 2, scale_color(ORANGE, 0.5), dual=True
@@ -1248,19 +1271,62 @@ async def run_setup_state_monitor(
         await asyncio.sleep(poll_interval)
 
 
+async def run_setup_button(state: LedState, config: StandaloneConfig) -> None:
+    """Keep physical recovery available without a peripheral WebSocket or pairing."""
+    while True:
+        button: ActionButtonInput | None = None
+        gesture = SetupResetGesture()
+        previous = ResetFeedback()
+        try:
+            button = ActionButtonInput()
+            LOGGER.info("SAT1 setup reset ready on action button (BCM7)")
+            while True:
+                feedback, trigger = gesture.update(button.read_pressed(), time.monotonic())
+                state.set_reset_feedback(feedback)
+                if feedback.clicks != previous.clicks and feedback.clicks:
+                    LOGGER.info("SAT1 setup reset click %d/5", feedback.clicks)
+                if feedback.remaining is not None and previous.remaining is None:
+                    LOGGER.warning("SAT1 setup reset armed; keep holding for 5 seconds")
+                previous = feedback
+                if trigger:
+                    LOGGER.warning("SAT1 physical setup reset requested")
+                    try:
+                        await asyncio.to_thread(reset_setup, config)
+                        LOGGER.info("SAT1 setup cleared; returning to Wi-Fi setup")
+                    except Exception as exc:  # noqa: BLE001 - preserve the recovery input after failures
+                        LOGGER.error("SAT1 setup reset failed: %s", type(exc).__name__)
+                        state.set_reset_feedback(ResetFeedback(failed=True))
+                    await asyncio.sleep(1.0)
+                    state.set_reset_feedback(ResetFeedback())
+                await asyncio.sleep(0.01)
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:  # noqa: BLE001 - GPIO can be unavailable during hardware startup
+            LOGGER.warning("SAT1 action button unavailable (%s); retrying in 2 seconds", exc)
+        finally:
+            state.set_reset_feedback(ResetFeedback())
+            if button is not None:
+                button.close()
+        await asyncio.sleep(2.0)
+
+
 async def run(
     config: LedConfig,
     *,
     pulse_server: str = "unix:/run/tater-sat1-audio/pulse/native",
     pulse_home: Path = Path("/var/lib/tater-sat1-standalone"),
     setup_active_path: Path = DEFAULT_SETUP_ACTIVE_PATH,
+    appliance_config: StandaloneConfig | None = None,
 ) -> None:
+    state = LedState(config)
     if not config.enabled:
         LOGGER.info("SAT1 LED controller is disabled in configuration")
-        await asyncio.Event().wait()
+        if appliance_config is not None:
+            await run_setup_button(state, appliance_config)
+        else:
+            await asyncio.Event().wait()
         return
 
-    state = LedState(config)
     state.set_provisioning(setup_active_path.is_file())
     driver: PixelDriver
     xmos_driver: XmosPixelDriver | None = None
@@ -1271,6 +1337,7 @@ async def run(
         driver = Ws281xPixelDriver(config)
     worker = AnimationWorker(state, Sat1LedRenderer(config.pixel_count), driver)
     worker.start()
+    button_task = asyncio.create_task(run_setup_button(state, appliance_config)) if appliance_config else None
     setup_state_task = asyncio.create_task(
         run_setup_state_monitor(state, active_path=setup_active_path)
     )
@@ -1287,7 +1354,11 @@ async def run(
     finally:
         setup_state_task.cancel()
         playback_task.cancel()
-        await asyncio.gather(setup_state_task, playback_task, return_exceptions=True)
+        tasks = [setup_state_task, playback_task]
+        if button_task is not None:
+            button_task.cancel()
+            tasks.append(button_task)
+        await asyncio.gather(*tasks, return_exceptions=True)
         worker.stop()
 
 
@@ -1307,6 +1378,7 @@ def main(argv: list[str] | None = None) -> None:
                 config.leds,
                 pulse_server=config.satellite.pulse_server,
                 pulse_home=config.runtime.state_dir,
+                appliance_config=config,
             )
         )
     except KeyboardInterrupt:
