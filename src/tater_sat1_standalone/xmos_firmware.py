@@ -7,13 +7,14 @@ import json
 from pathlib import Path
 import re
 import subprocess
+import sys
 import time
 from typing import Callable
 
 
-TARGET_VERSION = "v1.1.1"
-FIRMWARE_SHA256 = "8ab57bd9da5f114746fcbc3d25ea57b32ea3938c61ed4b545d5d93a3d410c0e5"
-DEFAULT_FIRMWARE = Path("/opt/tater-sat1/firmware/xmos/sat1_xmos_1_1_1_factory.bin")
+TARGET_VERSION = "v1.2.0-dev.1"
+FIRMWARE_SHA256 = "e5ad83ffd66f03b3ddba1dfef14d9829d15ead9fab0dc416f8a57f0cdf69ec88"
+DEFAULT_FIRMWARE = Path("/opt/tater-sat1/firmware/xmos/sat1_xmos_1_2_0_dev1_factory.bin")
 DEFAULT_TOOL = Path("/usr/bin/sat1-xmos")
 _VERSION = re.compile(r"^v[0-9]+\.[0-9]+\.[0-9]+(?:-(?:alpha|beta|rc|dev)(?:\.[0-9]+)?)?$")
 
@@ -44,9 +45,11 @@ def parse_version(output: str) -> str | None:
     return None
 
 
-def read_version(tool: Path, *, runner: Runner = subprocess.run) -> str | None:
+def read_version(*, runner: Runner = subprocess.run) -> str | None:
+    # The pinned vendor CLI assumes protocol 0x10 payload offsets. Use the
+    # appliance reader for both old images and protocol 0x11 after flashing.
     completed = runner(
-        [str(tool), "read-firmware"],
+        [sys.executable, "-m", "tater_sat1_standalone.xmos_control"],
         check=False,
         capture_output=True,
         text=True,
@@ -55,7 +58,6 @@ def read_version(tool: Path, *, runner: Runner = subprocess.run) -> str | None:
 
 
 def wait_for_version(
-    tool: Path,
     *,
     attempts: int,
     delay_seconds: float,
@@ -63,7 +65,7 @@ def wait_for_version(
     sleeper: Sleeper = time.sleep,
 ) -> str | None:
     for attempt in range(max(1, attempts)):
-        version = read_version(tool, runner=runner)
+        version = read_version(runner=runner)
         if version:
             return version
         if attempt + 1 < attempts:
@@ -96,7 +98,6 @@ def ensure_xmos_firmware(
         raise FileNotFoundError(f"Satellite1 XMOS utility is missing: {tool}")
 
     installed = wait_for_version(
-        tool,
         attempts=initial_attempts,
         delay_seconds=delay_seconds,
         runner=runner,
@@ -121,7 +122,6 @@ def ensure_xmos_firmware(
         runner([str(tool), "disable-flashing"], check=False)
 
     installed = wait_for_version(
-        tool,
         attempts=verify_attempts,
         delay_seconds=delay_seconds,
         runner=runner,

@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest import mock
@@ -22,12 +23,13 @@ class XmosFirmwareTests(unittest.TestCase):
     def test_parse_version_ignores_cli_noise(self) -> None:
         self.assertEqual(parse_version("setup complete\nv1.1.1\n"), "v1.1.1")
         self.assertEqual(parse_version("v1.0.4-alpha.8\n"), "v1.0.4-alpha.8")
+        self.assertEqual(parse_version("v1.2.0-dev.1\n"), "v1.2.0-dev.1")
         self.assertIsNone(parse_version("None\n"))
 
     def test_matching_firmware_is_left_untouched(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             firmware, tool, digest = self._fixture(directory)
-            runner = mock.Mock(return_value=subprocess.CompletedProcess([], 0, "v1.1.1\n", ""))
+            runner = mock.Mock(return_value=subprocess.CompletedProcess([], 0, "v1.2.0-dev.1\n", ""))
 
             result = ensure_xmos_firmware(
                 firmware,
@@ -39,7 +41,7 @@ class XmosFirmwareTests(unittest.TestCase):
 
         self.assertEqual(result.status, "unchanged")
         runner.assert_called_once_with(
-            [str(tool), "read-firmware"],
+            [sys.executable, "-m", "tater_sat1_standalone.xmos_control"],
             check=False,
             capture_output=True,
             text=True,
@@ -48,10 +50,10 @@ class XmosFirmwareTests(unittest.TestCase):
     def test_mismatched_firmware_is_written_verified_and_released_from_reset(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             firmware, tool, digest = self._fixture(directory)
-            versions = iter(("v1.0.3\n", "v1.1.1\n"))
+            versions = iter(("v1.0.3\n", "v1.2.0-dev.1\n"))
 
             def run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
-                stdout = next(versions) if command[-1] == "read-firmware" else ""
+                stdout = next(versions) if command[-1] == "tater_sat1_standalone.xmos_control" else ""
                 return subprocess.CompletedProcess(command, 1, stdout, "")
 
             runner = mock.Mock(side_effect=run)
@@ -89,7 +91,7 @@ class XmosFirmwareTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             firmware, tool, digest = self._fixture(directory)
             marker = Path(directory) / "run" / "verified.json"
-            runner = mock.Mock(return_value=subprocess.CompletedProcess([], 0, "v1.1.1\n", ""))
+            runner = mock.Mock(return_value=subprocess.CompletedProcess([], 0, "v1.2.0-dev.1\n", ""))
 
             first = ensure_xmos_firmware_once(
                 marker,

@@ -23,10 +23,10 @@ role = "Embedded Linux packaging, hardware bridge, provisioning, and update refe
 
 [tater_native_xmos]
 url = "https://github.com/TaterTotterson/Tater-Native-Firmware.git"
-reference = "native-0.3.15"
-reference_revision = "b59aef124b29e97e3743105b5b6e1e3f863053d3"
-version = "v1.1.1"
-sha256 = "8ab57bd9da5f114746fcbc3d25ea57b32ea3938c61ed4b545d5d93a3d410c0e5"
+reference = "native-0.7.0-r1"
+reference_revision = "5d2a850018a3b1ba882e54791f9e681817b73921"
+version = "v1.2.0-dev.1"
+sha256 = "e5ad83ffd66f03b3ddba1dfef14d9829d15ead9fab0dc416f8a57f0cdf69ec88"
 role = "Four-microphone XMOS DoA, beamforming, calibration, AEC, noise suppression, and AGC"
 
 [satellite1_rpi]

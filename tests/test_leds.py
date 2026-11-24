@@ -418,7 +418,8 @@ class XmosPixelDriverTests(unittest.TestCase):
         self.assertEqual(spi.transfers[0], bytes(1))
         self.assertEqual(spi.transfers[1][:6], bytes((200, 0, 72, 2, 1, 3)))
         self.assertEqual(len(spi.transfers[1]), 75)
-        self.assertEqual(len(spi.transfers), 2)
+        self.assertEqual(spi.transfers[2], bytes(74))
+        self.assertEqual(len(spi.transfers), 3)
 
     def test_reads_gpio_status_and_doa_payload(self) -> None:
         instances: list[object] = []
@@ -441,10 +442,10 @@ class XmosPixelDriverTests(unittest.TestCase):
                 if call == 1:
                     return [1]
                 if call == 2:
-                    return [1, 0, 0, 7, 0, 0]
+                    return [1, 0, 0, 7, 0, 0, 0, 0]
                 if call == 3:
                     return [1, 0, *([0] * (len(packet) - 2))]
-                return [0, *doa_payload, 0, 0]
+                return [0x17, 0, *doa_payload]
 
         with patch.dict(sys.modules, {"spidev": types.SimpleNamespace(SpiDev=FakeSpi)}):
             driver = XmosPixelDriver(LedConfig())
@@ -452,8 +453,8 @@ class XmosPixelDriverTests(unittest.TestCase):
             self.assertEqual(driver.read_doa(), (19, 5, True))
 
         spi = instances[0]
-        self.assertEqual(spi.transfers[2][:3], bytes((231, 0x80, 33)))
-        self.assertEqual(spi.transfers[3], bytes(35))
+        self.assertEqual(spi.transfers[2][:3], bytes((233, 0x80, 33)))
+        self.assertEqual(spi.transfers[3], bytes(34))
 
 
 class PlaybackLevelTests(unittest.TestCase):

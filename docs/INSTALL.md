@@ -91,9 +91,9 @@ sudo journalctl -u tater-sat1-tater.service -u tater-sat1-voice.service -f
 
 ## XMOS microphone firmware
 
-Both image flavors include the checksum-pinned Tater Native XMOS `1.1.1`
+Both image flavors include the checksum-pinned Tater Native XMOS `1.2.0-dev.1`
 factory image. At each boot, a root-owned one-shot check reads the attached
-XMOS version before PulseAudio starts. It leaves `v1.1.1` untouched; otherwise
+XMOS version before PulseAudio starts. It leaves `v1.2.0-dev.1` untouched; otherwise
 it writes and verifies the factory image, releases XMOS from reset, and confirms
 the reported version. This supplies the same four-microphone talker tracking,
 DoA, fractional-delay beamforming, calibration/fallback, AEC, noise suppression,
@@ -102,7 +102,7 @@ and AGC used by the Tater Native ESP32 firmware.
 Inspect the installed version and boot check with:
 
 ```sh
-sudo sat1-xmos read-firmware
+sudo /opt/tater-sat1/venv/bin/python -m tater_sat1_standalone.xmos_control
 sudo systemctl status tater-sat1-xmos.service
 sudo journalctl -u tater-sat1-xmos.service -b
 ```

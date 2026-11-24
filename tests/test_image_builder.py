@@ -31,9 +31,9 @@ class ImageBuilderTests(unittest.TestCase):
             completed.stdout,
         )
         self.assertIn("tater_update_policy=pinned_release", completed.stdout)
-        self.assertIn("xmos_firmware=v1.1.1", completed.stdout)
+        self.assertIn("xmos_firmware=v1.2.0-dev.1", completed.stdout)
         self.assertIn(
-            "xmos_sha256=8ab57bd9da5f114746fcbc3d25ea57b32ea3938c61ed4b545d5d93a3d410c0e5",
+            "xmos_sha256=e5ad83ffd66f03b3ddba1dfef14d9829d15ead9fab0dc416f8a57f0cdf69ec88",
             completed.stdout,
         )
         self.assertIn("first_boot_identity=unique_local_token", completed.stdout)
@@ -87,8 +87,8 @@ class ImageBuilderTests(unittest.TestCase):
 
         with (ROOT / "upstreams.toml").open("rb") as handle:
             xmos = tomllib.load(handle)["tater_native_xmos"]
-        firmware = ROOT / "firmware/xmos/sat1_xmos_1_1_1_factory.bin"
-        self.assertEqual(xmos["version"], "v1.1.1")
+        firmware = ROOT / "firmware/xmos/sat1_xmos_1_2_0_dev1_factory.bin"
+        self.assertEqual(xmos["version"], "v1.2.0-dev.1")
         self.assertEqual(hashlib.sha256(firmware.read_bytes()).hexdigest(), xmos["sha256"])
 
     def test_image_defers_device_identity_until_first_boot(self) -> None:
@@ -152,7 +152,7 @@ class ImageBuilderTests(unittest.TestCase):
         self.assertIn("import websockets", stage)
         self.assertIn("tater-sat1-audio-hardware", stage)
         self.assertIn("tater-sat1-xmos-firmware", stage)
-        self.assertIn("sat1_xmos_1_1_1_factory.bin", stage)
+        self.assertIn("sat1_xmos_1_2_0_dev1_factory.bin", stage)
         self.assertIn("tater-sat1-xmos.service", stage)
         packages = (
             ROOT / "scripts/pi-image/stage-tater-sat1/00-install-appliance/00-packages"

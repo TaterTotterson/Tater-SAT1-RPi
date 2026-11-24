@@ -16,7 +16,7 @@ Both flavors include:
 - Raspberry Pi OS Lite 64-bit Bookworm
 - FutureProofHomes Satellite1 v0.1.4 custom FUSB302 kernel, overlays, ALSA
   configuration, SDK, and DAC initialization service
-- Tater Native XMOS `1.1.1`, checksum verified and installed only when the
+- Tater Native XMOS `1.2.0-dev.1`, checksum verified and installed only when the
   attached HAT reports a different or unavailable firmware version
 - four-microphone DoA and fractional-delay beamforming with microphone
   calibration/fallback, AEC, noise suppression, and AGC on the XMOS
@@ -140,7 +140,7 @@ the default with your own password or public key.
 5. Attach the Satellite1 HAT to the powered-off Pi Zero 2 W and insert the
    card.
 6. Apply power and allow several minutes for the first boot. A stock or older
-   XMOS can add several minutes while its verified `1.1.1` image is installed;
+   XMOS can add several minutes while its verified `1.2.0-dev.1` image is installed;
    an already matching XMOS is not rewritten.
 7. Join `Tater-SAT1-Setup-XXXXXX` and complete the captive setup page. If it
    does not open automatically, browse to `http://192.168.4.1`.

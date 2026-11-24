@@ -98,11 +98,12 @@ adapter is absent.
 ## Hardware adapter
 
 The FutureProofHomes Satellite1 Python SDK supplies XMOS, DAC, and USB-C PD
-control. Before audio starts, `tater-sat1-xmos.service` reads the installed
-version and compares it with the checksum-pinned Tater Native XMOS `1.1.1`
+control. The appliance SPI reader handles protocol 0x10/0x11 for version,
+button, and direction reads. Before audio starts, `tater-sat1-xmos.service` reads the installed
+version and compares it with the checksum-pinned Tater Native XMOS `1.2.0-dev.1`
 factory image. A matching device is left untouched. A missing or different
 version is written with flashrom's verification pass, released from reset,
-and accepted only after XMOS reports `v1.1.1` over SPI. This gives both image
+and accepted only after XMOS reports `v1.2.0-dev.1` over SPI. This gives both image
 flavors the same four-microphone DoA, beamforming, calibration/fallback, AEC,
 noise suppression, and AGC pipeline as the Tater Native ESP32 firmware.
 

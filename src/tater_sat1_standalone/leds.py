@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from .config import DEFAULT_CONFIG_PATH, LedConfig, load_config
+from .xmos_control import XmosControl
 
 LOGGER = logging.getLogger("tater-sat1-leds")
 RGB = tuple[int, int, int]
@@ -939,33 +940,16 @@ class PixelDriver(Protocol):
 class XmosPixelDriver:
     """Write the production SAT1 ring through the XMOS SPI control service."""
 
-    _CONTROL_RESOURCE_ID = 1
     _CONTROL_READ_BIT = 0x80
-    _PAYLOAD_AVAILABLE = 0x17
-    _STATUS_REGISTER_LEN = 4
     _RESOURCE_ID = 200
     _WRITE_RAW_COMMAND = 0
-    _DOA_RESOURCE_ID = 231
+    _DOA_RESOURCE_ID = 233
     _DOA_READ_STATE_COMMAND = _CONTROL_READ_BIT
     _DOA_PAYLOAD_LEN = 32
-    _IGNORED_IN_DEVICE = 0x07
 
     def __init__(self, config: LedConfig) -> None:
-        try:
-            import spidev
-        except ImportError as exc:
-            raise RuntimeError("spidev is required for the SAT1 XMOS LED ring") from exc
-
         self._pixel_count = config.pixel_count
-        self._spi = spidev.SpiDev()
-        self._spi.open(config.spi_bus, config.spi_device)
-        self._spi.max_speed_hz = config.spi_speed_hz
-        self._spi.mode = 3
-        self._spi.bits_per_word = 8
-        self._lock = threading.Lock()
-        # The Satellite1 reference driver clocks one zero byte after opening
-        # SPI so the first real transfer starts on a device-control boundary.
-        self._spi.xfer2(bytearray(1))
+        self._control = XmosControl(config.spi_bus, config.spi_device, config.spi_speed_hz)
         LOGGER.info(
             "SAT1 LED ring ready: %d RGB pixels through XMOS on SPI %d.%d",
             config.pixel_count,
@@ -981,34 +965,18 @@ class XmosPixelDriver:
         # whose native channel order is GRB even though renderers use RGB.
         for red, green, blue in pixels:
             payload.extend((green, red, blue))
-        packet = bytearray((self._RESOURCE_ID, self._WRITE_RAW_COMMAND, len(payload)))
-        packet.extend(payload)
-
-        # Writes are one transaction. Only read commands need the second NOP
-        # transfer that clocks their payload back. Sending a NOP after every
-        # LED frame can leave an old animation displayed even after idle.
-        with self._lock:
-            self._transfer_when_ready(packet, operation="LED command")
+        self._control.exchange(self._RESOURCE_ID, self._WRITE_RAW_COMMAND, bytes(payload))
 
     def read_input_a(self) -> int:
         """Return the XMOS input-A status byte used by SAT1 controls."""
-        status_dummies = self._STATUS_REGISTER_LEN - 1
-        packet = bytearray((0, 0, 0)) + bytearray(status_dummies)
-        with self._lock:
-            response = self._transfer_when_ready(packet, operation="GPIO status")
-        if len(response) < 2 + self._STATUS_REGISTER_LEN:
-            raise RuntimeError("SAT1 XMOS returned a short GPIO status")
-        if response[0] != self._CONTROL_RESOURCE_ID or response[1] == self._PAYLOAD_AVAILABLE:
-            raise RuntimeError("SAT1 XMOS returned an unexpected GPIO status")
-        return int(response[3])
+        return self._control.read_input_a()
 
     def read_doa(self) -> tuple[int, int, bool]:
         """Return ``(LED index, confidence, valid)`` from the XMOS DoA service."""
-        payload = self._read_payload(
+        payload = self._control.exchange(
             self._DOA_RESOURCE_ID,
             self._DOA_READ_STATE_COMMAND,
-            self._DOA_PAYLOAD_LEN,
-            operation="DoA state",
+            read_length=self._DOA_PAYLOAD_LEN,
         )
         confidence = int(payload[2])
         flags = int(payload[3])
@@ -1021,26 +989,6 @@ class XmosPixelDriver:
             sample_delay = max(-4, min(4, sample_delay))
             led_index = (self._pixel_count // 2 + sample_delay * 2) % self._pixel_count
         return led_index, confidence, valid
-
-    def _read_payload(self, resource_id: int, command: int, payload_len: int, *, operation: str) -> bytes:
-        packet = bytearray((resource_id, command, payload_len + 1))
-        packet.extend(bytearray(payload_len))
-        with self._lock:
-            self._transfer_when_ready(packet, operation=f"{operation} request")
-            time.sleep(0.001)
-            response = self._transfer_when_ready(bytearray(payload_len + 3), operation=f"{operation} response")
-        if len(response) < payload_len + 1 or response[0] != 0:
-            raise RuntimeError(f"SAT1 XMOS returned a malformed {operation} response")
-        return bytes(response[1 : payload_len + 1])
-
-    def _transfer_when_ready(self, packet: bytearray, *, operation: str) -> list[int]:
-        for attempt in range(5):
-            response = self._spi.xfer2(packet)
-            if response and response[0] != self._IGNORED_IN_DEVICE:
-                return response
-            if attempt < 4:
-                time.sleep(0.1)
-        raise RuntimeError(f"SAT1 XMOS remained busy during {operation}")
 
 
 class Sat1ButtonTracker:

@@ -1,3 +1,13 @@
+# 0.1.18
+
+- Bundle the exact working XMOS 1.2.0-dev.1 image shared with native Sat1
+  0.7.0-r1, retaining calibrated pre-AEC beamforming and stereo echo references.
+- Support protocol 0x10/0x11 framing, write acknowledgements, and DoA resource
+  233 in the SPI reader used by boot verification, buttons, and LEDs.
+- Preserve the old factory image path for existing signed OTA verifiers.
+- Keep Tater 3.0.9 and Linux Satellite 1.2.1 pinned. Native hardware checks and
+  RPi protocol/packaging tests cover this change; RPi hardware testing is pending.
+
 # 0.1.17
 
 - Update both satellite-only and Tater Embedded images to Linux Satellite 1.2.1.

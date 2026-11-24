@@ -11,6 +11,18 @@ import subprocess
 RELEASE_REPO = "TaterTotterson/Tater-SAT1-RPi"
 _TAG = re.compile(r"^v[0-9][A-Za-z0-9._+-]{0,126}$")
 RELEASE_HIGHLIGHTS = {
+    "v0.1.18": (
+        "Bundles the exact working XMOS `1.2.0-dev.1` image shared with native Sat1 `0.7.0-r1`, "
+        "retaining four-microphone direction finding, calibration, pre-AEC beamforming, stereo echo "
+        "references, noise suppression, and AGC.",
+        "Adds protocol 0x10/0x11 framing, write acknowledgements, and DoA resource 233 support for "
+        "firmware verification, buttons, and LEDs. Preserves the old image path for existing signed OTA verifiers.",
+        "Includes fwk_voice 0.9.0 and upstream flash/DFU improvements. Excludes the failed four-microphone "
+        "AEC and residual-beam experiments. The internal XMOS development identity is retained to keep "
+        "the tested binary unchanged.",
+        "Native Sat1 hardware checks passed; RPi protocol and packaging tests cover this migration, "
+        "with separate RPi hardware qualification pending. Retains Tater `3.0.9` and Linux Satellite `1.2.1`.",
+    ),
     "v0.1.17": (
         "Updates both satellite-only and Tater Embedded images to Tater Linux Satellite `1.2.1`, "
         "pinned to the exact release commit.",
