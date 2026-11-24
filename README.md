@@ -73,7 +73,12 @@ After pairing, manage voice settings, wake words, name, room, and volume from
 
 - **Wake words:** microWakeWord, openWakeWord, and NanoWakeWord, with optional
   dual-detector confirmation.
-- **Speak without pausing:** the wake-boundary model helps preserve the start
+- **Recommended wake setup:** use **dual mode (MWW + OWW or MWW + NWW)** for
+  fully on-device false-wake prevention. Both detectors must agree on the same
+  wake phrase; this check needs no STT service.
+- **MWW-only setups:** enable **STT wake verification** in Tater or the Home
+  Assistant bridge for false-wake prevention through your configured STT service.
+- **Speak without pausing:** a matching wake-boundary model helps preserve the start
   of commands spoken immediately after the wake word, such as
   “Hey Tater, turn on the lights.”
 - **Clearer audio:** four-microphone beamforming, echo cancellation, and noise reduction.
