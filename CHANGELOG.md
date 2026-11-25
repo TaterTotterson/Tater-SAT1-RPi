@@ -1,3 +1,11 @@
+# 0.1.21
+
+- Fix missed wake words caused by the legacy PulseAudio microphone boost
+  clipping the processed XMOS audio. Use unity input volume in both image
+  flavors and retain XMOS gain control.
+- Keep the configured wake models, dual-detector confirmation and detection
+  thresholds unchanged. Retain XMOS 1.2.0-dev.8 and physical setup recovery.
+
 # 0.1.20
 
 - Add physical setup recovery: five quick action-button clicks followed by a

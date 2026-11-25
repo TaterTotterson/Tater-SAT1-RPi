@@ -11,6 +11,15 @@ import subprocess
 RELEASE_REPO = "TaterTotterson/Tater-SAT1-RPi"
 _TAG = re.compile(r"^v[0-9][A-Za-z0-9._+-]{0,126}$")
 RELEASE_HIGHLIGHTS = {
+    "v0.1.21": (
+        "Fixes missed wake words caused by the legacy microphone boost clipping processed XMOS audio. "
+        "Both image flavors now use unity PulseAudio input volume and retain XMOS gain control.",
+        "Preserves your wake models, dual-detector confirmation and detection thresholds. "
+        "Keeps XMOS `1.2.0-dev.8` with calibrated beamforming and IC/VNR.",
+        "Includes the physical setup recovery from `v0.1.20`: five quick action-button clicks, then hold "
+        "the sixth press for five seconds. Existing cards may need one additional reboot after OTA "
+        "to activate the action-button pin setting.",
+    ),
     "v0.1.20": (
         "Adds physical setup recovery to both SAT1 image flavors: click the center/action button five times "
         "quickly, then hold the sixth press for five seconds. The LED ring shows click progress and a countdown; "

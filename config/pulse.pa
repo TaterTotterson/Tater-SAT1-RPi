@@ -6,10 +6,9 @@
 load-module module-native-protocol-unix
 load-module module-alsa-sink sink_name=satellite1_output device=satellite1_playback rate=48000 channels=2 tsched=0
 load-module module-alsa-source source_name=satellite1_input device=satellite1_capture rate=48000 channels=2 mmap=0 tsched=0
-# The SAT1 XMOS capture stream occupies substantially less than PulseAudio's
-# nominal S32 full scale. Normalize it here so wake detection receives the same
-# useful speech range as the ESP32 firmware while retaining clipping headroom.
-# Pulse's startup-command parser uses the native 65,536 = 100% scale.
-set-source-volume satellite1_input 131072
+# XMOS already supplies processed, gain-controlled microphone audio. Keep
+# PulseAudio at unity: its old 200% setting adds 18 dB and clips speech before
+# wake detection. The startup-command parser uses 65,536 = 100%.
+set-source-volume satellite1_input 65536
 set-default-sink satellite1_output
 set-default-source satellite1_input
