@@ -1,4 +1,4 @@
-# Unreleased
+# 0.1.20
 
 - Add physical setup recovery: five quick action-button clicks followed by a
   five-second hold on the sixth press, with ring feedback and cancellation.
@@ -7,6 +7,10 @@
 - Clear Wi-Fi setup and satellite pairing on confirmation, then reopen the
   setup hotspot while preserving the installed image and embedded Tater data.
 - Keep setup reset unavailable during pending or running appliance updates.
+- Existing cards may need one additional reboot after OTA to activate the
+  action-button pin setting. New images have the setting enabled already.
+- Explain the one-time XMOS write/verification delay when firmware changes,
+  and how to distinguish it from normal startup and pairing problems.
 
 # 0.1.19
 

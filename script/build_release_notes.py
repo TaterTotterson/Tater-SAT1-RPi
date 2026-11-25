@@ -11,6 +11,19 @@ import subprocess
 RELEASE_REPO = "TaterTotterson/Tater-SAT1-RPi"
 _TAG = re.compile(r"^v[0-9][A-Za-z0-9._+-]{0,126}$")
 RELEASE_HIGHLIGHTS = {
+    "v0.1.20": (
+        "Adds physical setup recovery to both SAT1 image flavors: click the center/action button five times "
+        "quickly, then hold the sixth press for five seconds. The LED ring shows click progress and a countdown; "
+        "releasing early cancels it.",
+        "Clears saved Wi-Fi, satellite name/room and external Tater pairing, then reopens the setup hotspot. "
+        "The installed image and embedded Tater settings and application data stay in place.",
+        "Keeps recovery available when voice or pairing is disconnected and when ring output is disabled. "
+        "Blocks setup reset while an appliance update is pending or running.",
+        "Reserves the action-button input in the Pi boot settings. Existing cards may need one additional reboot "
+        "after OTA to activate it; new images are ready from first boot.",
+        "Explains the one-time XMOS write/verification delay when firmware changes. Matching firmware skips "
+        "the rewrite on later boots. Retains XMOS `1.2.0-dev.8`, Linux Satellite `1.2.1` and Tater `3.0.9`.",
+    ),
     "v0.1.19": (
         "Enables the XMOS interference-cancellation and voice/noise-ratio stage in both SAT1 image flavors "
         "using the shared Tater Native `1.2.0-dev.8` image from Sat1 `0.7.0-r2`.",
