@@ -11,6 +11,19 @@ import subprocess
 RELEASE_REPO = "TaterTotterson/Tater-SAT1-RPi"
 _TAG = re.compile(r"^v[0-9][A-Za-z0-9._+-]{0,126}$")
 RELEASE_HIGHLIGHTS = {
+    "v0.1.22": (
+        "Updates both image flavors to XMOS `1.2.0-dev.13`, the exact image from Native Sat1 `0.7.0-r4`. "
+        "Adds four-microphone echo cancellation before speech-aware direction tracking, calibrated beamforming "
+        "and protected interference/residual-echo cleanup.",
+        "Includes the DSP communication fix for startup and playback stalls by separating DSP audio transfers "
+        "from I2S/GPIO control. Stereo playback is retained; the echo-cancellation reference is mixed to mono.",
+        "Installs the checksum-pinned XMOS image only when needed, verifies the running version before audio "
+        "starts, and retains dev.8 and older images for existing signed OTA verifiers and rollback.",
+        "Preserves unity microphone input volume, wake profiles and detection settings. Retains Tater `3.0.9`, "
+        "Linux Satellite `1.2.1` and the Pi audio watchdog.",
+        "The exact DSP image passed Native Sat1 hardware checks; Raspberry Pi-specific stall confirmation "
+        "remains pending.",
+    ),
     "v0.1.21": (
         "Fixes missed wake words caused by the legacy microphone boost clipping processed XMOS audio. "
         "Both image flavors now use unity PulseAudio input volume and retain XMOS gain control.",
