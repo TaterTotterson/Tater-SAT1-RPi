@@ -100,12 +100,16 @@ adapter is absent.
 The FutureProofHomes Satellite1 Python SDK supplies XMOS, DAC, and USB-C PD
 control. The appliance SPI reader handles protocol 0x10/0x11 for version,
 button, and direction reads. Before audio starts, `tater-sat1-xmos.service` reads the installed
-version and compares it with the checksum-pinned Tater Native XMOS `1.2.0-dev.8`
+version and compares it with the checksum-pinned Tater Native XMOS `1.2.0-dev.13`
 factory image. A matching device is left untouched. A missing or different
 version is written with flashrom's verification pass, released from reset,
-and accepted only after XMOS reports `v1.2.0-dev.8` over SPI. This gives both image
-flavors the same four-microphone DoA, beamforming, calibration/fallback, stereo-reference AEC, IC/VNR,
-noise suppression, and AGC pipeline as the Tater Native ESP32 firmware.
+and accepted only after XMOS reports `v1.2.0-dev.13` over SPI. This gives both image
+flavors the same four-microphone AEC, post-AEC speech tracking, calibrated
+beamforming, protected IC/residual-echo cleanup, noise suppression and AGC
+pipeline as Native Sat1 r4. Stereo playback is retained while the AEC reference
+is mixed to mono. DSP audio uses a separate intertile link from I2S/GPIO control
+to avoid the transport lock cycle. The RPi audio watchdog remains enabled for
+the separately documented Pi I2S/ALSA stall condition.
 
 `tater-sat1-leds.service` listens to Tater Linux Satellite's local
 peripheral WebSocket API and reproduces the 24-pixel effects and state priority

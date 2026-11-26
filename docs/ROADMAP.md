@@ -16,6 +16,8 @@
 - [x] Add physical volume buttons and the microphone-mute input
 - [x] Use XMOS DoA data for the listening animation
 - [x] Verify and install Tater Native XMOS `1.2.0-dev.8` for four-microphone beamforming
+- [x] Bundle Native Sat1 r4 XMOS `1.2.0-dev.13` with four-mic AEC and the DSP transport fix
+- [ ] Qualify dev.13 on the Raspberry Pi: cold boot, playback, wake/DoA and stall recovery
 - [ ] Bridge environmental sensor telemetry
 - [ ] Verify playback-reference AEC and wake-word operation during playback
 

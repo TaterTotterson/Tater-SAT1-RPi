@@ -40,7 +40,9 @@ class InstallerTests(unittest.TestCase):
         self.assertIn("90-tater-sat1-wifi-powersave.conf", output)
         self.assertIn("tater-sat1-wait-audio", output)
         self.assertIn("tater-sat1-audio-hardware", output)
+        self.assertIn("sat1_xmos_1_2_0_dev13_factory.bin", output)
         self.assertIn("sat1_xmos_1_2_0_dev8_factory.bin", output)
+        self.assertIn("sat1_xmos_1_2_0_dev1_factory.bin", output)
         self.assertIn("sat1_xmos_1_1_1_factory.bin", output)
         self.assertIn("tater-sat1-xmos.service", output)
         for service_name in ("tater-sat1-voice.service", "tater-sat1-satellite.service"):
@@ -108,6 +110,7 @@ class InstallerTests(unittest.TestCase):
         self.assertIn("90-tater-sat1-wifi-powersave.conf", output)
         self.assertIn("tater-sat1-wait-audio", output)
         self.assertIn("tater-sat1-audio-hardware", output)
+        self.assertIn("sat1_xmos_1_2_0_dev13_factory.bin", output)
         self.assertIn("sat1_xmos_1_2_0_dev8_factory.bin", output)
         self.assertIn("tater-sat1-xmos.service", output)
         self.assertIn("tater-sat1-audio-watchdog", output)

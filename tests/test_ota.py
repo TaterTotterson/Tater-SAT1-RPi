@@ -21,6 +21,7 @@ from tater_sat1_standalone.update_health import run_health_check  # noqa: E402
 from tater_sat1_standalone.update_installer import (  # noqa: E402
     Layout,
     XMOS_FIRMWARE_RELATIVE,
+    PREVIOUS_BEAM_XMOS_FIRMWARE_RELATIVE,
     PREVIOUS_XMOS_FIRMWARE_RELATIVE,
     LEGACY_XMOS_FIRMWARE_RELATIVE,
     apply_pending,
@@ -44,9 +45,10 @@ def populate_rootfs(root: Path, flavor: str, version: str, marker: str) -> None:
     launcher.write_text("#!/bin/sh\n", encoding="utf-8")
     launcher.chmod(0o755)
     (root / "opt/tater-sat1/release-marker").write_text(marker + "\n", encoding="utf-8")
-    xmos = root / "opt/tater-sat1/firmware/xmos/sat1_xmos_1_2_0_dev8_factory.bin"
+    xmos = root / XMOS_FIRMWARE_RELATIVE
     xmos.parent.mkdir(parents=True, exist_ok=True)
     xmos.write_bytes(b"test XMOS factory image")
+    xmos.with_name("sat1_xmos_1_2_0_dev8_factory.bin").write_bytes(b"previous calibrated-beam XMOS image")
     xmos.with_name("sat1_xmos_1_2_0_dev1_factory.bin").write_bytes(b"previous XMOS recovery image")
     xmos.with_name("sat1_xmos_1_1_1_factory.bin").write_bytes(b"legacy XMOS recovery image")
     if flavor == "standalone":
@@ -62,7 +64,8 @@ class OtaTests(unittest.TestCase):
                 root = Path(directory)
                 populate_rootfs(root, flavor, "v0.1.19", "new")
                 validate_payload(root, flavor, "v0.1.19")
-                for relative in (XMOS_FIRMWARE_RELATIVE, PREVIOUS_XMOS_FIRMWARE_RELATIVE,
+                for relative in (XMOS_FIRMWARE_RELATIVE, PREVIOUS_BEAM_XMOS_FIRMWARE_RELATIVE,
+                                 PREVIOUS_XMOS_FIRMWARE_RELATIVE,
                                  LEGACY_XMOS_FIRMWARE_RELATIVE):
                     with self.subTest(path=relative):
                         image = root / relative
@@ -142,7 +145,7 @@ class OtaTests(unittest.TestCase):
             self.assertEqual(manifest["version"], "tater-sat1-test-v2")
             self.assertTrue((payload / "opt/tater/app/tateros_app.py").is_file())
             self.assertTrue(
-                (payload / "opt/tater-sat1/firmware/xmos/sat1_xmos_1_2_0_dev8_factory.bin").is_file()
+                (payload / XMOS_FIRMWARE_RELATIVE).is_file()
             )
 
             with self.assertRaisesRegex(ValueError, "does not match installed"):

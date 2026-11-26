@@ -55,6 +55,7 @@ TATER_SENDSPIN_BINARY=/opt/tater-sat1/sendspin/bin/sendspin-cli TATER_REQUIRE_SH
     /opt/tater-sat1/venv/bin/python -m unittest discover -s /opt/tater-sat1-standalone-src/tests -p test_shared_runtime.py -v
 test -x /opt/tater-sat1/venv/bin/tater-sat1-leds
 test -x /opt/tater-sat1/venv/bin/tater-sat1-xmos-firmware
+test -s /opt/tater-sat1/firmware/xmos/sat1_xmos_1_2_0_dev13_factory.bin
 test -s /opt/tater-sat1/firmware/xmos/sat1_xmos_1_2_0_dev8_factory.bin
 test -s /opt/tater-sat1/firmware/xmos/sat1_xmos_1_2_0_dev1_factory.bin
 test -s /opt/tater-sat1/firmware/xmos/sat1_xmos_1_1_1_factory.bin

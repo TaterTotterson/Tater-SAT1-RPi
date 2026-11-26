@@ -8,6 +8,8 @@ import subprocess
 import tomllib
 import unittest
 
+from tater_sat1_standalone.xmos_firmware import DEFAULT_FIRMWARE, FIRMWARE_SHA256, TARGET_VERSION
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -31,9 +33,9 @@ class ImageBuilderTests(unittest.TestCase):
             completed.stdout,
         )
         self.assertIn("tater_update_policy=pinned_release", completed.stdout)
-        self.assertIn("xmos_firmware=v1.2.0-dev.8", completed.stdout)
+        self.assertIn("xmos_firmware=v1.2.0-dev.13", completed.stdout)
         self.assertIn(
-            "xmos_sha256=da5d2bb570d8165e02f746dc35896a3954a09e07f3131e3530582f0b975a4ac4",
+            "xmos_sha256=2af046f6d95372f332cdc48236c74098ce4f8bcf8608efe8c04925122c75865f",
             completed.stdout,
         )
         self.assertIn("first_boot_identity=unique_local_token", completed.stdout)
@@ -76,6 +78,8 @@ class ImageBuilderTests(unittest.TestCase):
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertIn("image_name=tater-sat1-satellite", completed.stdout)
         self.assertIn("image_flavor=satellite", completed.stdout)
+        self.assertIn("xmos_firmware=v1.2.0-dev.13", completed.stdout)
+        self.assertIn(f"xmos_sha256={FIRMWARE_SHA256}", completed.stdout)
         self.assertIn("tater_revision=not_bundled", completed.stdout)
         self.assertIn("first_boot_identity=unique_device_pairing", completed.stdout)
 
@@ -87,8 +91,12 @@ class ImageBuilderTests(unittest.TestCase):
 
         with (ROOT / "upstreams.toml").open("rb") as handle:
             xmos = tomllib.load(handle)["tater_native_xmos"]
-        firmware = ROOT / "firmware/xmos/sat1_xmos_1_2_0_dev8_factory.bin"
-        self.assertEqual(xmos["version"], "v1.2.0-dev.8")
+        firmware = ROOT / "firmware/xmos" / DEFAULT_FIRMWARE.name
+        self.assertEqual(xmos["version"], "v1.2.0-dev.13")
+        self.assertEqual(xmos["version"], TARGET_VERSION)
+        self.assertEqual(xmos["sha256"], FIRMWARE_SHA256)
+        self.assertEqual(xmos["reference"], "native-satellite1-0.7.0-r4")
+        self.assertEqual(xmos["reference_revision"], "f951b3e632cf7f7d9446c42ce39067a8c89d02ba")
         self.assertEqual(hashlib.sha256(firmware.read_bytes()).hexdigest(), xmos["sha256"])
 
     def test_image_defers_device_identity_until_first_boot(self) -> None:
@@ -152,6 +160,7 @@ class ImageBuilderTests(unittest.TestCase):
         self.assertIn("import websockets", stage)
         self.assertIn("tater-sat1-audio-hardware", stage)
         self.assertIn("tater-sat1-xmos-firmware", stage)
+        self.assertIn("sat1_xmos_1_2_0_dev13_factory.bin", stage)
         self.assertIn("sat1_xmos_1_2_0_dev8_factory.bin", stage)
         self.assertIn("tater-sat1-xmos.service", stage)
         packages = (

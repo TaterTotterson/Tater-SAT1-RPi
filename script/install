@@ -254,7 +254,11 @@ run "${PYTHON_BIN}" "${APPLIANCE_ROOT}/script/configure-action-button"
 run install -m 0644 "${PROJECT_DIR}/config/99-tater-sat1-i2c.rules" "${APPLIANCE_ROOT}/config/99-tater-sat1-i2c.rules"
 run install -m 0644 "${PROJECT_DIR}/config/satellite1-init.conf" "${APPLIANCE_ROOT}/config/satellite1-init.conf"
 run install -m 0644 "${PROJECT_DIR}/config/bluez-dbus.conf" "${APPLIANCE_ROOT}/config/bluez-dbus.conf"
-# Selected IC-enabled image. Keep both previous image paths below for older OTA verifiers.
+# Selected four-mic AEC/speech-tracking image. Keep all previous paths for older OTA verifiers.
+run install -m 0644 \
+  "${PROJECT_DIR}/firmware/xmos/sat1_xmos_1_2_0_dev13_factory.bin" \
+  "${XMOS_FIRMWARE_DIR}/sat1_xmos_1_2_0_dev13_factory.bin"
+# v0.1.19-v0.1.21 verifiers require this previous calibrated-beam image.
 run install -m 0644 \
   "${PROJECT_DIR}/firmware/xmos/sat1_xmos_1_2_0_dev8_factory.bin" \
   "${XMOS_FIRMWARE_DIR}/sat1_xmos_1_2_0_dev8_factory.bin"
